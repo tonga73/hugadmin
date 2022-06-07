@@ -1,0 +1,27 @@
+.loginGrid {
+  @apply min-h-screen w-full;
+  @apply grid grid-cols-12 items-center;
+  @apply bg-slate-200;
+}
+
+.formContainer {
+  @apply col-span-3 col-start-2 flex items-center justify-center;
+}
+
+.loginForm {
+  @apply w-full grid grid-rows-4 gap-1;
+}
+
+.loginForm > input {
+  @apply text-xl;
+  @apply p-3;
+  @apply rounded-sm;
+}
+
+.loginForm > button {
+  @apply row-end-5;
+  @apply text-white uppercase font-bold;
+  @apply p-3;
+  @apply rounded-sm;
+  @apply bg-purple-700;
+}

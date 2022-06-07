@@ -52,7 +52,7 @@ export function Dashboard({}) {
         mode !== "full-screen"
           ? styles.dashboardGrid
           : styles.dashboardGridFullscreen
-      } dark:bg-slate-900`}
+      } dark:bg-slate-800`}
     >
       <div
         className={`${
@@ -87,7 +87,7 @@ export function Dashboard({}) {
       <div
         className={`${
           mode !== "full-screen" ? styles.dashboard : styles.dashboardFullscreen
-        } dark:bg-slate-800`}
+        } dark:bg-slate-900`}
       >
         <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
       </div>

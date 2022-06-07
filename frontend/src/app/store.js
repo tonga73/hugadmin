@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import counterReducer from "../features/counter/counterSlice";
+import userBarReducer from "../features/userBar/userBarSlice";
 
 import { loadState, saveState } from "./localStorage";
 
 const reducer = {
-  counter: counterReducer,
+  userBar: userBarReducer,
 };
 
 const persistedState = loadState();
