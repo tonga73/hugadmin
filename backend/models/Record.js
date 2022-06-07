@@ -6,6 +6,7 @@ const recordSchema = mongoose.Schema(
       type: String,
       trim: true,
       required: true,
+      unique: true,
     },
     cover: {
       type: String,
@@ -30,19 +31,13 @@ const recordSchema = mongoose.Schema(
       default: "Acepta cargo",
     },
     location: {
-      type: String,
-      enum: ["San Vicente", "Oberá", "Leandro N. Alem", "25 de Mayo"],
-      default: "Oberá",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
     },
     priority: {
       type: String,
       enum: ["Inactivo", "Nula", "Baja", "Media", "Alta", "Urgente"],
       default: "Nula",
-    },
-    court: {
-      type: String,
-      enum: ["Civil", "Laboral", "Familia", "Universal"],
-      default: "Juzgado Civil",
     },
   },
   {
