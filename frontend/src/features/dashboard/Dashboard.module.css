@@ -1,0 +1,32 @@
+.dashboardGrid {
+  @apply min-h-screen;
+  @apply grid grid-cols-12;
+  @apply pt-3 pb-2 pr-2;
+  @apply bg-slate-200;
+}
+
+.dashboardGridFullscreen {
+  @apply min-h-screen;
+  @apply grid grid-cols-12;
+}
+
+.dashboard {
+  @apply col-span-9 col-end-13;
+  @apply rounded-sm;
+  @apply bg-slate-100;
+  @apply shadow-md shadow-slate-400;
+}
+
+.dashboardFullscreen {
+  @apply col-span-12 col-end-13;
+  @apply bg-slate-100;
+}
+
+.dashboardAside {
+  @apply col-span-3;
+  @apply overflow-hidden;
+}
+
+.dashboardAsideFullscreen {
+  @apply hidden;
+}
