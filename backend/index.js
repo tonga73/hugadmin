@@ -8,6 +8,7 @@ import conectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import recordRoutes from "./routes/recordRoutes.js";
 import tracingRoutes from "./routes/tracingRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use(cors());
 app.use("/api/users", userRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/tracings", tracingRoutes);
+app.use("/api/location", locationRoutes);
 
 const hostname = "127.0.0.1";
 const PORT = process.env.PORT || 4000;

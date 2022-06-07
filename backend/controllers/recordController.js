@@ -10,9 +10,7 @@ const getRecords = async (req, res) => {
 const newRecord = async (req, res) => {
   const record = new Record(req.body);
 
-  if (req.body.tracing) {
-    record.tracing = null;
-  }
+  record.author = req.user._id;
 
   try {
     const storedRecord = await record.save();
@@ -54,7 +52,6 @@ const editRecord = async (req, res) => {
   record.status = req.body.status || record.status;
   record.location = req.body.location || record.location;
   record.priority = req.body.priority || record.priority;
-  record.court = req.body.court || record.court;
 
   try {
     const storedRecord = await record.save();

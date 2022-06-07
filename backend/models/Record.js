@@ -30,15 +30,25 @@ const recordSchema = mongoose.Schema(
       ],
       default: "Acepta cargo",
     },
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Location",
-    },
     priority: {
       type: String,
       enum: ["Inactivo", "Nula", "Baja", "Media", "Alta", "Urgente"],
       default: "Nula",
     },
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+    },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    collaborators: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

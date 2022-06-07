@@ -11,7 +11,7 @@ const locationSchema = mongoose.Schema(
     court: {
       type: String,
       enum: ["Civil", "Laboral", "Familia", "Universal"],
-      default: "Juzgado Civil",
+      default: "Civil",
     },
   },
   {
