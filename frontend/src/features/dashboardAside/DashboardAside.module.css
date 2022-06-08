@@ -1,0 +1,8 @@
+.dashboardAside {
+  @apply h-full overflow-hidden;
+  @apply col-span-3;
+}
+
+.dashboardAsideFullscreen {
+  @apply hidden;
+}

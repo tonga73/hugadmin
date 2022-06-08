@@ -1,29 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useForm } from "react-hook-form";
+
+import { login } from "../loginSlice";
 
 import { LockClosedIcon } from "@heroicons/react/solid";
 
 import styles from "../Login.module.css";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+  const onSubmit = (data) => dispatch(login(data));
 
   return (
     <>
-      <form className={styles.loginForm} action="">
+      <form className={styles.loginForm} onSubmit={handleSubmit(onSubmit)}>
         <input
           className={styles.emailInput}
-          type="text"
+          type="email"
           placeholder="correo@de.registro"
+          {...register("email", { required: true })}
         />
         <input
           className={styles.passwordInput}
           type="password"
           placeholder="Password"
+          {...register("password", { required: true })}
         />
-        <button type="submit" className={styles.submitButton}>
-          Iniciar Sesion
-        </button>
+        {(errors.email || errors.password) && (
+          <span>Este campo es requerido</span>
+        )}
+        <input
+          type="submit"
+          className={styles.submitButton}
+          value="Iniciar Sesión"
+        />
       </form>
     </>
   );

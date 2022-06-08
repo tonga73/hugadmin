@@ -21,12 +21,3 @@
   @apply col-span-12 col-end-13;
   @apply bg-slate-100;
 }
-
-.dashboardAside {
-  @apply col-span-3;
-  @apply overflow-hidden;
-}
-
-.dashboardAsideFullscreen {
-  @apply hidden;
-}

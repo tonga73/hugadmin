@@ -6,10 +6,18 @@ import { store } from "./app/store";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
+import { saveState } from "./app/localStorage";
+
 import "./index.css";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
+
+store.subscribe(() => {
+  saveState({
+    userBar: store.getState().userBar,
+  });
+});
 
 root.render(
   <React.StrictMode>

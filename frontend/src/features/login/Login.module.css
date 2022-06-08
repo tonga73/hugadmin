@@ -18,7 +18,7 @@
   @apply rounded-sm;
 }
 
-.loginForm > button {
+.loginForm > input[type="submit"] {
   @apply row-end-5;
   @apply text-white uppercase font-bold;
   @apply p-3;

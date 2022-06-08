@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-import { UserBar } from "../userBar/UserBar";
 import { DashboardAside } from "../dashboardAside/DashboardAside";
 import { DashboardTopBar } from "../dashboardTopBar/DashboardTopBar";
-
-import { Transition } from "@headlessui/react";
-
-import { ArrowsExpandIcon, BackspaceIcon } from "@heroicons/react/outline";
 
 import styles from "./Dashboard.module.css";
 
@@ -33,15 +28,6 @@ export function Dashboard({}) {
     }
   }
 
-  function toggleStyles(value) {
-    if (mode === "full-screen") {
-      return "Fullscreen" + value;
-    }
-    if (mode === "list-records") {
-      return value;
-    }
-  }
-
   useEffect(() => {
     setIsShowing(true);
   }, [isShowing]);
@@ -54,36 +40,7 @@ export function Dashboard({}) {
           : styles.dashboardGridFullscreen
       } dark:bg-slate-800`}
     >
-      <div
-        className={`${
-          mode !== "full-screen"
-            ? styles.dashboardAside
-            : styles.dashboardAsideFullscreen
-        } dark:text-slate-200`}
-      >
-        <Transition show={isShowing}>
-          <Transition.Child
-            enter="transition ease-in-out duration-1000 transform"
-            enterFrom="-translate-y-full"
-            enterTo="translate-y-0"
-            leave="transition ease-in-out duration-1000 transform"
-            leaveFrom="translate-y-0"
-            leaveTo="-translate-y-full"
-          >
-            <UserBar onClick={toggleSettings} mode={mode} />
-          </Transition.Child>
-          <Transition.Child
-            enter="transition-opacity duration-1000"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity duration-1000"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <DashboardAside mode={mode} />
-          </Transition.Child>
-        </Transition>
-      </div>
+      <DashboardAside onClick={toggleSettings} mode={mode} />
       <div
         className={`${
           mode !== "full-screen" ? styles.dashboard : styles.dashboardFullscreen

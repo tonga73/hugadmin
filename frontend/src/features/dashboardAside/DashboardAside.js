@@ -1,43 +1,43 @@
 import React, { useState, useEffect } from "react";
 
+import { UserBar } from "../userBar/UserBar";
 import { Records } from "../records/Records";
 import { UserSettings } from "../userSettings/UserSettings";
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
 import { Transition } from "@headlessui/react";
 
+import styles from "./DashboardAside.module.css";
+
 export function DashboardAside(props) {
   const [isShowing, setIsShowing] = useState(true);
   const mode = props.mode;
+  const onClick = props.onClick;
 
-  if (mode === "settings-menu") {
+  function AsideContent() {
+    if (mode === "settings-menu") {
+      return (
+        <>
+          <UserSettings />
+        </>
+      );
+    }
     return (
-      <Transition.Child
-        enter="transition-opacity duration-1000"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-1000"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <UserSettings />
-      </Transition.Child>
+      <>
+        <Records />
+      </>
     );
   }
+
   return (
-    <Transition
-      appear={true}
-      show={mode !== "settings-menu"}
-      enter="transition-opacity duration-1000"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transition-opacity duration-1000"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
+    <div
+      className={`${
+        mode !== "full-screen"
+          ? styles.dashboardAside
+          : styles.dashboardAsideFullscreen
+      } dark:text-slate-200`}
     >
-      <div className="px-5 py-3">
-        <RecordsFiltersBar />
-        <Records />
-      </div>
-    </Transition>
+      <UserBar onClick={onClick} mode={mode} />
+      <AsideContent />
+    </div>
   );
 }
