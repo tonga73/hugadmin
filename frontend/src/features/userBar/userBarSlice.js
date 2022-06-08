@@ -35,4 +35,6 @@ export const { userLogOut } = userBarSlice.actions;
 
 export const loginStatus = (state) => state.userBar.isLoggedIn;
 
+export const currentUser = (state) => state.userBar.user;
+
 export default userBarSlice.reducer;

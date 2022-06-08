@@ -48,10 +48,12 @@ function App() {
       <Route element={<ProtectedRoute user={useSelector(loginStatus)} />}>
         <Route path="/" element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="*" exact={true} element={<Login />} />
       </Route>
       <Route element={<PublicRoute user={useSelector(loginStatus)} />}>
         <Route path="login" element={<Login />}>
           <Route index element={<LoginForm />} />
+          <Route path="*" exact={true} element={<Login />} />
         </Route>
       </Route>
     </Routes>

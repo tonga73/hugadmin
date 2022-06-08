@@ -8,6 +8,7 @@ import styles from "./UserBar.module.css";
 export function UserBar(props) {
   const onClick = props.onClick;
   const mode = props.mode;
+  const user = props.user;
   const [isShowing, setIsShowing] = useState(true);
 
   function SettingsToggleButtons() {
@@ -21,7 +22,7 @@ export function UserBar(props) {
     if (mode === "settings-menu") {
       return "Configuración";
     }
-    return "Maikel";
+    return user.name;
   }
 
   return (
