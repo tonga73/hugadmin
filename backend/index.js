@@ -18,23 +18,23 @@ dotenv.config();
 conectDB();
 
 // Configurar CORS con WHITELIST
-// const whitelist = ["http://localhost:3000", "http://localhost"];
+const whitelist = ["http://localhost:3000", "http://localhost"];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     console.log(origin);
-//     if (whitelist.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Error de CORS"));
-//     }
-//   },
-// };
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log(origin);
+    if (whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Error de CORS"));
+    }
+  },
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 // CORS BYPASS
-app.use(cors());
+// app.use(cors());
 
 // Routing
 app.use("/api/users", userRoutes);
