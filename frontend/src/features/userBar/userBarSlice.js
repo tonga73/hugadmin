@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 import { login } from "../login/loginSlice";
 
@@ -33,8 +33,8 @@ export const userBarSlice = createSlice({
 
 export const { userLogOut } = userBarSlice.actions;
 
-export const loginStatus = (state) => state.userBar.isLoggedIn;
+export const selectLogIn = (state) => state.userBar.isLoggedIn;
 
-export const currentUser = (state) => state.userBar.user;
+export const selectUser = (state) => state.userBar.user;
 
 export default userBarSlice.reducer;

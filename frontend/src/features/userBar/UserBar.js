@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 import { Transition } from "@headlessui/react";
 import { CogIcon, XIcon } from "@heroicons/react/outline";
@@ -9,7 +9,7 @@ export function UserBar(props) {
   const onClick = props.onClick;
   const mode = props.mode;
   const user = props.user;
-  const [isShowing, setIsShowing] = useState(true);
+  const isShowing = true;
 
   function SettingsToggleButtons() {
     if (mode === "settings-menu") {

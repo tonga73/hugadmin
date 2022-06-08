@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
 
@@ -8,7 +8,7 @@ import { logout } from "../userBar/userBarSlice";
 import { UserSettingsThemeSelector } from "../userSettingsThemeSelector/UserSettingsThemeSelector";
 
 export function UserSettings() {
-  const [isShowing, setIsShowing] = useState(true);
+  const isShowing = true;
   const dispatch = useDispatch();
 
   function logOut() {

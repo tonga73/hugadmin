@@ -12,8 +12,7 @@ export const login = createAsyncThunk(
   async (user, { rejectWithValue }) => {
     const response = await fetchLogin(user);
 
-    if (response.status == "error") {
-      console.log(response.msg);
+    if (response.status === "error") {
       return rejectWithValue(response.msg);
     }
 

@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 
-import { currentUser } from "../userBar/userBarSlice";
+import { selectUser } from "../userBar/userBarSlice";
 
 import { UserBar } from "../userBar/UserBar";
 import { Records } from "../records/Records";
 import { UserSettings } from "../userSettings/UserSettings";
-import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
-import { Transition } from "@headlessui/react";
 
 import styles from "./DashboardAside.module.css";
 
 export function DashboardAside(props) {
-  const [isShowing, setIsShowing] = useState(true);
-  const [user, setUser] = useState(useSelector(currentUser));
+  const user = useSelector(selectUser);
   const mode = props.mode;
   const onClick = props.onClick;
 

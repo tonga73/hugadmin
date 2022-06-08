@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
 import { login } from "../loginSlice";
-
-import { LockClosedIcon } from "@heroicons/react/solid";
 
 import styles from "../Login.module.css";
 
@@ -13,7 +11,6 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => dispatch(login(data));
