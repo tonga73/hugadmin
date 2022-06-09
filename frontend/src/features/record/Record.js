@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 
 import { getRecord, selectRecord } from "./recordSlice";
 
-import { Tracings } from "../tracings/Tracings";
+import { Tracing } from "../tracing/Tracing";
 
 import { PrioritySelect } from "./selectInputs/PrioritySelect";
 import { StatusSelect } from "./selectInputs/StatusSelect";
@@ -73,7 +73,7 @@ export function Record() {
         {showRecord()}
       </form>
       <div className={styles.recordTracings}>
-        <Tracings />
+        <Tracing record={record} />
       </div>
     </div>
   );

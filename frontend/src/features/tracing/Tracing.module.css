@@ -1,0 +1,11 @@
+.tracingsGrid {
+  @apply grid grid-cols-10 gap-1;
+}
+
+.addTracingButton {
+  @apply p-1 rounded-sm translate-y-1 hover:translate-y-0 transition-transform;
+}
+
+.addTracingButton > svg {
+  @apply fill-slate-300 h-5 w-5;
+}

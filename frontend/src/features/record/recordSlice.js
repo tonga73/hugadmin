@@ -32,7 +32,7 @@ export const recordSlice = createSlice({
       .addCase(getRecord.fulfilled, (state, action) => {
         state.status = "success";
         state.record = action.payload.record;
-        state.tracings = action.payload.tracings;
+        state.tracings = action.payload.tracings.reverse();
       })
       .addCase(getRecord.rejected, (state, action) => {
         state.status = "error";
@@ -42,5 +42,7 @@ export const recordSlice = createSlice({
 });
 
 export const selectRecord = (state) => state.record.record;
+
+export const selectTracings = (state) => state.record.tracings;
 
 export default recordSlice.reducer;

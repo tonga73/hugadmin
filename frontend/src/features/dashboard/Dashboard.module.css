@@ -1,5 +1,5 @@
 .dashboardGrid {
-  @apply min-h-screen mx-auto container;
+  @apply min-h-screen overflow-hidden mx-auto container;
   @apply grid grid-cols-12;
   @apply pt-3 pb-2 pr-2;
   @apply bg-slate-200;
