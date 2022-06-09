@@ -18,11 +18,26 @@ export function Records() {
   const ListRecords = ({ records }) => {
     return records.map((record) => (
       <div
-        className="py-3 grid grid-flow-col my-3 shadow-lg shadow-slate-700 border-t border-t-slate-700 text-md"
+        className="grid grid-rows-3 my-3 rounded-tl-xl bg-slate-800 shadow-sm shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform"
         key={record._id}
       >
-        <span>{record.order} |</span>
-        <span> {record.cover}</span>
+        <div className="grid grid-cols-7 pl-2.5">
+          <span className="fixed">
+            <span class="flex h-3 w-3  relative right-3.5">
+              <span class="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+            </span>
+          </span>
+          <span className="col-span-3 text-left text-lg tracking-wider">
+            {record.order}
+          </span>
+          <span className="col-span-4 text-right bg-neutral-900 pr-2">
+            {record.status}
+          </span>
+        </div>
+        <span className="row-span-2 flex items-center px-2 text-lg font-semibold truncate bg-slate-900">
+          {record.cover}
+        </span>
       </div>
     ));
   };
