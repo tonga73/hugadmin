@@ -1,5 +1,6 @@
 import Record from "../models/Record.js";
 import Tracing from "../models/Tracing.js";
+import Location from "../models/Location.js";
 
 const getRecords = async (req, res) => {
   const records = await Record.find().where("author").equals(req.user);
@@ -32,6 +33,15 @@ const getRecord = async (req, res) => {
 
   // Obtener los Seguimientos del Expediente
   const tracings = await Tracing.find().where("record").equals(record._id);
+
+  // Obtener la Ubicacion del Expediente
+  const location = await Location.findOne()
+    .where("_id")
+    .equals(record.location);
+
+  record.location = location;
+
+  console.log(record);
 
   res.json({ record, tracings });
 };
