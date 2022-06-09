@@ -28,10 +28,10 @@ export function UserSettings() {
       leaveTo="opacity-0"
     >
       <UserSettingsThemeSelector />
-      <div className="row-span-1 row-end-5">
+      <div className="row-span-1 row-end-5 px-5">
         <button
           onClick={logOut}
-          className="w-full py-3 bg-purple-700 text-slate-100 uppercase font-bold"
+          className="w-full py-3 bg-transparent text-slate-100 border opacity-50 hover:opacity-100 uppercase font-bold"
         >
           Cerrar Sesión
         </button>

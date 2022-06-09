@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 
-import { addTracing } from "./tracingSlice";
+import { addTracing, removeTracing } from "./tracingSlice";
 import { getRecord, selectRecord, selectTracings } from "../record/recordSlice";
 
 import {
@@ -45,6 +45,7 @@ export function Tracing(props) {
       case "success" && comment:
         dispatch(addTracing(tracing));
         setMode(mode);
+        reset();
       default:
         return;
     }
@@ -116,16 +117,22 @@ export function Tracing(props) {
   };
 
   const ListTracings = (tracings) => {
+    const handleRemove = (tracing) => {
+      dispatch(removeTracing(tracing._id));
+    };
     return tracings.map((tracing) => (
       <li
         key={tracing._id}
         className="p-3 font-semibold text-right dark:text-slate-200 dark:bg-slate-700 dark:bg-opacity-40"
       >
         {tracing.comment}
-        <div className="relative bottom-2">
+        <div className="relative bottom-1">
           <div className="absolute grid grid-flow-col h-6 w-12 ">
             <div className="grid grid-flow-col gap-x-1">
               <button
+                onClick={() => {
+                  handleRemove(tracing);
+                }}
                 type="submit"
                 form="addNewTracing"
                 className="p-1 rounded-sm hover:translate-y-0.5 opacity-50 hover:opacity-100 transition-all text-slate-200 bg-slate-900 bg-opacity-70 hover:bg-red-800 hover:bg-opacity-100"

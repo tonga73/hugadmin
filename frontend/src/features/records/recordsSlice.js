@@ -24,6 +24,9 @@ export const recordsSlice = createSlice({
   name: "records",
   initialState,
   reducers: {
+    setRecordsStatus: (state, action) => {
+      state.status = action.payload;
+    },
     decrement: (state) => {
       state.value -= 1;
     },
@@ -43,6 +46,10 @@ export const recordsSlice = createSlice({
       });
   },
 });
+
+export const { setRecordsStatus } = recordsSlice.actions;
+
+export const selectRecordsStatus = (state) => state.records.status;
 
 export const selectRecords = (state) => state.records.records;
 

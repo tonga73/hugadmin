@@ -1,5 +1,5 @@
 .dashboardAside {
-  @apply h-full overflow-hidden;
+  @apply h-5/6 overflow-hidden;
   @apply col-span-3;
 }
 

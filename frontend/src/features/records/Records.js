@@ -3,17 +3,25 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
 
-import { getRecords, selectRecords } from "./recordsSlice";
+import {
+  getRecords,
+  selectRecords,
+  selectRecordsStatus,
+  setRecordsStatus,
+} from "./recordsSlice";
 import { selectUser } from "../userBar/userBarSlice";
+
+import { Spinner } from "../../commons/spinner/Spinner";
 
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
 
 export function Records() {
-  const dispatch = useDispatch();
-
   const isShowing = true;
 
+  const dispatch = useDispatch();
   const allRecords = useSelector(selectRecords);
+
+  const recordsStatus = useSelector(selectRecordsStatus);
 
   const ListRecords = ({ records }) => {
     return records.map((record) => (
@@ -46,6 +54,9 @@ export function Records() {
     dispatch(getRecords());
   }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(setRecordsStatus(""));
+  }, [recordsStatus === "success"]);
   return (
     <Transition
       className="h-full text-center py-8 px-5"
@@ -59,7 +70,15 @@ export function Records() {
       leaveTo="opacity-0"
     >
       <RecordsFiltersBar records={allRecords} />
-      {ListRecords({ records: allRecords })}
+
+      {recordsStatus === "loading" && (
+        <div className="py-36">
+          <Spinner />
+        </div>
+      )}
+      {recordsStatus !== "loading" && (
+        <>{ListRecords({ records: allRecords })}</>
+      )}
     </Transition>
   );
 }

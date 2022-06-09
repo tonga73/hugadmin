@@ -2,7 +2,13 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
-import { getRecord, selectRecord } from "./recordSlice";
+import {
+  getRecord,
+  selectRecord,
+  selectRecordStatus,
+  setRecordStatus,
+} from "./recordSlice";
+import { selectTracingStatus, setTracingStatus } from "../tracing/tracingSlice";
 
 import { Tracing } from "../tracing/Tracing";
 
@@ -14,6 +20,8 @@ import styles from "./Record.module.css";
 export function Record() {
   const dispatch = useDispatch();
   const record = useSelector(selectRecord);
+  const tracingStatus = useSelector(selectTracingStatus);
+  const recordStatus = useSelector(selectRecordStatus);
 
   const {
     register,
@@ -66,7 +74,12 @@ export function Record() {
 
   useEffect(() => {
     dispatch(getRecord("629fae9a12c6dd15c4acb8f9"));
-  }, []);
+    dispatch(setTracingStatus(""));
+  }, [tracingStatus === "success"]);
+
+  useEffect(() => {
+    dispatch(setRecordStatus(""));
+  }, [recordStatus === "success"]);
   return (
     <div className={styles.recordGrid}>
       <form className={`${styles.recordInfo} dark:text-slate-300`}>
