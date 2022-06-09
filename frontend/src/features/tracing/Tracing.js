@@ -151,13 +151,11 @@ export function Tracing(props) {
       <div className="col-span-1">
         {addTracingButton({ styles: styles.addTracingButton })}
       </div>
-      <div className="col-span-9">
+      <div className="col-span-9 grid items-center">
         <span className={`${mode === "creating" ? "" : "hidden"}`}>
           {newTracing({ styles: styles.addTracingButton })}
         </span>
-        <ul className="grid px-1 gap-3 overflow-y-clip max-h-96">
-          {ListTracings(tracings)}
-        </ul>
+        <ul className="grid px-1 gap-3">{ListTracings(tracings)}</ul>
       </div>
     </div>
   );

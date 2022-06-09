@@ -1,6 +1,6 @@
 .recordGrid {
   @apply h-full;
-  @apply grid grid-cols-3 gap-3;
+  @apply grid grid-cols-3 gap-3 overflow-hidden;
   @apply p-3;
 }
 

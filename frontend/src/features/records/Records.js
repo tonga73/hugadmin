@@ -22,7 +22,7 @@ export function Records() {
         key={record._id}
       >
         <div className="grid grid-cols-7 pl-2.5">
-          <span className="fixed">
+          <span className="absolute">
             <span className="flex h-3 w-3  relative right-3.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>

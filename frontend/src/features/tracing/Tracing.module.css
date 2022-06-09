@@ -1,5 +1,5 @@
 .tracingsGrid {
-  @apply grid grid-cols-10 gap-1;
+  @apply grid grid-cols-10 gap-1 max-h-full;
 }
 
 .addTracingButton {
