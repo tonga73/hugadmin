@@ -1,5 +1,5 @@
 .dashboardGrid {
-  @apply min-h-screen;
+  @apply min-h-screen mx-auto container;
   @apply grid grid-cols-12;
   @apply pt-3 pb-2 pr-2;
   @apply bg-slate-200;
@@ -18,6 +18,6 @@
 }
 
 .dashboardFullscreen {
-  @apply col-span-12 col-end-13;
+  @apply fixed bottom-0 top-0 right-0 left-0;
   @apply bg-slate-100;
 }
