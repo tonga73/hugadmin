@@ -23,9 +23,9 @@ export function Records() {
       >
         <div className="grid grid-cols-7 pl-2.5">
           <span className="fixed">
-            <span class="flex h-3 w-3  relative right-3.5">
-              <span class="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+            <span className="flex h-3 w-3  relative right-3.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
             </span>
           </span>
           <span className="col-span-3 text-left text-lg tracking-wider">
