@@ -1,8 +1,9 @@
 import { axiosClient } from "../../app/axiosClient";
 
-export function fetchRecords() {
+export function fetchRecord(req) {
+  const id = req;
   return axiosClient
-    .get("/records")
+    .get(`/records/${id}`)
     .then(({ data }) => {
       return data;
     })

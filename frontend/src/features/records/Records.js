@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
 
-import { getRecords, records } from "./recordsSlice";
+import { getRecords, selectRecords } from "./recordsSlice";
 import { selectUser } from "../userBar/userBarSlice";
 
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
@@ -13,16 +13,23 @@ export function Records() {
 
   const isShowing = true;
 
-  const { token } = useSelector(selectUser);
-  const allRecords = useSelector(records);
+  const allRecords = useSelector(selectRecords);
 
   const ListRecords = ({ records }) => {
-    return records.map((record) => <div key={record._id}>{record.cover}</div>);
+    return records.map((record) => (
+      <div
+        className="py-3 grid grid-flow-col my-3 shadow-lg shadow-slate-700 border-t border-t-slate-700 text-md"
+        key={record._id}
+      >
+        <span>{record.order} |</span>
+        <span> {record.cover}</span>
+      </div>
+    ));
   };
 
   useEffect(() => {
-    dispatch(getRecords(token));
-  }, [dispatch, token]);
+    dispatch(getRecords());
+  }, [dispatch]);
 
   return (
     <Transition
@@ -37,9 +44,7 @@ export function Records() {
       leaveTo="opacity-0"
     >
       <RecordsFiltersBar records={allRecords} />
-      Records aqui
       {ListRecords({ records: allRecords })}
-      {/* <ListRecords records={allRecords} /> */}
     </Transition>
   );
 }

@@ -23,6 +23,11 @@ export const getRecords = createAsyncThunk(
 export const recordsSlice = createSlice({
   name: "records",
   initialState,
+  reducers: {
+    decrement: (state) => {
+      state.value -= 1;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getRecords.pending, (state) => {
@@ -39,6 +44,11 @@ export const recordsSlice = createSlice({
   },
 });
 
-export const records = (state) => state.records.records;
+export const selectRecords = (state) => state.records.records;
+
+export const getRecord = (record) => (dispatch, getState) => {
+  const records = selectRecords(getState());
+  console.log(record);
+};
 
 export default recordsSlice.reducer;
