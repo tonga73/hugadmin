@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import { selectUser } from "../userBar/userBarSlice";
@@ -12,6 +12,7 @@ import styles from "./DashboardAside.module.css";
 export function DashboardAside(props) {
   const user = useSelector(selectUser);
   const mode = props.mode;
+  const [recordsMode, setRecordsMode] = useState({ ...props.recordsMode });
   const onClick = props.onClick;
 
   function AsideContent() {

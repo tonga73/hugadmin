@@ -11,6 +11,7 @@ import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
   const [mode, setMode] = useState("list-records");
+  const [recordsMode, setRecordsMode] = useState("");
 
   const [isShowing, setIsShowing] = useState(false);
 

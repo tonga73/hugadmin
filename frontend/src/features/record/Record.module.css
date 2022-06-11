@@ -10,26 +10,25 @@
   @apply text-slate-900;
 }
 
+.recordInfoCreate {
+  @apply recordInfo;
+}
+
 .recordInfo input {
   @apply appearance-none bg-transparent;
-  @apply px-1;
+  @apply py-1.5 px-3;
 }
 
-.recordInfo > input[id="order"] {
-  @apply text-3xl;
-  @apply font-bold;
-}
-
-.recordInfo > input[id="cover"] {
-  @apply text-4xl;
-  @apply font-thin;
+.recordInfoCreate input {
+  @apply bg-slate-800;
 }
 
 .recordInfo > span {
   @apply flex gap-x-3;
 }
 
-.recordInfo > span > input[id="status"] {
+.recordInfo > span > input[id="status"],
+.recordInfo > span > div {
   @apply w-1/2;
   @apply text-xl;
 }

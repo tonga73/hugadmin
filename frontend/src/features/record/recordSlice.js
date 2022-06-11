@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { fetchRecord } from "./recordAPI";
+import { fetchGetRecord, fetchAddRecord } from "./recordAPI";
+
+import { store } from "../../app/store";
 
 const initialState = {
   status: "",
@@ -9,9 +11,11 @@ const initialState = {
 };
 
 export const getRecord = createAsyncThunk(
-  "record/fetchRecord",
-  async (recordId, { rejectWithValue }) => {
-    const response = await fetchRecord(recordId);
+  "record/fetchGetRecord",
+  async (recordId, { rejectWithValue, useSelector }) => {
+    const response = await fetchGetRecord(
+      recordId || store.getState().records.records[0]._id
+    );
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);
@@ -21,12 +25,25 @@ export const getRecord = createAsyncThunk(
   }
 );
 
+export const addRecord = createAsyncThunk(
+  "record/fetchAddRecord",
+  async (record, { rejectWithValue }) => {
+    const response = await fetchAddRecord(record);
+
+    if (response.status === "error") {
+      return rejectWithValue(response.msg);
+    }
+    console.log(response);
+  }
+);
+
 export const recordSlice = createSlice({
   name: "record",
   initialState,
   reducers: {
-    setRecordStatus: (state, action) => {
-      state.status = action.payload;
+    setRecord: (state, action) => {
+      state.status = action.payload.status;
+      state.record = action.payload.record || state.record;
     },
     updateTracings: (state, action) => {
       state.tracings = action.payload;
@@ -49,7 +66,7 @@ export const recordSlice = createSlice({
   },
 });
 
-export const { updateTracings, setRecordStatus } = recordSlice.actions;
+export const { updateTracings, setRecord } = recordSlice.actions;
 
 export const selectRecordStatus = (state) => state.record.status;
 

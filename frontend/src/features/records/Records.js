@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
@@ -19,8 +19,8 @@ export function Records() {
   const isShowing = true;
 
   const dispatch = useDispatch();
-  const allRecords = useSelector(selectRecords);
 
+  const allRecords = useSelector(selectRecords);
   const recordsStatus = useSelector(selectRecordsStatus);
 
   const ListRecords = ({ records }) => {
