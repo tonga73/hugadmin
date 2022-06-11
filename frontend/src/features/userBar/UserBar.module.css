@@ -5,7 +5,7 @@
 
 .userBarTitle {
   @apply col-span-4;
-  @apply text-3xl font-thin;
+  @apply text-3xl font-light;
 }
 
 .userBarSettings {

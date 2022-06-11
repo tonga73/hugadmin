@@ -1,18 +1,20 @@
 import React from "react";
 
+import { ClipboardButton } from "../../../commons/buttons/clipboardButton/ClipboardButton";
+
 import { SearchIcon } from "@heroicons/react/solid";
 
 export const RecordFormInputText = React.forwardRef(
   (
     {
       defaultValue,
-      selectOptions,
       onChange,
       onBlur,
       name,
       disabled,
       styles,
       placeHolder,
+      clipboard,
     },
     ref
   ) => (
@@ -37,6 +39,7 @@ export const RecordFormInputText = React.forwardRef(
           </div>
         </div>
       )} */}
+      <ClipboardButton value={defaultValue} />
     </div>
   )
 );

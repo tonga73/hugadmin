@@ -91,7 +91,7 @@ export function Tracing(props) {
         <form
           id="addNewTracing"
           onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-12 gap-x-1 scale-95 mb-3"
+          className="grid grid-cols-12 gap-x-1 scale-95 mb-3  max-w-xs overflow-y-hidden"
         >
           <input
             autoComplete="off"
@@ -123,10 +123,10 @@ export function Tracing(props) {
     return tracings.map((tracing) => (
       <li
         key={tracing._id}
-        className="p-3 font-semibold text-right dark:text-slate-200 dark:bg-slate-700 dark:bg-opacity-40"
+        className="pb-5 pt-3 px-3 font-semibold text-right dark:text-slate-200 dark:bg-slate-700 dark:bg-opacity-40"
       >
         {tracing.comment}
-        <div className="relative bottom-1">
+        <div className="relative -bottom-1">
           <div className="absolute grid grid-flow-col h-6 w-12 ">
             <div className="grid grid-flow-col gap-x-1">
               <button

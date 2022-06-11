@@ -1,6 +1,6 @@
 .dashboardTopBar {
   @apply grid grid-cols-12 items-center px-3;
-  @apply border-b border-b-slate-400 border-opacity-50;
+  @apply border-b border-b-slate-700 border-opacity-50;
 }
 
 .dashboardTopBar button {

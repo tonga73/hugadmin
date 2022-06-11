@@ -18,6 +18,6 @@
 }
 
 .dashboardFullscreen {
-  @apply fixed bottom-0 top-0 right-0 left-0 overflow-scroll h-full pb-7;
+  @apply fixed bottom-0 top-0 right-0 left-0 overflow-clip h-full pb-7;
   @apply bg-slate-100;
 }

@@ -98,7 +98,7 @@ export function Record() {
           <RecordFormSelect
             disabled={recordStatus === ""}
             selectOptions={selectContentType("location")}
-            defaultValue={locations[0].name}
+            defaultValue={`olis`}
             {...register("location")}
           />
         </>

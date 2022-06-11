@@ -37,9 +37,7 @@ export function UserBar(props) {
       leaveTo="-translate-y-full"
     >
       <div className={styles.userBarGrid}>
-        <div className={styles.userBarTitle}>
-          <UserBarTitle />
-        </div>
+        <div className={styles.userBarTitle}>{UserBarTitle()}</div>
         <div className={styles.userBarSettings}>
           <button onClick={onClick} type="button">
             <SettingsToggleButtons />

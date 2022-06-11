@@ -90,7 +90,7 @@ export function DashboardTopBar(props) {
               }}
               type="submit"
               form="addNewRecordForm"
-              className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 dark:text-red-700 border-red-700 border opacity-50  hover:opacity-100 transition-opacity`}
+              className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 dark:text-slate-600 border-slate-600 border opacity-50  hover:opacity-100 transition-opacity`}
             >
               Cancelar
               <XIcon className="h-5 w-5" />
