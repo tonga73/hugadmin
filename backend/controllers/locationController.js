@@ -1,6 +1,12 @@
 import Location from "../models/Location.js";
 import Record from "../models/Record.js";
 
+const getLocations = async (req, res) => {
+  const locations = await Location.find({});
+
+  res.json(locations);
+};
+
 const newLocation = async (req, res) => {
   const location = new Location(req.body);
 
@@ -28,4 +34,4 @@ const getLocation = async (req, res) => {
   console.log(location);
 };
 
-export { newLocation, getLocation };
+export { getLocations, newLocation, getLocation };

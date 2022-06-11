@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { fetchGetRecord, fetchAddRecord } from "./recordAPI";
+import { fetchGetRecord, fetchAddRecord, fetchEditRecord } from "./recordAPI";
 
 import { store } from "../../app/store";
 
@@ -26,6 +26,18 @@ export const getRecord = createAsyncThunk(
 );
 
 export const addRecord = createAsyncThunk(
+  "record/fetchEditRecord",
+  async (record, { rejectWithValue }) => {
+    const response = await fetchAddRecord(record);
+
+    if (response.status === "error") {
+      return rejectWithValue(response.msg);
+    }
+    console.log(response);
+  }
+);
+
+export const editRecord = createAsyncThunk(
   "record/fetchAddRecord",
   async (record, { rejectWithValue }) => {
     const response = await fetchAddRecord(record);

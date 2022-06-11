@@ -16,6 +16,10 @@ const tracingSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    important: {
+      type: Boolean,
+      default: false,
+    },
     record: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Record",

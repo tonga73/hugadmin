@@ -3,13 +3,18 @@ import React from "react";
 import { ArrowDownIcon } from "@heroicons/react/solid";
 
 export const RecordFormSelect = React.forwardRef(
-  ({ defaultValue, selectOptions, onChange, onBlur, name, disabled }, ref) => (
+  (
+    { defaultValue, selectOptions, onChange, onBlur, name, disabled, styles },
+    ref
+  ) => (
     <div className="w-full">
       <select
         disabled={disabled}
         className={`${
-          disabled ? "bg-transparent" : "shadow-md dark:bg-slate-800"
-        } w-full flex h-9 px-2 py-0 text-sm rounded-sm appearance-none`}
+          disabled ? "bg-transparent uppercase" : "shadow-md dark:bg-slate-800"
+        } w-full flex h-9 px-2 py-0 text-sm rounded-sm appearance-none ${
+          styles ? styles : ""
+        }`}
         name={name}
         ref={ref}
         onChange={onChange}

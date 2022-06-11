@@ -10,6 +10,7 @@ import {
   setRecord,
 } from "./recordSlice";
 import { selectTracingStatus, setTracingStatus } from "../tracing/tracingSlice";
+import { selectLocationsManager } from "../locationsManager/locationsManagerSlice";
 
 import { Tracing } from "../tracing/Tracing";
 
@@ -26,6 +27,7 @@ export function Record() {
   const record = useSelector(selectRecord);
   const tracingStatus = useSelector(selectTracingStatus);
   const recordStatus = useSelector(selectRecordStatus);
+  const locations = useSelector(selectLocationsManager);
 
   const {
     register,
@@ -68,6 +70,9 @@ export function Record() {
       case "status":
         return contentStatus;
         break;
+      case "location":
+        return locations;
+        break;
 
       default:
         break;
@@ -90,9 +95,10 @@ export function Record() {
     if (record.location) {
       return (
         <>
-          <RecordFormSearch
+          <RecordFormSelect
+            disabled={recordStatus === ""}
             selectOptions={selectContentType("location")}
-            defaultValue="629fb13d2ebca3cab4c68ff7"
+            defaultValue={locations[0].name}
             {...register("location")}
           />
         </>
@@ -110,27 +116,33 @@ export function Record() {
             selectOptions={selectContentType("priority")}
             defaultValue={record.priority}
             {...register("priority")}
+            styles={
+              recordStatus === ""
+                ? "bg-gradient-to-r from-stone-900 via-transparent"
+                : ""
+            }
           />
           <RecordFormSelect
             disabled={recordStatus === ""}
             selectOptions={selectContentType("status")}
             defaultValue={record.status}
             {...register("status")}
+            styles={recordStatus === "" ? "bg-stone-900 text-right" : ""}
           />
         </span>
         <RecordFormInputText
           disabled={recordStatus === ""}
-          defaultValue={recordStatus === "" ? record.order : "---/---"}
+          defaultValue={recordStatus === "" ? record.order : ""}
           {...register("order", { required: true, minLength: 5 })}
           styles="text-3xl font-bold"
+          placeHolder={recordStatus === "editing" ? record.order : ""}
         />
         <RecordFormInputText
           disabled={recordStatus === ""}
-          defaultValue={
-            recordStatus === "" ? record.cover : "Nombre P/ Expediente"
-          }
+          defaultValue={recordStatus === "" ? record.cover : ""}
           {...register("cover")}
           styles="text-4xl font-thin"
+          placeHolder={recordStatus === "editing" ? record.cover : ""}
         />
         {showLocation()}
       </>

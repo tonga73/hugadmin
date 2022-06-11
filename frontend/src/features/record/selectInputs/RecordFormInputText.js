@@ -4,11 +4,21 @@ import { SearchIcon } from "@heroicons/react/solid";
 
 export const RecordFormInputText = React.forwardRef(
   (
-    { defaultValue, selectOptions, onChange, onBlur, name, disabled, styles },
+    {
+      defaultValue,
+      selectOptions,
+      onChange,
+      onBlur,
+      name,
+      disabled,
+      styles,
+      placeHolder,
+    },
     ref
   ) => (
     <div className="w-full">
       <input
+        placeholder={placeHolder}
         disabled={disabled}
         className={`${
           disabled ? "bg-transparent" : "shadow-md dark:bg-slate-800"

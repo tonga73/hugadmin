@@ -4,6 +4,7 @@ import { fetchRecords } from "./recordsAPI";
 
 const initialState = {
   status: "",
+  message: "",
   records: [],
 };
 

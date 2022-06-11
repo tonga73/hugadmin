@@ -33,3 +33,21 @@ export function fetchAddRecord(req) {
   //     return res;
   //   });
 }
+
+export function fetchEditRecord(req) {
+  let id;
+  console.log(req);
+  // return axiosClient
+  //   .put(`/records/${id}`, req)
+  //   .then(({ data }) => {
+  //     return data;
+  //   })
+  //   .catch((err) => {
+  //     const { msg } = err.response.data;
+  //     const res = {
+  //       status: "error",
+  //       msg,
+  //     };
+  //     return res;
+  //   });
+}

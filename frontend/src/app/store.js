@@ -4,6 +4,7 @@ import loginReducer from "../features/login/loginSlice";
 import recordsReducer from "../features/records/recordsSlice";
 import recordReducer from "../features/record/recordSlice";
 import tracingReducer from "../features/tracing/tracingSlice";
+import locationsManagerReducer from "../features/locationsManager/locationsManagerSlice";
 
 import { loadState } from "./localStorage";
 
@@ -13,6 +14,7 @@ const reducer = {
   records: recordsReducer,
   record: recordReducer,
   tracing: tracingReducer,
+  locationsManager: locationsManagerReducer,
 };
 
 const persistedState = loadState();

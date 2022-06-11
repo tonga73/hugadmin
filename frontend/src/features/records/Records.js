@@ -14,6 +14,7 @@ import { selectUser } from "../userBar/userBarSlice";
 import { Spinner } from "../../commons/spinner/Spinner";
 
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
+import { getLocations } from "../locationsManager/locationsManagerSlice";
 
 export function Records() {
   const isShowing = true;
@@ -26,7 +27,7 @@ export function Records() {
   const ListRecords = ({ records }) => {
     return records.map((record) => (
       <div
-        className="grid grid-rows-3 my-3 rounded-tl-xl bg-slate-800 shadow-sm shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform"
+        className="grid grid-rows-3 my-3 rounded-tl-xl dark:bg-slate-800 shadow-sm dark:shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform"
         key={record._id}
       >
         <div className="grid grid-cols-7 pl-2.5">
@@ -39,7 +40,7 @@ export function Records() {
           <span className="col-span-3 text-left text-lg tracking-wider">
             {record.order}
           </span>
-          <span className="col-span-4 text-right bg-neutral-900 pr-2">
+          <span className="col-span-4 text-right bg-stone-900 px-2 py-0.5 truncate">
             {record.status}
           </span>
         </div>
@@ -52,6 +53,7 @@ export function Records() {
 
   useEffect(() => {
     dispatch(getRecords());
+    dispatch(getLocations("ola"));
   }, [dispatch]);
 
   useEffect(() => {

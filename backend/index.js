@@ -40,7 +40,7 @@ app.use(cors(corsOptions));
 app.use("/api/users", userRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/tracings", tracingRoutes);
-app.use("/api/location", locationRoutes);
+app.use("/api/locations", locationRoutes);
 
 const hostname = "127.0.0.1";
 const PORT = process.env.PORT || 4000;
