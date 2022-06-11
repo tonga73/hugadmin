@@ -1,8 +1,10 @@
 import React from "react";
 
+import { getRecords } from "../admin/adminSlice";
+
 export function Admin() {
   return (
-    <div className="grid grid-cols-3">
+    <div className="grid grid-cols-3 container mx-auto">
       <div className="col-start-2 py-5">
         <h1 className="text-center text-5xl font-extrabold opacity-5 uppercase dark:text-slate-200">
           Administración
@@ -27,9 +29,29 @@ export function Admin() {
             <input
               type="submit"
               value="Crear"
-              className="py-3 uppercase font-bold dark:text-slate-200 bg-purple-700"
+              className="py-3 uppercase font-bold dark:text-slate-200 bg-purple-700 cursor-pointer"
             />
           </form>
+        </div>
+        <div></div>
+        <div>
+          <table className="bg-white">
+            <tr>
+              <th>Company</th>
+              <th>Contact</th>
+              <th>Country</th>
+            </tr>
+            <tr>
+              <td>Alfreds Futterkiste</td>
+              <td>Maria Anders</td>
+              <td>Germany</td>
+            </tr>
+            <tr>
+              <td>Centro comercial Moctezuma</td>
+              <td>Francisco Chang</td>
+              <td>Mexico</td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>

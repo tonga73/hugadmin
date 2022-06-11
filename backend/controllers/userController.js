@@ -3,6 +3,12 @@ import generateId from "../helpers/generateId.js";
 import generateJWT from "../helpers/generateJWT.js";
 import { registerEmail, forgotPasswordEmail } from "../helpers/email.js";
 
+const getUsers = async (req, res) => {
+  const users = await User.find({});
+
+  res.json(users);
+};
+
 const register = async (req, res) => {
   // Evitar registros duplicados
   const { email } = req.body;
@@ -184,4 +190,5 @@ export {
   newPassword,
   profile,
   editUser,
+  getUsers,
 };
