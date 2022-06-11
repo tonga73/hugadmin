@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
@@ -9,7 +9,6 @@ import {
   selectRecordsStatus,
   setRecordsStatus,
 } from "./recordsSlice";
-import { selectUser } from "../userBar/userBarSlice";
 
 import { Spinner } from "../../commons/spinner/Spinner";
 
@@ -56,9 +55,10 @@ export function Records() {
     dispatch(getLocations("ola"));
   }, [dispatch]);
 
+  const recordStatusSuccessDependency = recordsStatus === "success";
   useEffect(() => {
     dispatch(setRecordsStatus(""));
-  }, [recordsStatus === "success"]);
+  }, [recordStatusSuccessDependency, dispatch]);
   return (
     <Transition
       className="h-full text-center py-8 px-5"

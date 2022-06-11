@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -27,14 +27,13 @@ export function RecordsFiltersBar() {
               closeForm();
             }}
             type="button"
-            className="border border-red-700 opacity-50 hover:opacity-100 transition-opacity"
+            className="border dark:text-slate-600 border-slate-600 opacity-50 hover:opacity-100 transition-opacity"
           >
             <div className="h-10 grid justify-center items-center">
-              <XIcon className="h-8 w-8 absolute-center mx-auto my-auto text-red-700" />
+              <XIcon className="h-8 w-8 absolute-center mx-auto my-auto text-slate-700" />
             </div>
           </button>
         );
-        break;
 
       default:
         return (
@@ -48,7 +47,6 @@ export function RecordsFiltersBar() {
             <div className="h-10 grid items-center">Crear Expediente</div>
           </button>
         );
-        break;
     }
   };
   return (

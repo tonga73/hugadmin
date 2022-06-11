@@ -8,6 +8,12 @@
   @apply col-span-3 col-start-2 flex items-center justify-center;
 }
 
+.banner {
+  @apply col-span-7 col-end-13 h-screen;
+  @apply blur;
+  @apply bg-[url('https://abala-abogados.com/wp-content/uploads/2020/05/expediente_matrimonial-900x480.jpg')];
+}
+
 .loginForm {
   @apply w-full grid grid-rows-4 gap-1;
 }

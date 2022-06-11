@@ -1,7 +1,7 @@
 .dashboardGrid {
   @apply h-5/6 min-h-screen mx-auto container;
   @apply grid grid-cols-12;
-  @apply pt-3 pb-2 pr-2;
+  @apply pt-3 pr-2;
   @apply bg-slate-200;
 }
 

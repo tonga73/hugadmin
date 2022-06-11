@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 
 import { addTracing, removeTracing } from "./tracingSlice";
-import { getRecord, selectRecord, selectTracings } from "../record/recordSlice";
+import { selectTracings } from "../record/recordSlice";
 
 import {
   PlusIcon,
@@ -35,17 +35,16 @@ export function Tracing(props) {
     setMode(mode);
     addNewTracing({ mode: mode, comment: "" });
   };
-
   const addNewTracing = ({ mode, comment }) => {
     const tracing = { comment, record };
     switch (mode && comment) {
       case "creating" && "":
         return;
-        break;
       case "success" && comment:
         dispatch(addTracing(tracing));
         setMode(mode);
         reset();
+        break;
       default:
         return;
     }

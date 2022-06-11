@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
@@ -15,9 +15,7 @@ import { selectLocationsManager } from "../locationsManager/locationsManagerSlic
 import { Tracing } from "../tracing/Tracing";
 
 import { RecordFormSelect } from "./selectInputs/RecordFormSelect";
-import { RecordFormSearch } from "./selectInputs/RecordFormSearch";
 import { RecordFormInputText } from "./selectInputs/RecordFormInputText";
-import { StatusSelect } from "./selectInputs/StatusSelect";
 
 import styles from "./Record.module.css";
 
@@ -66,13 +64,12 @@ export function Record() {
     switch (contentType) {
       case "priority":
         return contentPriority;
-        break;
+
       case "status":
         return contentStatus;
-        break;
+
       case "location":
         return locations;
-        break;
 
       default:
         break;
@@ -83,11 +80,9 @@ export function Record() {
     switch (status) {
       case "creating":
         return styles.recordInfoCreate;
-        break;
 
       default:
         return styles.recordInfo;
-        break;
     }
   };
 
@@ -98,7 +93,7 @@ export function Record() {
           <RecordFormSelect
             disabled={recordStatus === ""}
             selectOptions={selectContentType("location")}
-            defaultValue={`olis`}
+            defaultValue={locations[0].name}
             {...register("location")}
           />
         </>
@@ -148,15 +143,16 @@ export function Record() {
       </>
     );
   }
-
+  const tracingStatusSuccessDependency = tracingStatus === "success";
   useEffect(() => {
     dispatch(getRecord("629fae9a12c6dd15c4acb8f9"));
     dispatch(setTracingStatus(""));
-  }, [tracingStatus === "success"]);
+  }, [tracingStatusSuccessDependency, dispatch]);
 
+  const recordStatusSuccessDependency = recordStatus === "success";
   useEffect(() => {
     dispatch(setRecord({ status: "" }));
-  }, [recordStatus === "success"]);
+  }, [recordStatusSuccessDependency, dispatch]);
   return (
     <div className={styles.recordGrid}>
       <form

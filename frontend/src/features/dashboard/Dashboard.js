@@ -38,21 +38,25 @@ export function Dashboard() {
   }, [isShowing]);
 
   return (
-    <div
-      className={`${
-        mode !== "full-screen"
-          ? styles.dashboardGrid
-          : styles.dashboardGridFullscreen
-      } dark:bg-slate-900`}
-    >
-      <DashboardAside onClick={toggleSettings} mode={mode} />
+    <div className={styles.dashboardBackgroundContainer}>
       <div
         className={`${
-          mode !== "full-screen" ? styles.dashboard : styles.dashboardFullscreen
-        } dark:bg-slate-800 dark:bg-opacity-30 dark:shadow-slate-700`}
+          mode !== "full-screen"
+            ? styles.dashboardGrid
+            : styles.dashboardGridFullscreen
+        } dark:bg-slate-900`}
       >
-        <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
-        <Record />
+        <DashboardAside onClick={toggleSettings} mode={mode} />
+        <div
+          className={`${
+            mode !== "full-screen"
+              ? styles.dashboard
+              : styles.dashboardFullscreen
+          } dark:bg-slate-800 dark:bg-opacity-60 dark:shadow-slate-700`}
+        >
+          <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
+          <Record />
+        </div>
       </div>
     </div>
   );

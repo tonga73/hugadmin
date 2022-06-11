@@ -54,9 +54,4 @@ export const selectRecordsStatus = (state) => state.records.status;
 
 export const selectRecords = (state) => state.records.records;
 
-export const getRecord = (record) => (dispatch, getState) => {
-  const records = selectRecords(getState());
-  console.log(record);
-};
-
 export default recordsSlice.reducer;
