@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
+import { Spinner } from "../../commons/spinner/Spinner";
+
 import {
   addRecord,
   getRecord,
@@ -9,10 +11,13 @@ import {
   selectRecordStatus,
   setRecord,
 } from "./recordSlice";
-import { selectTracingStatus, setTracingStatus } from "../tracing/tracingSlice";
+import {
+  selectTracingsStatus,
+  setTracingsStatus,
+} from "../tracings/tracingsSlice";
 import { selectLocationsManager } from "../locationsManager/locationsManagerSlice";
 
-import { Tracing } from "../tracing/Tracing";
+import { Tracings } from "../tracings/Tracings";
 
 import { RecordFormSelect } from "./selectInputs/RecordFormSelect";
 import { RecordFormInputText } from "./selectInputs/RecordFormInputText";
@@ -23,8 +28,8 @@ export function Record() {
   const dispatch = useDispatch();
 
   const record = useSelector(selectRecord);
-  const tracingStatus = useSelector(selectTracingStatus);
   const recordStatus = useSelector(selectRecordStatus);
+  const tracingsStatus = useSelector(selectTracingsStatus);
   const locations = useSelector(selectLocationsManager);
 
   const {
@@ -43,16 +48,14 @@ export function Record() {
 
   const selectContentType = (contentType) => {
     const contentPriority = [
-      { name: "Seleccionar..." },
-      { name: "Inactivo" },
       { name: "Nula" },
       { name: "Baja" },
       { name: "Media" },
       { name: "Alta" },
       { name: "Urgente" },
+      { name: "Inactivo" },
     ];
     const contentStatus = [
-      { name: "Seleccionar..." },
       { name: "Acepta cargo" },
       { name: "Acto pericial realizado" },
       { name: "Pericia realizada" },
@@ -87,22 +90,22 @@ export function Record() {
   };
 
   function showLocation() {
-    if (record.location) {
-      return (
-        <>
-          <RecordFormSelect
-            disabled={recordStatus === ""}
-            selectOptions={selectContentType("location")}
-            defaultValue={locations[0].name}
-            {...register("location")}
-          />
-        </>
-      );
-    }
+    // if (record.location) {
+    //   return (
+    //     <>
+    //       <RecordFormSelect
+    //         disabled={recordStatus === ""}
+    //         selectOptions={selectContentType("location")}
+    //         defaultValue={locations[0].name}
+    //         {...register("location")}
+    //       />
+    //     </>
+    //   );
+    // }
     return;
   }
 
-  function recordInputs() {
+  function recordInputs(record) {
     return (
       <>
         <span>
@@ -121,7 +124,7 @@ export function Record() {
             disabled={recordStatus === ""}
             selectOptions={selectContentType("status")}
             defaultValue={record.status}
-            {...register("status")}
+            {...register("status", { required: true, minLength: 5 })}
             styles={recordStatus === "" ? "bg-stone-900 text-right" : ""}
           />
         </span>
@@ -135,7 +138,7 @@ export function Record() {
         <RecordFormInputText
           disabled={recordStatus === ""}
           defaultValue={recordStatus === "" ? record.cover : ""}
-          {...register("cover")}
+          {...register("cover", { required: true, minLength: 5 })}
           styles="text-4xl font-thin"
           placeHolder={recordStatus === "editing" ? record.cover : ""}
         />
@@ -143,28 +146,34 @@ export function Record() {
       </>
     );
   }
-  const tracingStatusSuccessDependency = tracingStatus === "success";
-  useEffect(() => {
-    dispatch(getRecord("629fae9a12c6dd15c4acb8f9"));
-    dispatch(setTracingStatus(""));
-  }, [tracingStatusSuccessDependency, dispatch]);
 
-  const recordStatusSuccessDependency = recordStatus === "success";
   useEffect(() => {
-    dispatch(setRecord({ status: "" }));
-  }, [recordStatusSuccessDependency, dispatch]);
+    if (record !== undefined) {
+      dispatch(getRecord(record._id));
+    }
+  }, [recordStatus]);
+
   return (
-    <div className={styles.recordGrid}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        id="addNewRecordForm"
-        className={`${recordModeStyles(recordStatus)} dark:text-slate-300`}
-      >
-        {recordInputs()}
-      </form>
-      <div className={styles.recordTracings}>
-        <Tracing record={record} />
-      </div>
-    </div>
+    <>
+      {recordStatus == "loading" && (
+        <div className="flex justify-center items-center w-full">
+          <Spinner />
+        </div>
+      )}
+      {recordStatus !== "loading" && (
+        <div className={styles.recordGrid}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            id="addNewRecordForm"
+            className={`${recordModeStyles(recordStatus)} dark:text-slate-300`}
+          >
+            {recordInputs(record)}
+          </form>
+          <div className={styles.recordTracings}>
+            <Tracings record={record} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

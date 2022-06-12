@@ -35,7 +35,7 @@ export const RecordFormSelect = React.forwardRef(
           } else {
             return (
               <option className={`bg-slate-200 rounded-sm`} key={i}>
-                {defaultValue}
+                {defaultValue || selectOptions[0].name}
               </option>
             );
           }

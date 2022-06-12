@@ -1,12 +1,15 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { fetchAddTracing, fetchRemoveTracing } from "./tracingAPI";
+import { useSelector } from "react-redux";
 
-import { updateTracings } from "../record/recordSlice";
+import { fetchAddTracing, fetchRemoveTracing } from "./tracingsAPI";
+
+import { getRecord, updateTracings } from "../record/recordSlice";
 
 const initialState = {
   status: "",
-  tracing: {},
+  tracings: [],
+  message: "",
 };
 
 export const addTracing = createAsyncThunk(
@@ -37,8 +40,8 @@ export const removeTracing = createAsyncThunk(
   }
 );
 
-export const tracingSlice = createSlice({
-  name: "tracing",
+export const tracingsSlice = createSlice({
+  name: "tracings",
   initialState,
   reducers: {
     setTracingStatus: (state, action) => {
@@ -47,22 +50,24 @@ export const tracingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(removeTracing.pending, (state) => {
+      .addCase(getRecord.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(removeTracing.fulfilled, (state, action) => {
+      .addCase(getRecord.fulfilled, (state, action) => {
         state.status = "success";
-        state.tracing = action.payload.tracing;
+        state.tracings = action.payload;
       })
-      .addCase(removeTracing.rejected, (state, action) => {
+      .addCase(getRecord.rejected, (state, action) => {
         state.status = "error";
         state.message = action.payload;
       });
   },
 });
 
-export const { setTracingStatus } = tracingSlice.actions;
+export const { setTracingStatus } = tracingsSlice.actions;
 
-export const selectTracingStatus = (state) => state.tracing.status;
+export const selectTracings = (state) => state.tracings.tracings;
 
-export default tracingSlice.reducer;
+export const selectTracingsStatus = (state) => state.tracings.status;
+
+export default tracingsSlice.reducer;

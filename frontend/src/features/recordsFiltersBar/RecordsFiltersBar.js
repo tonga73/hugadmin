@@ -6,6 +6,7 @@ import {
   setRecord,
   selectRecordStatus,
 } from "../record/recordSlice";
+import { selectRecords } from "../records/recordsSlice";
 
 import { XIcon } from "@heroicons/react/outline";
 
@@ -13,11 +14,11 @@ export function RecordsFiltersBar() {
   const dispatch = useDispatch();
 
   const recordStatus = useSelector(selectRecordStatus);
+  const records = useSelector(selectRecords);
 
   const CreateRecordButton = ({ recordStatus }) => {
     const closeForm = () => {
-      dispatch(getRecord());
-      dispatch(setRecord({ status: "creating" }));
+      dispatch(setRecord({ status: "", record: records[0] }));
     };
     switch (recordStatus) {
       case "creating":

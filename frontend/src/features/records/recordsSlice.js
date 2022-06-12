@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { fetchRecords } from "./recordsAPI";
 
+import { selectUserStatus } from "../userBar/userBarSlice";
+
 const initialState = {
   status: "",
   message: "",
@@ -25,11 +27,9 @@ export const recordsSlice = createSlice({
   name: "records",
   initialState,
   reducers: {
-    setRecordsStatus: (state, action) => {
-      state.status = action.payload;
-    },
-    decrement: (state) => {
-      state.value -= 1;
+    setRecords: (state, action) => {
+      state.status = action.payload.status;
+      state.records = action.payload.records || state.records;
     },
   },
   extraReducers: (builder) => {
@@ -39,7 +39,7 @@ export const recordsSlice = createSlice({
       })
       .addCase(getRecords.fulfilled, (state, action) => {
         state.status = "success";
-        state.records = action.payload;
+        state.records = action.payload.reverse();
       })
       .addCase(getRecords.rejected, (state, action) => {
         state.status = "error";
@@ -48,7 +48,7 @@ export const recordsSlice = createSlice({
   },
 });
 
-export const { setRecordsStatus } = recordsSlice.actions;
+export const { setRecords } = recordsSlice.actions;
 
 export const selectRecordsStatus = (state) => state.records.status;
 

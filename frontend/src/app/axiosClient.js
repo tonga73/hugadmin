@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { selectToken } from "../features/userBar/userBarSlice";
+
 export const axiosClient = axios.create({
   baseURL: "http://127.0.0.1:4000/api",
 });

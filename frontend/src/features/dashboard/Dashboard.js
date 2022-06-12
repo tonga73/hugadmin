@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import { delay } from "../../app/helpers/delay";
+
 import { DashboardAside } from "../dashboardAside/DashboardAside";
 import { DashboardTopBar } from "../dashboardTopBar/DashboardTopBar";
 import { Record } from "../record/Record";
 
-import { getRecord, selectRecord } from "../record/recordSlice";
+import { selectUserStatus } from "../userBar/userBarSlice";
+import {
+  getRecord,
+  selectRecord,
+  setRecord,
+  selectRecordStatus,
+} from "../record/recordSlice";
+import { getRecords, selectRecords, setRecords } from "../records/recordsSlice";
 
 import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
+  const dispatch = useDispatch();
+  const userStatus = useSelector(selectUserStatus);
+  const records = useSelector(selectRecords);
+
   const [mode, setMode] = useState("list-records");
   const [recordsMode, setRecordsMode] = useState("");
-
   const [isShowing, setIsShowing] = useState(false);
 
   function toggleSettings() {
@@ -34,8 +46,11 @@ export function Dashboard() {
   }
 
   useEffect(() => {
-    setIsShowing(true);
-  }, [isShowing]);
+    dispatch(getRecords());
+    delay(1000).then((res) => {
+      dispatch(setRecords({ status: "" }));
+    });
+  }, [userStatus]);
 
   return (
     <div className={styles.dashboardBackgroundContainer}>

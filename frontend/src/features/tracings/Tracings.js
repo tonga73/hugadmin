@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 
-import { addTracing, removeTracing } from "./tracingSlice";
-import { selectTracings } from "../record/recordSlice";
+import { selectTracings, addTracing, removeTracing } from "./tracingsSlice";
 
 import {
   PlusIcon,
@@ -13,9 +12,9 @@ import {
   ArchiveIcon,
 } from "@heroicons/react/solid";
 
-import styles from "./Tracing.module.css";
+import styles from "./Tracings.module.css";
 
-export function Tracing(props) {
+export function Tracings(props) {
   const dispatch = useDispatch();
   const [mode, setMode] = useState("");
   const tracings = useSelector(selectTracings);

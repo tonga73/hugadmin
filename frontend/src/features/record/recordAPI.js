@@ -1,10 +1,17 @@
 import { axiosClient } from "../../app/axiosClient";
 
-export function fetchGetRecord(req) {
-  const id = req;
+import { delay } from "../../app/helpers/delay";
+
+export async function fetchGetRecord(req) {
+  const id = await req;
+  if (req === undefined) {
+    return;
+  }
+
   return axiosClient
     .get(`/records/${id}`)
     .then(({ data }) => {
+      console.log(data);
       return data;
     })
     .catch((err) => {

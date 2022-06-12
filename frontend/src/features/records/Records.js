@@ -3,12 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
 
-import {
-  getRecords,
-  selectRecords,
-  selectRecordsStatus,
-  setRecordsStatus,
-} from "./recordsSlice";
+import { getRecords, selectRecords, selectRecordsStatus } from "./recordsSlice";
+import { getRecord, selectRecord } from "../record/recordSlice";
 
 import { Spinner } from "../../commons/spinner/Spinner";
 
@@ -22,11 +18,19 @@ export function Records() {
 
   const allRecords = useSelector(selectRecords);
   const recordsStatus = useSelector(selectRecordsStatus);
+  const activeRecord = useSelector(selectRecord);
+
+  const setActiveRecord = (record) => {
+    record !== activeRecord && dispatch(getRecord(record._id));
+  };
 
   const ListRecords = ({ records }) => {
     return records.map((record) => (
       <div
-        className="grid grid-rows-3 my-3 rounded-tl-xl dark:bg-slate-800 shadow-sm dark:shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform"
+        onClick={() => setActiveRecord(record)}
+        className={`grid grid-rows-3 my-3 rounded-tl-xl dark:bg-slate-800 shadow-sm dark:shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform ${
+          record === activeRecord ? "" : ""
+        }`}
         key={record._id}
       >
         <div className="grid grid-cols-7 pl-2.5">
@@ -50,27 +54,8 @@ export function Records() {
     ));
   };
 
-  useEffect(() => {
-    dispatch(getRecords());
-    dispatch(getLocations("ola"));
-  }, [dispatch]);
-
-  const recordStatusSuccessDependency = recordsStatus === "success";
-  useEffect(() => {
-    dispatch(setRecordsStatus(""));
-  }, [recordStatusSuccessDependency, dispatch]);
   return (
-    <Transition
-      className="h-full text-center py-8 px-5"
-      appear={true}
-      show={isShowing}
-      enter="transition-opacity duration-1000"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transition-opacity duration-1000"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
+    <div className="h-full text-center py-8 px-5">
       <RecordsFiltersBar records={allRecords} />
 
       {recordsStatus === "loading" && (
@@ -79,8 +64,18 @@ export function Records() {
         </div>
       )}
       {recordsStatus !== "loading" && (
-        <>{ListRecords({ records: allRecords })}</>
+        <Transition
+          show={isShowing}
+          enter="transition-opacity duration-1000"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition-opacity duration-1000"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          {ListRecords({ records: allRecords })}
+        </Transition>
       )}
-    </Transition>
+    </div>
   );
 }

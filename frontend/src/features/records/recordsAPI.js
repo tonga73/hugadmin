@@ -1,6 +1,6 @@
 import { axiosClient } from "../../app/axiosClient";
 
-export function fetchRecords() {
+export function fetchRecords(req) {
   return axiosClient
     .get("/records")
     .then(({ data }) => {

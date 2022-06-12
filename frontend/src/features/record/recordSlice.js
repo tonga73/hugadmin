@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { fetchGetRecord, fetchAddRecord, fetchEditRecord } from "./recordAPI";
 
+import { getRecords } from "../records/recordsSlice";
+
 import { store } from "../../app/store";
 
 const initialState = {
@@ -12,16 +14,15 @@ const initialState = {
 
 export const getRecord = createAsyncThunk(
   "record/fetchGetRecord",
-  async (recordId, { rejectWithValue, useSelector }) => {
-    const response = await fetchGetRecord(
-      recordId || store.getState().records.records[0]._id
-    );
+  async (recordId, { rejectWithValue, dispatch }) => {
+    const response = await fetchGetRecord(recordId);
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);
     }
 
-    return response;
+    dispatch(setRecord({ status: "", record: response.record }));
+    return response.tracings;
   }
 );
 
@@ -63,15 +64,14 @@ export const recordSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getRecord.pending, (state) => {
+      .addCase(getRecords.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(getRecord.fulfilled, (state, action) => {
+      .addCase(getRecords.fulfilled, (state, action) => {
         state.status = "success";
-        state.record = action.payload.record;
-        state.tracings = action.payload.tracings.reverse();
+        state.record = action.payload[0];
       })
-      .addCase(getRecord.rejected, (state, action) => {
+      .addCase(getRecords.rejected, (state, action) => {
         state.status = "error";
         state.message = action.payload;
       });
