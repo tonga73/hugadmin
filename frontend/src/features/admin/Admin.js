@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 
 import { getUsers, selectUsers, newUserAsync } from "../admin/adminSlice";
 
-import { Tabs } from "../../commons/tabs/Tabs";
+import { Tabs, TabsPanel, TabContent } from "../../commons/tabs/Tabs";
 
 import { ClipboardButton } from "../../commons/buttons/clipboardButton/ClipboardButton";
 import { TextInput } from "../../commons/inputs/TextInput";
