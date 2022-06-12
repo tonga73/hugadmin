@@ -1,15 +1,14 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Transition } from "@headlessui/react";
 
-import { getRecords, selectRecords, selectRecordsStatus } from "./recordsSlice";
+import { selectRecords, selectRecordsStatus } from "./recordsSlice";
 import { getRecord, selectRecord } from "../record/recordSlice";
 
 import { Spinner } from "../../commons/spinner/Spinner";
 
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
-import { getLocations } from "../locationsManager/locationsManagerSlice";
 
 export function Records() {
   const isShowing = true;

@@ -2,8 +2,6 @@ import React from "react";
 
 import { ClipboardButton } from "../../../commons/buttons/clipboardButton/ClipboardButton";
 
-import { SearchIcon } from "@heroicons/react/solid";
-
 export const RecordFormInputText = React.forwardRef(
   (
     {

@@ -1,11 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import {
-  getRecord,
-  setRecord,
-  selectRecordStatus,
-} from "../record/recordSlice";
+import { setRecord, selectRecordStatus } from "../record/recordSlice";
 import { selectRecords } from "../records/recordsSlice";
 
 import { XIcon } from "@heroicons/react/outline";

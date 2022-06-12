@@ -2,8 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { fetchRecords } from "./recordsAPI";
 
-import { selectUserStatus } from "../userBar/userBarSlice";
-
 const initialState = {
   status: "",
   message: "",

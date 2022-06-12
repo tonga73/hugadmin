@@ -5,12 +5,13 @@ import { useForm } from "react-hook-form";
 import { Spinner } from "../../commons/spinner/Spinner";
 
 import {
-  addRecord,
+  newRecord,
   getRecord,
   selectRecord,
   selectRecordStatus,
   setRecord,
 } from "./recordSlice";
+import { selectRecordsStatus } from "../records/recordsSlice";
 import {
   selectTracingsStatus,
   setTracingsStatus,
@@ -29,6 +30,7 @@ export function Record() {
 
   const record = useSelector(selectRecord);
   const recordStatus = useSelector(selectRecordStatus);
+  const recordsStatus = useSelector(selectRecordsStatus);
   const tracingsStatus = useSelector(selectTracingsStatus);
   const locations = useSelector(selectLocationsManager);
 
@@ -41,7 +43,7 @@ export function Record() {
   } = useForm();
 
   const onSubmit = (data) => {
-    dispatch(addRecord(data));
+    dispatch(newRecord(data));
   };
 
   // console.log(watch("location"));
@@ -151,7 +153,7 @@ export function Record() {
     if (record !== undefined) {
       dispatch(getRecord(record._id));
     }
-  }, [recordStatus]);
+  }, [recordsStatus]);
 
   return (
     <>

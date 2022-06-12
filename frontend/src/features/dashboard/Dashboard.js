@@ -7,7 +7,11 @@ import { DashboardAside } from "../dashboardAside/DashboardAside";
 import { DashboardTopBar } from "../dashboardTopBar/DashboardTopBar";
 import { Record } from "../record/Record";
 
-import { selectUserStatus } from "../userBar/userBarSlice";
+import {
+  setUser,
+  selectToken,
+  selectUserStatus,
+} from "../userBar/userBarSlice";
 import {
   getRecord,
   selectRecord,
@@ -22,6 +26,7 @@ export function Dashboard() {
   const dispatch = useDispatch();
   const userStatus = useSelector(selectUserStatus);
   const records = useSelector(selectRecords);
+  const token = useSelector(selectToken);
 
   const [mode, setMode] = useState("list-records");
   const [recordsMode, setRecordsMode] = useState("");
@@ -46,11 +51,14 @@ export function Dashboard() {
   }
 
   useEffect(() => {
-    dispatch(getRecords());
-    delay(1000).then((res) => {
+    dispatch(setUser({ status: "" }));
+    dispatch(setRecord({ status: "loading" }));
+    dispatch(setRecords({ status: "loading" }));
+    delay(1500).then((res) => {
+      dispatch(getRecords());
       dispatch(setRecords({ status: "" }));
     });
-  }, [userStatus]);
+  }, [token]);
 
   return (
     <div className={styles.dashboardBackgroundContainer}>

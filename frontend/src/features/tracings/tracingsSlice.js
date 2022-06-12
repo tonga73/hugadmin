@@ -1,7 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { useSelector } from "react-redux";
-
 import { fetchAddTracing, fetchRemoveTracing } from "./tracingsAPI";
 
 import { getRecord, updateTracings } from "../record/recordSlice";

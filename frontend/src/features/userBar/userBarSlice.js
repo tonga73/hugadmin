@@ -18,6 +18,10 @@ export const userBarSlice = createSlice({
   name: "userBar",
   initialState,
   reducers: {
+    setUser: (state, action) => {
+      state.status = action.payload.status;
+      state.user = action.payload.user || state.user;
+    },
     userLogOut: (state) => {
       state.status = "";
       state.user = {};
@@ -34,7 +38,7 @@ export const userBarSlice = createSlice({
   },
 });
 
-export const { userLogOut } = userBarSlice.actions;
+export const { setUser, userLogOut } = userBarSlice.actions;
 
 export const selectUserStatus = (state, action) => state.userBar.status;
 
