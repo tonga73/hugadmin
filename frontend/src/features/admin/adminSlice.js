@@ -1,17 +1,17 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { fetchGetRecords } from "./adminAPI";
+import { fetchGetUsers, fetchNewUser } from "./adminAPI";
 
 const initialState = {
   status: "",
-  record: {},
-  tracings: [],
+  message: "",
+  users: [],
 };
 
-export const getRecords = createAsyncThunk(
-  "records/fetchGetRecords",
+export const getUsers = createAsyncThunk(
+  "admin/fetchGetUsers",
   async ({ rejectWithValue }) => {
-    const response = await fetchGetRecords();
+    const response = await fetchGetUsers();
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);
@@ -21,36 +21,41 @@ export const getRecords = createAsyncThunk(
   }
 );
 
-export const recordsSlice = createSlice({
-  name: "records",
+export const newUserAsync = createAsyncThunk(
+  "admin/fetchNewUser",
+  async ({ rejectWithValue }) => {
+    const response = await fetchNewUser();
+
+    if (response.status === "error") {
+      return rejectWithValue(response.msg);
+    }
+  }
+);
+
+export const adminSlice = createSlice({
+  name: "admin",
   initialState,
-  reducers: {
-    setRecords: (state, action) => {
-      state.status = action.payload.status;
-      state.record = action.payload.record || state.record;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getRecords.pending, (state) => {
+      .addCase(getUsers.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(getRecords.fulfilled, (state, action) => {
+      .addCase(getUsers.fulfilled, (state, action) => {
         state.status = "success";
-        state.record = action.payload.record;
-        state.tracings = action.payload.tracings.reverse();
+        state.users = action.payload;
       })
-      .addCase(getRecords.rejected, (state, action) => {
+      .addCase(getUsers.rejected, (state, action) => {
         state.status = "error";
         state.message = action.payload;
       });
   },
 });
 
-export const { updateTracings, setRecord } = recordsSlice.actions;
+export const { setUsers } = adminSlice.actions;
 
-export const selectRecordsStatus = (state) => state.records.status;
+export const selectUsersStatus = (state) => state.admin.status;
 
-export const selectRecords = (state) => state.records.record;
+export const selectUsers = (state) => state.admin.users;
 
-export default recordsSlice.reducer;
+export default adminSlice.reducer;

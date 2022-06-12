@@ -1,7 +1,8 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import { Transition } from "@headlessui/react";
-import { CogIcon, XIcon } from "@heroicons/react/outline";
+import { CogIcon, XIcon, ShieldCheckIcon } from "@heroicons/react/outline";
 
 import styles from "./UserBar.module.css";
 
@@ -18,12 +19,42 @@ export function UserBar(props) {
     return <CogIcon className="h-6 w-6" aria-hidden="true" />;
   }
 
-  function UserBarTitle() {
-    if (mode === "settings-menu") {
-      return "Configuración";
+  const UserBarTitle = () => {
+    function Title({ children }) {
+      return (
+        <div
+          className={`  ${
+            mode === "settings-menu"
+              ? "text-lg uppercase font-bold tracking-tighter text-slate-700"
+              : mode === "list-records"
+              ? "text-4xl font-light -tracking-wide text-slate-200"
+              : ""
+          }   w-full h-12 px-1 flex items-center`}
+        >
+          {children}
+        </div>
+      );
     }
-    return user.name;
-  }
+    function setTitle() {
+      switch (mode) {
+        case "settings-menu":
+          return "Configuración";
+
+        case "list-records":
+          return user.name;
+
+        default:
+          break;
+      }
+    }
+    return (
+      <>
+        <div className={`${styles.userBarTitle} `}>
+          {Title({ children: setTitle() })}
+        </div>
+      </>
+    );
+  };
 
   return (
     <Transition
@@ -37,9 +68,20 @@ export function UserBar(props) {
       leaveTo="-translate-y-full"
     >
       <div className={styles.userBarGrid}>
-        <div className={styles.userBarTitle}>{UserBarTitle()}</div>
-        <div className={styles.userBarSettings}>
-          <button onClick={onClick} type="button">
+        {UserBarTitle()}
+        <div className={`${styles.userBarSettings}`}>
+          <Link
+            to="/admin-panel"
+            type="button"
+            className="border border-opacity-30 opacity-30 border-slate-500 text-slate-500 p-0.5 rounded-full hover:opacity-100 transition-opacity"
+          >
+            <ShieldCheckIcon className="h-6 w-6" aria-hidden="true" />
+          </Link>
+          <button
+            onClick={onClick}
+            type="button"
+            className="border border-opacity-30 opacity-30 border-slate-500 text-slate-500 p-0.5 rounded-full hover:opacity-100 transition-opacity"
+          >
             <SettingsToggleButtons />
           </button>
         </div>

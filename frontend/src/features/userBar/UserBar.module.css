@@ -4,25 +4,9 @@
 }
 
 .userBarTitle {
-  @apply col-span-4;
-  @apply text-3xl font-light;
+  @apply col-span-3 h-full;
 }
 
 .userBarSettings {
-  @apply col-span-1 flex justify-end items-center;
-}
-
-.userBarSettings > button {
-  @apply border border-slate-700 border-opacity-30 rounded-full;
-  @apply p-1;
-  @apply transition-colors;
-}
-
-.userBarSettings > button:hover {
-  @apply bg-slate-300 border-opacity-100;
-  @apply p-1;
-}
-
-.userBarSettings > button > svg {
-  @apply stroke-slate-700;
+  @apply col-span-2 grid grid-flow-col gap-1.5 justify-end items-center;
 }

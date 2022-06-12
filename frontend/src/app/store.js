@@ -1,4 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
+
+import admin from "../features/admin/adminSlice";
+
 import userBarReducer from "../features/userBar/userBarSlice";
 import loginReducer from "../features/login/loginSlice";
 import recordsReducer from "../features/records/recordsSlice";
@@ -9,6 +12,7 @@ import locationsManagerReducer from "../features/locationsManager/locationsManag
 import { loadState } from "./localStorage";
 
 const reducer = {
+  admin: admin,
   login: loginReducer,
   userBar: userBarReducer,
   records: recordsReducer,

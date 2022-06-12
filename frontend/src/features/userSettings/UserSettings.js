@@ -17,7 +17,7 @@ export function UserSettings() {
 
   return (
     <Transition
-      className="h-full grid "
+      className="h-full pb-5 grid"
       appear={true}
       show={isShowing}
       enter="transition-opacity duration-1000"

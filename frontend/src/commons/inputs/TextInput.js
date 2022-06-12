@@ -1,10 +1,10 @@
 import React from "react";
 
-import { ClipboardButton } from "../../../commons/buttons/clipboardButton/ClipboardButton";
+import { ClipboardButton } from "../buttons/clipboardButton/ClipboardButton";
 
 import { SearchIcon } from "@heroicons/react/solid";
 
-export const RecordFormInputText = React.forwardRef(
+export const TextInput = React.forwardRef(
   (
     {
       defaultValue,
@@ -20,13 +20,13 @@ export const RecordFormInputText = React.forwardRef(
   ) => (
     <div className="w-full">
       <input
+        type="text"
         placeholder={placeHolder}
         disabled={disabled}
         className={`${
           disabled ? "bg-transparent" : "shadow-md dark:bg-slate-800"
         } w-full flex px-2 py-0 rounded-sm appearance-none ${styles}`}
         name={name}
-        type="search"
         ref={ref}
         onChange={onChange}
         onBlur={onBlur}
@@ -39,7 +39,12 @@ export const RecordFormInputText = React.forwardRef(
           </div>
         </div>
       )} */}
-      <ClipboardButton value={defaultValue} styles={"p-0.5 bottom-0 right-0"} />
+      {clipboard && (
+        <ClipboardButton
+          value={defaultValue}
+          styles={"p-0.5 bottom-0 right-0"}
+        />
+      )}
     </div>
   )
 );
