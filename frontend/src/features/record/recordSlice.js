@@ -26,13 +26,13 @@ export const getRecord = createAsyncThunk(
 
 export const newRecord = createAsyncThunk(
   "record/fetchNewRecord",
-  async (record, { rejectWithValue }) => {
+  async (record, { rejectWithValue, dispatch }) => {
     const response = await fetchNewRecord(record);
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);
     }
-    console.log(response);
+    dispatch(getRecords());
   }
 );
 
@@ -66,7 +66,7 @@ export const recordSlice = createSlice({
         state.status = "loading";
       })
       .addCase(getRecords.fulfilled, (state, action) => {
-        state.status = "success";
+        state.status = "";
         state.record = action.payload[0];
       })
       .addCase(getRecords.rejected, (state, action) => {

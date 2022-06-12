@@ -24,8 +24,11 @@ import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
   const dispatch = useDispatch();
+
   const userStatus = useSelector(selectUserStatus);
-  const records = useSelector(selectRecords);
+  const record = JSON.parse(localStorage.getItem("state")).record.record;
+  const records = JSON.parse(localStorage.getItem("state")).records.records;
+  const recordStatus = useSelector(selectRecordStatus);
   const token = useSelector(selectToken);
 
   const [mode, setMode] = useState("list-records");
@@ -54,8 +57,8 @@ export function Dashboard() {
     dispatch(setUser({ status: "" }));
     dispatch(setRecord({ status: "loading" }));
     dispatch(setRecords({ status: "loading" }));
+    dispatch(getRecords());
     delay(1500).then((res) => {
-      dispatch(getRecords());
       dispatch(setRecords({ status: "" }));
     });
   }, [token]);
@@ -78,7 +81,8 @@ export function Dashboard() {
           } dark:bg-slate-800 dark:bg-opacity-60 dark:shadow-slate-700`}
         >
           <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
-          <Record />
+          {!!record && <Record />}
+          {!!record && "No hay expedientes."}
         </div>
       </div>
     </div>

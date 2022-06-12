@@ -18,6 +18,8 @@ store.subscribe(
   throttle(() => {
     saveState({
       userBar: store.getState().userBar,
+      records: store.getState().records,
+      record: store.getState().record,
     });
   }, 1000)
 );

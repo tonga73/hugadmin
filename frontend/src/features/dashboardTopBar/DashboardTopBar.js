@@ -17,6 +17,7 @@ import {
   selectRecordStatus,
   editRecord,
 } from "../record/recordSlice";
+import { setRecords, getRecords } from "../records/recordsSlice";
 
 import styles from "./DashboardTopBar.module.css";
 
@@ -64,22 +65,28 @@ export function DashboardTopBar(props) {
             <PencilIcon className="h-5 w-5" />
           </button>
         )}
-        {recordStatus === "creating" && (
-          <button
-            type="submit"
-            form="addNewRecordForm"
-            className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm hover:-translate-y-1 transition-transform text-slate-200 bg-green-800`}
-          >
-            Guardar
-            <SaveIcon className="h-5 w-5" />
-          </button>
-        )}
+        <button
+          type="submit"
+          form="addNewRecordForm"
+          className={`${
+            recordStatus === "" || recordStatus === "editing"
+              ? "hidden"
+              : recordStatus === "creating"
+              ? "opacity-10 cursor-default pointer-events-none inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm bg-green-800"
+              : recordStatus === "formValidated"
+              ? "hover:-translate-y-1 inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm transition-transform text-slate-200 bg-green-800"
+              : ""
+          } `}
+        >
+          Guardar
+          <SaveIcon className="h-5 w-5" />
+        </button>
         {recordStatus === "editing" && (
           <>
             <button
               type="submit"
               form="addNewRecordForm"
-              className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm hover:-translate-y-1 transition-transform text-slate-200 bg-green-800`}
+              className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm hover:-translate-y-1 transition-transform text-slate-200 bg-orange-800 opacity-30`}
             >
               Editar
               <SaveIcon className="h-5 w-5" />
@@ -88,8 +95,7 @@ export function DashboardTopBar(props) {
               onClick={() => {
                 dispatch(setRecord({ status: "" }));
               }}
-              type="submit"
-              form="addNewRecordForm"
+              type="button"
               className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 dark:text-slate-600 border-slate-600 border opacity-50  hover:opacity-100 transition-opacity`}
             >
               Cancelar

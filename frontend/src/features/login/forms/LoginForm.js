@@ -24,15 +24,14 @@ export function LoginForm() {
           placeholder="correo@de.registro"
           {...register("email", { required: true })}
         />
+        {errors.email && <span>Este campo es requerido</span>}
         <input
           className={styles.passwordInput}
           type="password"
           placeholder="Password"
           {...register("password", { required: true })}
         />
-        {(errors.email || errors.password) && (
-          <span>Este campo es requerido</span>
-        )}
+        {errors.password && <span>Este campo es requerido</span>}
         <input
           type="submit"
           className={styles.submitButton}

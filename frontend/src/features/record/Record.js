@@ -42,6 +42,29 @@ export function Record() {
     formState: { errors },
   } = useForm();
 
+  const validateForm = () => {
+    let orderValidation = watch("order");
+    let coverValidation = watch("cover");
+
+    if (orderValidation === undefined || coverValidation === undefined) {
+      return;
+    }
+
+    if (orderValidation.length > 5 && coverValidation.length > 7) {
+      return true;
+    }
+  };
+
+  const validate = validateForm();
+
+  const setRequired = () => {
+    if (recordStatus !== "editing") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   const onSubmit = (data) => {
     dispatch(newRecord(data));
   };
@@ -126,24 +149,36 @@ export function Record() {
             disabled={recordStatus === ""}
             selectOptions={selectContentType("status")}
             defaultValue={record.status}
-            {...register("status", { required: true, minLength: 5 })}
+            {...register("status")}
             styles={recordStatus === "" ? "bg-stone-900 text-right" : ""}
           />
         </span>
         <RecordFormInputText
           disabled={recordStatus === ""}
           defaultValue={recordStatus === "" ? record.order : ""}
-          {...register("order", { required: true, minLength: 5 })}
           styles="text-3xl font-bold"
           placeHolder={recordStatus === "editing" ? record.order : ""}
+          {...register("order", { required: setRequired(), minLength: 5 })}
         />
+        {errors.order && recordStatus === "creating" && (
+          <span className="px-3 flex items-center opacity-70 bg-red-800  text-slate-400 tracking-tight font-bold uppercase">
+            <small>Es requerido indicar un</small> orden.
+          </span>
+        )}
+
         <RecordFormInputText
           disabled={recordStatus === ""}
           defaultValue={recordStatus === "" ? record.cover : ""}
-          {...register("cover", { required: true, minLength: 5 })}
           styles="text-4xl font-thin"
           placeHolder={recordStatus === "editing" ? record.cover : ""}
+          {...register("cover", { required: setRequired(), minLength: 5 })}
         />
+        {errors.cover && recordStatus === "creating" && (
+          <span className="px-3 flex items-center opacity-70 bg-red-800  text-slate-400 tracking-tight font-bold uppercase">
+            <small>Es requerido indicar una</small> carátula.
+          </span>
+        )}
+
         {showLocation()}
       </>
     );
@@ -154,6 +189,14 @@ export function Record() {
       dispatch(getRecord(record._id));
     }
   }, [recordsStatus]);
+
+  useEffect(() => {
+    reset();
+  }, [recordStatus === ""]);
+
+  useEffect(() => {
+    dispatch(setRecord({ status: "formValidated" }));
+  }, [!!validate]);
 
   return (
     <>
