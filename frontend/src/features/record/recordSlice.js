@@ -6,6 +6,7 @@ import { getRecords } from "../records/recordsSlice";
 
 const initialState = {
   status: "",
+  message: "",
   record: {},
   tracings: [],
 };

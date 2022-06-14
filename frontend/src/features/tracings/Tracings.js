@@ -75,7 +75,7 @@ export function Tracings(props) {
           form="addNewTracing"
           className={`${styles} ${
             mode === "creating" ? "" : "hidden"
-          }bg-red-800`}
+          }bg-red-700`}
         >
           <XIcon className={`${mode === "creating" ? "" : "hidden"}`} />
         </button>
@@ -133,7 +133,7 @@ export function Tracings(props) {
                 }}
                 type="submit"
                 form="addNewTracing"
-                className="p-1 rounded-sm hover:translate-y-0.5 opacity-50 hover:opacity-100 transition-all text-slate-200 bg-slate-900 bg-opacity-70 hover:bg-red-800 hover:bg-opacity-100"
+                className="p-1 rounded-sm hover:translate-y-0.5 opacity-50 hover:opacity-100 transition-all text-slate-200 bg-slate-900 bg-opacity-70 hover:bg-red-700 hover:bg-opacity-100"
               >
                 <TrashIcon />
               </button>

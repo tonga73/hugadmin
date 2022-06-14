@@ -15,18 +15,18 @@
   @apply bg-[url('https://abala-abogados.com/wp-content/uploads/2020/05/expediente_matrimonial-900x480.jpg')];
 }
 
-.loginForm {
-  @apply w-full grid grid-rows-4 gap-1;
+.loginForm > div {
+  @apply w-full grid gap-3;
 }
 
-.loginForm > input {
+.loginForm input[type="email"],
+.loginForm input[type="password"] {
   @apply text-xl;
   @apply p-3;
   @apply rounded-sm;
 }
 
-.loginForm > input[type="submit"] {
-  @apply row-end-5;
+.loginForm input[type="submit"] {
   @apply text-white uppercase font-bold;
   @apply p-3;
   @apply rounded-sm;

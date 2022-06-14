@@ -161,7 +161,7 @@ export function Record() {
           {...register("order", { required: setRequired(), minLength: 5 })}
         />
         {errors.order && recordStatus === "creating" && (
-          <span className="px-3 flex items-center opacity-70 bg-red-800  text-slate-400 tracking-tight font-bold uppercase">
+          <span className="px-3 flex items-center opacity-70 bg-red-700  text-slate-400 tracking-tight font-bold uppercase">
             <small>Es requerido indicar un</small> orden.
           </span>
         )}
@@ -174,7 +174,7 @@ export function Record() {
           {...register("cover", { required: setRequired(), minLength: 5 })}
         />
         {errors.cover && recordStatus === "creating" && (
-          <span className="px-3 flex items-center opacity-70 bg-red-800  text-slate-400 tracking-tight font-bold uppercase">
+          <span className="px-3 flex items-center opacity-70 bg-red-700  text-slate-400 tracking-tight font-bold uppercase">
             <small>Es requerido indicar una</small> carátula.
           </span>
         )}
