@@ -2,6 +2,7 @@ import { axiosClient } from "../../app/axiosClient";
 
 export async function fetchGetRecord(req) {
   const id = await req;
+
   if (req === undefined) {
     return;
   }
@@ -53,4 +54,22 @@ export function fetchEditRecord(req) {
   //     };
   //     return res;
   //   });
+}
+
+export function fetchRemoveRecord(req) {
+  const { _id } = req;
+
+  return axiosClient
+    .delete(`/records/${_id}`)
+    .then(({ data }) => {
+      return data;
+    })
+    .catch((err) => {
+      const { msg } = err.response.data;
+      const res = {
+        status: "error",
+        msg,
+      };
+      return res;
+    });
 }

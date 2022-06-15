@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 
 import { Spinner } from "../../commons/spinner/Spinner";
 
+import { DocumentRemoveIcon } from "@heroicons/react/outline";
+
 import {
   newRecord,
   getRecord,
@@ -70,6 +72,47 @@ export function Record() {
   };
 
   // console.log(watch("location"));
+
+  const showRecord = () => {
+    if (recordStatus === "loading") {
+      return (
+        <div className="flex justify-center items-center w-full">
+          <Spinner />
+        </div>
+      );
+    } else if (
+      recordStatus === "creating" ||
+      recordStatus === "formValidated" ||
+      recordStatus === "editing" ||
+      (recordStatus === "" && record !== undefined)
+    ) {
+      return (
+        <div className={styles.recordGrid}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            id="addNewRecordForm"
+            className={`${recordModeStyles(
+              recordStatus
+            )} dark:text-slate-300 dark:bg-slate-700 dark:bg-opacity-50 py-3 px-3 rounded-sm`}
+          >
+            {recordInputs(record || {})}
+          </form>
+          <div className={styles.recordTracings}>
+            <Tracings record={record} />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className={styles.recordGrid}>
+          <div className="absolute self-center place-self-center text-slate-700 font-bold uppercase">
+            <DocumentRemoveIcon className="opacity-10 w-80 h-80" />
+            Ningún expediente seleccionado.
+          </div>
+        </div>
+      );
+    }
+  };
 
   const selectContentType = (contentType) => {
     const contentPriority = [
@@ -155,9 +198,9 @@ export function Record() {
         </span>
         <RecordFormInputText
           disabled={recordStatus === ""}
-          defaultValue={recordStatus === "" ? record.order : ""}
+          defaultValue={recordStatus === "" || "editng" ? record.order : ""}
           styles="text-3xl font-bold"
-          placeHolder={recordStatus === "editing" ? record.order : ""}
+          placeHolder={recordStatus === "editing" ? record.order : "1234/4321"}
           {...register("order", { required: setRequired(), minLength: 5 })}
         />
         {errors.order && recordStatus === "creating" && (
@@ -168,9 +211,13 @@ export function Record() {
 
         <RecordFormInputText
           disabled={recordStatus === ""}
-          defaultValue={recordStatus === "" ? record.cover : ""}
+          defaultValue={recordStatus === "" || "editng" ? record.cover : ""}
           styles="text-4xl font-thin"
-          placeHolder={recordStatus === "editing" ? record.cover : ""}
+          placeHolder={
+            recordStatus === "editing"
+              ? record.cover
+              : "Una Carátula P/ Expediente"
+          }
           {...register("cover", { required: setRequired(), minLength: 5 })}
         />
         {errors.cover && recordStatus === "creating" && (
@@ -184,41 +231,21 @@ export function Record() {
     );
   }
 
-  useEffect(() => {
-    if (record !== undefined) {
-      dispatch(getRecord(record._id));
-    }
-  }, [recordsStatus]);
+  // useEffect(() => {
+  //   if (Object.keys(record).length > 0) {
+  //     dispatch(getRecord(record._id));
+  //   }
+  // }, [recordsStatus]);
 
   useEffect(() => {
     reset();
   }, [recordStatus === ""]);
 
   useEffect(() => {
-    dispatch(setRecord({ status: "formValidated" }));
-  }, [!!validate]);
+    if (validate !== undefined && validate === true) {
+      dispatch(setRecord({ status: "formValidated" }));
+    }
+  }, [validate === true]);
 
-  return (
-    <>
-      {recordStatus == "loading" && (
-        <div className="flex justify-center items-center w-full">
-          <Spinner />
-        </div>
-      )}
-      {recordStatus !== "loading" && (
-        <div className={styles.recordGrid}>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            id="addNewRecordForm"
-            className={`${recordModeStyles(recordStatus)} dark:text-slate-300`}
-          >
-            {recordInputs(record)}
-          </form>
-          <div className={styles.recordTracings}>
-            <Tracings record={record} />
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return showRecord();
 }

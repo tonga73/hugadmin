@@ -17,7 +17,11 @@ export const getRecords = createAsyncThunk(
       return rejectWithValue(response.msg);
     }
 
-    return response;
+    if (response.length <= 0) {
+      return initialState.records;
+    }
+
+    return response.reverse();
   }
 );
 
@@ -37,7 +41,7 @@ export const recordsSlice = createSlice({
       })
       .addCase(getRecords.fulfilled, (state, action) => {
         state.status = "success";
-        state.records = action.payload.reverse();
+        state.records = action.payload;
       })
       .addCase(getRecords.rejected, (state, action) => {
         state.status = "error";

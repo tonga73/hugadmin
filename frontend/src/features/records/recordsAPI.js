@@ -1,6 +1,6 @@
 import { axiosClient } from "../../app/axiosClient";
 
-export function fetchRecords(req) {
+export function fetchRecords() {
   return axiosClient
     .get("/records")
     .then(({ data }) => {
@@ -8,6 +8,7 @@ export function fetchRecords(req) {
     })
     .catch((err) => {
       const { msg } = err.response.data;
+      console.log(err);
       const res = {
         status: "error",
         msg,

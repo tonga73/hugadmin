@@ -11,8 +11,10 @@ export const RecordFormSelect = React.forwardRef(
       <select
         disabled={disabled}
         className={`${
-          disabled ? "bg-transparent uppercase" : "shadow-md dark:bg-slate-800"
-        } w-full flex h-9 px-2 py-0 text-sm rounded-sm appearance-none ${
+          disabled
+            ? "bg-transparent uppercase"
+            : "shadow-md text-slate-500 dark:bg-slate-800"
+        } w-full flex px-2 py-0 text-sm rounded-sm appearance-none h-9 ${
           styles ? styles : ""
         }`}
         name={name}

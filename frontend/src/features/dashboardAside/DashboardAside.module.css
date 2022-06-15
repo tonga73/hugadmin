@@ -1,5 +1,5 @@
 .dashboardAside {
-  @apply my-auto h-full pb-5;
+  @apply h-full;
   @apply col-span-3;
 }
 

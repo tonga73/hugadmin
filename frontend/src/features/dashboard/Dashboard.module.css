@@ -1,5 +1,5 @@
 .dashboardGrid {
-  @apply h-5/6 min-h-screen mx-auto container;
+  @apply min-h-screen mx-auto container;
   @apply grid grid-cols-12;
   @apply pt-3 pr-2;
   @apply bg-slate-200;
@@ -11,7 +11,7 @@
 }
 
 .dashboard {
-  @apply h-5/6 min-h-screen col-span-9 col-end-13 grid grid-rows-[50px_minmax(400px,_1fr)];
+  @apply min-h-screen col-span-9 col-end-13 grid grid-rows-[50px_minmax(400px,_1fr)];
   @apply rounded-sm;
   @apply bg-slate-100;
   @apply shadow-md shadow-slate-400;

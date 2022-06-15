@@ -21,7 +21,9 @@ export const RecordFormInputText = React.forwardRef(
         placeholder={placeHolder}
         disabled={disabled}
         className={`${
-          disabled ? "bg-transparent" : "shadow-md dark:bg-slate-800"
+          disabled
+            ? "bg-transparent"
+            : "shadow-md placeholder-slate-500 focus:placeholder-slate-700 dark:bg-slate-800"
         } w-full flex px-2 py-0 rounded-sm appearance-none ${styles}`}
         name={name}
         type="search"

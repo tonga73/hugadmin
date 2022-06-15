@@ -1,6 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { fetchGetRecord, fetchNewRecord, fetchEditRecord } from "./recordAPI";
+import {
+  fetchGetRecord,
+  fetchNewRecord,
+  fetchEditRecord,
+  fetchRemoveRecord,
+} from "./recordAPI";
 
 import { getRecords } from "../records/recordsSlice";
 
@@ -15,6 +20,8 @@ export const getRecord = createAsyncThunk(
   "record/fetchGetRecord",
   async (recordId, { rejectWithValue, dispatch }) => {
     const response = await fetchGetRecord(recordId);
+
+    console.log(response);
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);
@@ -49,6 +56,19 @@ export const editRecord = createAsyncThunk(
   }
 );
 
+export const removeRecord = createAsyncThunk(
+  "record/fetchRemoveRecord",
+  async (record, { rejectWithValue, dispatch }) => {
+    const response = await fetchRemoveRecord(record);
+
+    if (response.status === "error") {
+      return rejectWithValue(response.msg);
+    }
+
+    dispatch(setRecord({ status: "removeSuccess" }));
+  }
+);
+
 export const recordSlice = createSlice({
   name: "record",
   initialState,
@@ -71,7 +91,7 @@ export const recordSlice = createSlice({
         state.record = action.payload[0];
       })
       .addCase(getRecords.rejected, (state, action) => {
-        state.status = "error";
+        state.status = "";
         state.message = action.payload;
       });
   },

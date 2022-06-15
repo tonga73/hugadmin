@@ -6,7 +6,6 @@ const initialState = {
   status: "",
   user: {},
   isLoggedIn: false,
-  token: "",
 };
 
 export const logout = (dispatch, getState) => {
@@ -33,7 +32,6 @@ export const userBarSlice = createSlice({
       state.status = "success";
       state.user = action.payload;
       state.isLoggedIn = true;
-      state.token = action.payload.token;
     });
   },
 });
@@ -46,6 +44,6 @@ export const selectUser = (state) => state.userBar.user;
 
 export const selectLogIn = (state) => state.userBar.isLoggedIn;
 
-export const selectToken = (state) => state.userBar.token;
+export const selectToken = (state) => state.userBar.user.token;
 
 export default userBarSlice.reducer;

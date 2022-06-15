@@ -17,7 +17,7 @@ import {
   selectRecordStatus,
   editRecord,
 } from "../record/recordSlice";
-import { setRecords, getRecords } from "../records/recordsSlice";
+import { setRecords, getRecords, selectRecords } from "../records/recordsSlice";
 
 import styles from "./DashboardTopBar.module.css";
 
@@ -26,6 +26,7 @@ export function DashboardTopBar(props) {
   const onClick = props.onClick;
   const mode = props.mode;
   const recordStatus = useSelector(selectRecordStatus);
+  const records = useSelector(selectRecords);
 
   function FullscreenToggleIcon() {
     if (mode === "full-screen") {
@@ -45,6 +46,7 @@ export function DashboardTopBar(props) {
       />
     );
   }
+
   return (
     <nav
       className={`${styles.dashboardTopBar} ${
@@ -59,7 +61,11 @@ export function DashboardTopBar(props) {
             }}
             type="button"
             form=""
-            className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 border border-slate-500 opacity-50 hover:opacity-100 transition-opacity`}
+            className={`${
+              Object.keys(records).length > 0
+                ? "opacity-50 hover:opacity-100 transition-opacity"
+                : "opacity-10 pointer-events-none"
+            } inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 border border-slate-500`}
           >
             Editar
             <PencilIcon className="h-5 w-5" />
@@ -108,8 +114,10 @@ export function DashboardTopBar(props) {
         {recordStatus === "" && (
           <>
             <button
-              type="submit"
-              form=""
+              onClick={() => {
+                dispatch(setRecord({ status: "removeConfirm" }));
+              }}
+              type="button"
               className={`inline-flex items-center gap-x-1.5 px-3 py-1 rounded-sm text-slate-200 border border-slate-500 opacity-50 hover:text-white hover:bg-red-700 hover:border-opacity-0 hover:opacity-100 transition-opacity`}
             >
               Elminar

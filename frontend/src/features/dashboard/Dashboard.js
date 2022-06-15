@@ -3,6 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { delay } from "../../app/helpers/delay";
 
+import { XIcon, ExclamationIcon } from "@heroicons/react/outline";
+
+import { Modal } from "../../commons/modals/modal/Modal";
+import { Button } from "../../commons/buttons/button/Button";
+
 import { DashboardAside } from "../dashboardAside/DashboardAside";
 import { DashboardTopBar } from "../dashboardTopBar/DashboardTopBar";
 import { Record } from "../record/Record";
@@ -17,6 +22,7 @@ import {
   selectRecord,
   setRecord,
   selectRecordStatus,
+  removeRecord,
 } from "../record/recordSlice";
 import { getRecords, selectRecords, setRecords } from "../records/recordsSlice";
 
@@ -53,15 +59,63 @@ export function Dashboard() {
     }
   }
 
+  const ConfirmRemoveRecord = () => {
+    return (
+      <div className="grid grid-cols-5 w-1/3 h-52 items-center dark:bg-slate-900 dark:text-slate-200 shadow-md shadow-red-800">
+        <div className="col-span-5 grid grid-cols-12 px-3 py-1 items-center uppercase font-bold bg-red-800">
+          <div className="col-span-11 inline-flex gap-1 items-center">
+            <ExclamationIcon className="h-7 w-7" />
+            Elminando Expediente
+          </div>
+          <button
+            onClick={() => {
+              dispatch(setRecord({ status: "" }));
+            }}
+            className="col-span-1 col-start-13"
+          >
+            <XIcon className="h-7 w-7" />
+          </button>
+        </div>
+        <div className="col-span-5 p-3 rounded-sm">
+          <div className="text-slate-500">
+            El expediente: <br />
+            <strong className="uppercase py-1 block text-lg text-center dark:text-slate-200">
+              {record.order} | {record.cover}
+            </strong>
+            será{" "}
+            <span className="font-semibold bg-red-800 dark:text-slate-200 p-0.5 rounded-sm">
+              ELIMINADO DEFINITIVAMENTE
+            </span>
+            .
+          </div>
+        </div>
+        <div className="col-span-5 py-1 px-3 inline-flex justify-between">
+          <Button
+            onClick={() => {
+              dispatch(removeRecord(record));
+            }}
+            text="Eliminar"
+            styles="border-red-600 text-red-600 hover:text-slate-200 hover:bg-red-700"
+          />
+          <Button
+            onClick={() => {
+              dispatch(setRecord({ status: "" }));
+            }}
+            text="Cancelar"
+            styles="opacity-100 border-slate-400 text-slate-400"
+          />
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     dispatch(setUser({ status: "" }));
-    dispatch(setRecord({ status: "loading" }));
-    dispatch(setRecords({ status: "loading" }));
     dispatch(getRecords());
     delay(1500).then((res) => {
       dispatch(setRecords({ status: "" }));
     });
-  }, [token]);
+  }, [token, recordStatus === "removeSuccess"]);
 
   return (
     <div className={styles.dashboardBackgroundContainer}>
@@ -81,10 +135,13 @@ export function Dashboard() {
           } dark:bg-slate-800 dark:bg-opacity-60 dark:shadow-slate-700`}
         >
           <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
-          {!!record && <Record />}
-          {!!record && "No hay expedientes."}
+          {<Record />}
         </div>
       </div>
+      <Modal
+        active={recordStatus === "removeConfirm"}
+        content={<ConfirmRemoveRecord />}
+      />
     </div>
   );
 }

@@ -28,7 +28,7 @@ export function DashboardAside(props) {
         </>
       );
     }
-    return <>{!!records && <Records />}</>;
+    return <>{<Records />}</>;
   }
 
   return (
