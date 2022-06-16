@@ -21,8 +21,6 @@ export const getRecord = createAsyncThunk(
   async (recordId, { rejectWithValue, dispatch }) => {
     const response = await fetchGetRecord(recordId);
 
-    console.log(response);
-
     if (response.status === "error") {
       return rejectWithValue(response.msg);
     }

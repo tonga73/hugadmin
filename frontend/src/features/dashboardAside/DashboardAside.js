@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
+import { Transition } from "@headlessui/react";
+
 import { selectUser } from "../userBar/userBarSlice";
 
 import { selectRecords } from "../records/recordsSlice";
@@ -37,7 +39,7 @@ export function DashboardAside(props) {
         mode !== "full-screen"
           ? styles.dashboardAside
           : styles.dashboardAsideFullscreen
-      } dark:text-slate-200`}
+      } dark:text-slate-200 pb-5`}
     >
       <UserBar onClick={onClick} mode={mode} user={user} />
       <AsideContent />

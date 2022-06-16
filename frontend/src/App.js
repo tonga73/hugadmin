@@ -3,11 +3,13 @@ import { useSelector } from "react-redux";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import { selectLogIn, selectUser } from "./features/userBar/userBarSlice";
+import { selectRecord } from "./features/record/recordSlice";
 
 import { Admin } from "./features/admin/Admin";
 
 import { Dashboard } from "./features/dashboard/Dashboard";
 import { Login } from "./features/login/Login";
+import { Record } from "./features/record/Record";
 
 import { LoginForm } from "./features/login/forms/LoginForm";
 
@@ -36,6 +38,7 @@ const AdminRoute = ({ user, redirectPath = "/" }) => {
 };
 
 function App() {
+  const record = useSelector(selectRecord);
   useEffect(() => {
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
     if (
@@ -53,7 +56,9 @@ function App() {
     <Routes>
       <Route element={<ProtectedRoute isLoggedIn={useSelector(selectLogIn)} />}>
         <Route path="/" element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />}>
+          <Route path=":id" element={<Record record={record} />} />
+        </Route>
         <Route path="*" exact={true} element={<Login />} />
         <Route element={<AdminRoute user={useSelector(selectUser)} />}>
           <Route path="admin" element={<Navigate to="admin-panel" replace />} />

@@ -27,10 +27,10 @@ import { RecordFormInputText } from "./selectInputs/RecordFormInputText";
 
 import styles from "./Record.module.css";
 
-export function Record() {
+export function Record({ record }) {
   const dispatch = useDispatch();
 
-  const record = useSelector(selectRecord);
+  // const record = useSelector(selectRecord);
   const recordStatus = useSelector(selectRecordStatus);
   const recordsStatus = useSelector(selectRecordsStatus);
   const tracingsStatus = useSelector(selectTracingsStatus);
@@ -242,7 +242,11 @@ export function Record() {
   }, [recordStatus === ""]);
 
   useEffect(() => {
-    if (validate !== undefined && validate === true) {
+    if (
+      recordStatus === "creating" &&
+      validate !== undefined &&
+      validate === true
+    ) {
       dispatch(setRecord({ status: "formValidated" }));
     }
   }, [validate === true]);

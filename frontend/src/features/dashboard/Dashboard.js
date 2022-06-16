@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Outlet } from "react-router-dom";
 
 import { delay } from "../../app/helpers/delay";
 
@@ -102,7 +103,7 @@ export function Dashboard() {
               dispatch(setRecord({ status: "" }));
             }}
             text="Cancelar"
-            styles="opacity-100 border-slate-400 text-slate-400"
+            styles="border-slate-100 text-slate-100"
           />
         </div>
       </div>
@@ -135,7 +136,7 @@ export function Dashboard() {
           } dark:bg-slate-800 dark:bg-opacity-60 dark:shadow-slate-700`}
         >
           <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
-          {<Record />}
+          <Outlet />
         </div>
       </div>
       <Modal

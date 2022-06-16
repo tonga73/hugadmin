@@ -1,5 +1,6 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Link, useParams } from "react-router-dom";
 
 import { Transition } from "@headlessui/react";
 import { DocumentAddIcon } from "@heroicons/react/outline";
@@ -20,13 +21,46 @@ export function Records() {
 
   const dispatch = useDispatch();
 
+  const params = useParams();
+
   const records = useSelector(selectRecords);
   const recordsStatus = useSelector(selectRecordsStatus);
-  const activeRecord = JSON.parse(localStorage.getItem("state")).record.record;
+  const activeRecord = params.id;
   const recordStatus = useSelector(selectRecordStatus);
 
   const setActiveRecord = (record) => {
-    record !== activeRecord && dispatch(getRecord(record._id));
+    record._id !== activeRecord && dispatch(getRecord(record._id));
+  };
+
+  const RecordItem = ({ record, activeRecord }) => {
+    return (
+      <>
+        <div className="grid grid-cols-7 pl-2.5">
+          <span className="relative -left-5 w-5 col-span-7 bg-pink-300">
+            <div className="absolute right-0">
+              <span className="flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+              </span>
+            </div>
+          </span>
+          <span className="col-span-3 text-left text-lg tracking-wider">
+            {record.order}
+          </span>
+          <span className="col-span-4 text-right bg-stone-900 px-2 py-0.5 truncate">
+            {record.status}
+          </span>
+        </div>
+        <span className="row-span-2 flex w-full justify-end items-center px-2 text-lg font-semibold truncate bg-slate-900">
+          {record.cover}
+          {record._id === activeRecord && (
+            <div className="relative h-5 w-5 bg-slate-800 bg-opacity-70 -right-5 rotate-45">
+              <div className="absolute"></div>
+            </div>
+          )}
+        </span>
+      </>
+    );
   };
 
   const ListRecords = ({ records }) => {
@@ -39,33 +73,18 @@ export function Records() {
       );
     } else {
       return records.map((record) => (
-        <div
+        <Link
+          to={record._id}
           onClick={() => setActiveRecord(record)}
-          className={`grid grid-rows-3 rounded-tl-xl h-20 dark:bg-slate-800 shadow-sm dark:shadow-slate-700 text-md select-none hover:cursor-pointer hover:scale-105 transition-transform ${
-            record === activeRecord ? "" : ""
+          className={`grid grid-rows-3 rounded-tl-xl h-20 dark:bg-slate-800 text-md select-none transition-transform ${
+            record._id === activeRecord
+              ? "scale-105 order-first cursor-default shadow-sm dark:shadow-slate-800"
+              : "opacity-30 hover:scale-105 hover:cursor-pointer"
           }`}
           key={record._id}
         >
-          <div className="grid grid-cols-7 pl-2.5">
-            <span className="relative -left-5 w-5 col-span-7 bg-pink-300">
-              <div className="absolute right-0">
-                <span className="flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                </span>
-              </div>
-            </span>
-            <span className="col-span-3 text-left text-lg tracking-wider">
-              {record.order}
-            </span>
-            <span className="col-span-4 text-right bg-stone-900 px-2 py-0.5 truncate">
-              {record.status}
-            </span>
-          </div>
-          <span className="row-span-2 flex items-center px-2 text-lg font-semibold truncate bg-slate-900">
-            {record.cover}
-          </span>
-        </div>
+          {RecordItem({ record, activeRecord })}
+        </Link>
       ));
     }
   };
@@ -80,27 +99,15 @@ export function Records() {
         </div>
       )}
       {recordsStatus !== "loading" && (
-        <Transition
+        <div
           className={`${
             recordStatus === "creating" || recordStatus === "formValidated"
               ? "opacity-10 transition-opacity pointer-events-none"
               : ""
-          } h-full `}
-          appear={true}
-          show={isShowing}
+          } h-full overflow-scroll px-3 flex flex-col gap-y-3 pb-36 pt-3 `}
         >
-          <Transition.Child
-            enter="transition-opacity duration-1000"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity duration-1000"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-            className="h-full overflow-scroll px-3 flex flex-col gap-y-3 pb-36 pt-3"
-          >
-            {ListRecords({ records: records })}
-          </Transition.Child>
-        </Transition>
+          {ListRecords({ records: records })}
+        </div>
       )}
     </div>
   );
