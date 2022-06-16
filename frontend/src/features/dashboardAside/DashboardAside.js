@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { Transition } from "@headlessui/react";
 
 import { selectUser } from "../userBar/userBarSlice";
-
 import { selectRecords } from "../records/recordsSlice";
 
 import { UserBar } from "../userBar/UserBar";

@@ -7,6 +7,7 @@ import { selectRecords } from "../records/recordsSlice";
 import { XIcon, DocumentAddIcon } from "@heroicons/react/outline";
 
 import { Button } from "../../commons/buttons/button/Button";
+import { SearchInput } from "../../commons/inputs/SearchInput";
 
 export function RecordsFiltersBar() {
   const dispatch = useDispatch();
@@ -66,7 +67,7 @@ export function RecordsFiltersBar() {
   return (
     <>
       <div className="grid gap-3 px-3">
-        <input placeholder="Buscar..." type="search" />
+        <SearchInput />
         {CreateRecordButton({ recordStatus })}
       </div>
     </>

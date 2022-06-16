@@ -13,6 +13,8 @@ import {
 } from "../record/recordSlice";
 
 import { Spinner } from "../../commons/spinner/Spinner";
+import { statusColorPicker } from "../../commons/helpers/statusColorPicker";
+import { priorityColorPicker } from "../../commons/helpers/priorityColorPicker";
 
 import { RecordsFiltersBar } from "../recordsFiltersBar/RecordsFiltersBar";
 
@@ -39,22 +41,36 @@ export function Records() {
           <span className="relative -left-5 w-5 col-span-7 bg-pink-300">
             <div className="absolute right-0">
               <span className="flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                <span
+                  className={`${priorityColorPicker({
+                    priority: record.priority,
+                    style: "badge",
+                  })} absolute inline-flex h-full w-full rounded-full opacity-75`}
+                ></span>
+                <span
+                  className={`${priorityColorPicker({
+                    priority: record.priority,
+                    style: "badge",
+                  })} relative inline-flex rounded-full h-3 w-3`}
+                ></span>
               </span>
             </div>
           </span>
           <span className="col-span-3 text-left text-lg tracking-wider">
             {record.order}
           </span>
-          <span className="col-span-4 text-right bg-stone-900 px-2 py-0.5 truncate">
+          <span
+            className={`${
+              record.status ? statusColorPicker({ status: record.status }) : ""
+            } col-span-4 text-right text-sm self-center px-2 py-0.5 truncate font-bold uppercase`}
+          >
             {record.status}
           </span>
         </div>
         <span className="row-span-2 flex w-full justify-end items-center px-2 text-lg font-semibold truncate bg-slate-900">
           {record.cover}
           {record._id === activeRecord && (
-            <div className="relative h-5 w-5 dark:bg-slate-800 dark:bg-opacity-60 -right-5 rotate-45">
+            <div className="relative h-5 w-5 dark:bg-slate-600 dark:bg-opacity-60 -right-5 rotate-45">
               <div className="absolute"></div>
             </div>
           )}
@@ -104,7 +120,7 @@ export function Records() {
             recordStatus === "creating" || recordStatus === "formValidated"
               ? "opacity-10 transition-opacity pointer-events-none"
               : ""
-          } h-full overflow-scroll px-3 flex flex-col gap-y-3 pb-36 pt-3 `}
+          } h-full overflow-scroll px-3 flex flex-col gap-y-3 pb-44 pt-3 `}
         >
           {ListRecords({ records: records })}
         </div>

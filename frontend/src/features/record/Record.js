@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
 import { Spinner } from "../../commons/spinner/Spinner";
+import { statusColorPicker } from "../../commons/helpers/statusColorPicker";
+import { priorityColorPicker } from "../../commons/helpers/priorityColorPicker";
 
 import { DocumentRemoveIcon } from "@heroicons/react/outline";
 
@@ -93,7 +95,7 @@ export function Record({ record }) {
             id="addNewRecordForm"
             className={`${recordModeStyles(
               recordStatus
-            )} dark:text-slate-300 dark:bg-slate-700 dark:bg-opacity-50 py-3 px-3 rounded-sm`}
+            )} dark:text-slate-300 dark:bg-slate-700 dark:bg-opacity-50 py-1.5 px-3 rounded-sm`}
           >
             {recordInputs(record || {})}
           </form>
@@ -149,19 +151,26 @@ export function Record({ record }) {
   };
 
   function showLocation() {
-    // if (record.location) {
-    //   return (
-    //     <>
-    //       <RecordFormSelect
-    //         disabled={recordStatus === ""}
-    //         selectOptions={selectContentType("location")}
-    //         defaultValue={locations[0].name}
-    //         {...register("location")}
-    //       />
-    //     </>
-    //   );
-    // }
-    return;
+    if (record.location) {
+      return (
+        <>
+          <RecordFormSelect
+            disabled={recordStatus === ""}
+            selectOptions={selectContentType("location")}
+            defaultValue={locations[0].name}
+            {...register("location")}
+          />
+        </>
+      );
+    }
+    return (
+      <RecordFormSelect
+        disabled={recordStatus === ""}
+        selectOptions={selectContentType("location")}
+        defaultValue="olas"
+        {...register("location")}
+      />
+    );
   }
 
   function recordInputs(record) {
@@ -173,18 +182,27 @@ export function Record({ record }) {
             selectOptions={selectContentType("priority")}
             defaultValue={record.priority}
             {...register("priority")}
-            styles={
+            styles={`${
               recordStatus === ""
-                ? "bg-gradient-to-r from-stone-900 via-transparent"
+                ? priorityColorPicker({
+                    priority: record.priority,
+                    style: "gradient",
+                  })
                 : ""
-            }
+            } bg-gradient-to-r via-transparent font-bold dark:text-slate-200`}
           />
           <RecordFormSelect
             disabled={recordStatus === ""}
             selectOptions={selectContentType("status")}
             defaultValue={record.status}
             {...register("status")}
-            styles={recordStatus === "" ? "bg-stone-900 text-right" : ""}
+            styles={
+              recordStatus === ""
+                ? `${statusColorPicker({
+                    status: record.status,
+                  })} text-right font-bold`
+                : ""
+            }
           />
         </span>
         <RecordFormInputText

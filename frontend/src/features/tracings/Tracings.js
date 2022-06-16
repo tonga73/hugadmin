@@ -89,7 +89,7 @@ export function Tracings(props) {
         <form
           id="addNewTracing"
           onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-12 gap-x-1 scale-95 mb-3  max-w-xs overflow-y-hidden"
+          className="grid grid-cols-12 gap-x-1 scale-95 mb-3 max-w-xs overflow-y-hidden"
         >
           <input
             autoComplete="off"
