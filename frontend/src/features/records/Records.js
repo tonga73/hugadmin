@@ -54,7 +54,7 @@ export function Records() {
         <span className="row-span-2 flex w-full justify-end items-center px-2 text-lg font-semibold truncate bg-slate-900">
           {record.cover}
           {record._id === activeRecord && (
-            <div className="relative h-5 w-5 bg-slate-800 bg-opacity-70 -right-5 rotate-45">
+            <div className="relative h-5 w-5 dark:bg-slate-800 dark:bg-opacity-60 -right-5 rotate-45">
               <div className="absolute"></div>
             </div>
           )}
@@ -90,7 +90,7 @@ export function Records() {
   };
 
   return (
-    <div className="h-screen text-center py-8">
+    <div className="h-screen text-center">
       <RecordsFiltersBar records={records} />
 
       {recordsStatus === "loading" && (

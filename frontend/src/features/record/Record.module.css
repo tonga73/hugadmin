@@ -1,9 +1,3 @@
-.recordGrid {
-  @apply h-full;
-  @apply grid grid-cols-3 gap-3 overflow-hidden;
-  @apply p-3;
-}
-
 .recordInfo {
   @apply col-span-2;
   @apply flex flex-col flex-wrap gap-y-3;

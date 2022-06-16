@@ -136,7 +136,10 @@ export function Dashboard() {
           } dark:bg-slate-800 dark:bg-opacity-60 dark:shadow-slate-700`}
         >
           <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
-          <Outlet />
+
+          <div className="h-full grid grid-cols-3 gap-3 overflow-hidden p-3">
+            <Outlet />
+          </div>
         </div>
       </div>
       <Modal

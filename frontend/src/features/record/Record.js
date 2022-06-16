@@ -87,7 +87,7 @@ export function Record({ record }) {
       (recordStatus === "" && record !== undefined)
     ) {
       return (
-        <div className={styles.recordGrid}>
+        <>
           <form
             onSubmit={handleSubmit(onSubmit)}
             id="addNewRecordForm"
@@ -100,16 +100,7 @@ export function Record({ record }) {
           <div className={styles.recordTracings}>
             <Tracings record={record} />
           </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className={styles.recordGrid}>
-          <div className="absolute self-center place-self-center text-slate-700 font-bold uppercase">
-            <DocumentRemoveIcon className="opacity-10 w-80 h-80" />
-            Ningún expediente seleccionado.
-          </div>
-        </div>
+        </>
       );
     }
   };

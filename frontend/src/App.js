@@ -2,8 +2,13 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
+import { DocumentRemoveIcon } from "@heroicons/react/outline";
+
 import { selectLogIn, selectUser } from "./features/userBar/userBarSlice";
-import { selectRecord } from "./features/record/recordSlice";
+import {
+  selectRecord,
+  selectRecordStatus,
+} from "./features/record/recordSlice";
 
 import { Admin } from "./features/admin/Admin";
 
@@ -39,6 +44,25 @@ const AdminRoute = ({ user, redirectPath = "/" }) => {
 
 function App() {
   const record = useSelector(selectRecord);
+  const recordStatus = useSelector(selectRecordStatus);
+
+  const EmptyRecord = ({ record }) => {
+    if (
+      recordStatus === "creating" ||
+      recordStatus === "formValidated" ||
+      recordStatus === "editing"
+    ) {
+      return <Record />;
+    }
+
+    return (
+      <div className="absolute self-center place-self-center text-slate-700 font-bold uppercase">
+        <DocumentRemoveIcon className="opacity-10 w-80 h-80" />
+        Ningún expediente seleccionado.
+      </div>
+    );
+  };
+
   useEffect(() => {
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
     if (
@@ -57,6 +81,7 @@ function App() {
       <Route element={<ProtectedRoute isLoggedIn={useSelector(selectLogIn)} />}>
         <Route path="/" element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />}>
+          <Route index element={<EmptyRecord />} />
           <Route path=":id" element={<Record record={record} />} />
         </Route>
         <Route path="*" exact={true} element={<Login />} />
