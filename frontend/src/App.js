@@ -43,25 +43,7 @@ const AdminRoute = ({ user, redirectPath = "/" }) => {
 };
 
 function App() {
-  const record = useSelector(selectRecord);
   const recordStatus = useSelector(selectRecordStatus);
-
-  const EmptyRecord = ({ record }) => {
-    if (
-      recordStatus === "creating" ||
-      recordStatus === "formValidated" ||
-      recordStatus === "editing"
-    ) {
-      return <Record />;
-    }
-
-    return (
-      <div className="absolute self-center place-self-center text-slate-700 font-bold uppercase">
-        <DocumentRemoveIcon className="opacity-10 w-80 h-80" />
-        Ningún expediente seleccionado.
-      </div>
-    );
-  };
 
   useEffect(() => {
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -81,8 +63,7 @@ function App() {
       <Route element={<ProtectedRoute isLoggedIn={useSelector(selectLogIn)} />}>
         <Route path="/" element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />}>
-          <Route index element={<EmptyRecord />} />
-          <Route path=":id" element={<Record record={record} />} />
+          <Route index element={<Record />} />
         </Route>
         <Route path="*" exact={true} element={<Login />} />
         <Route element={<AdminRoute user={useSelector(selectUser)} />}>

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import { Spinner } from "../../commons/spinner/Spinner";
 import { statusColorPicker } from "../../commons/helpers/statusColorPicker";
@@ -29,14 +30,18 @@ import { RecordFormInputText } from "./selectInputs/RecordFormInputText";
 
 import styles from "./Record.module.css";
 
-export function Record({ record }) {
+export function Record() {
   const dispatch = useDispatch();
 
-  // const record = useSelector(selectRecord);
+  const record = useSelector(selectRecord);
   const recordStatus = useSelector(selectRecordStatus);
   const recordsStatus = useSelector(selectRecordsStatus);
   const tracingsStatus = useSelector(selectTracingsStatus);
   const locations = useSelector(selectLocationsManager);
+
+  const [query, setQuery] = useSearchParams();
+
+  const recordId = query.get("id");
 
   const {
     register,
@@ -105,6 +110,23 @@ export function Record({ record }) {
         </>
       );
     }
+  };
+
+  const EmptyRecord = ({ record }) => {
+    if (
+      recordStatus === "creating" ||
+      recordStatus === "formValidated" ||
+      recordStatus === "editing"
+    ) {
+      return <Record />;
+    }
+
+    return (
+      <div className="absolute self-center place-self-center text-slate-700 font-bold uppercase">
+        <DocumentRemoveIcon className="opacity-10 w-80 h-80" />
+        Ningún expediente seleccionado.
+      </div>
+    );
   };
 
   const selectContentType = (contentType) => {
@@ -240,11 +262,9 @@ export function Record({ record }) {
     );
   }
 
-  // useEffect(() => {
-  //   if (Object.keys(record).length > 0) {
-  //     dispatch(getRecord(record._id));
-  //   }
-  // }, [recordsStatus]);
+  useEffect(() => {
+    dispatch(getRecord(recordId));
+  }, [recordId]);
 
   useEffect(() => {
     reset();

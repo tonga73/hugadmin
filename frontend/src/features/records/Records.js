@@ -1,6 +1,6 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { Transition } from "@headlessui/react";
 import { DocumentAddIcon } from "@heroicons/react/outline";
@@ -25,9 +25,11 @@ export function Records() {
 
   const params = useParams();
 
+  const [query, setQuery] = useSearchParams();
+
   const records = useSelector(selectRecords);
   const recordsStatus = useSelector(selectRecordsStatus);
-  const activeRecord = params.id;
+  const activeRecord = query.get("id");
   const recordStatus = useSelector(selectRecordStatus);
 
   const setActiveRecord = (record) => {
@@ -89,18 +91,17 @@ export function Records() {
       );
     } else {
       return records.map((record) => (
-        <Link
-          to={record._id}
-          onClick={() => setActiveRecord(record)}
+        <button
+          onClick={() => setQuery({ id: record._id })}
           className={`grid grid-rows-3 rounded-tl-xl h-20 dark:bg-slate-800 text-md select-none transition-transform ${
             record._id === activeRecord
-              ? "scale-105 order-first cursor-default shadow-sm dark:shadow-slate-800"
+              ? "scale-105 cursor-default shadow-sm dark:shadow-slate-800"
               : "opacity-30 hover:scale-105 hover:cursor-pointer"
           }`}
           key={record._id}
         >
           {RecordItem({ record, activeRecord })}
-        </Link>
+        </button>
       ));
     }
   };
