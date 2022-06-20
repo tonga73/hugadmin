@@ -18,7 +18,12 @@ dotenv.config();
 conectDB();
 
 // Configurar CORS con WHITELIST
-const whitelist = ["http://localhost:3000", "http://localhost"];
+const whitelist = [
+  "http://localhost:3000",
+  "http://localhost",
+  "http://134.209.81.188",
+  "http://134.209.81.188:80",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
