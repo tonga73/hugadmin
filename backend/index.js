@@ -18,28 +18,30 @@ dotenv.config();
 conectDB();
 
 // Configurar CORS con WHITELIST
-// const whitelist = [
-//   "http://localhost:3000",
-//   "http://localhost",
-//   "http://134.209.81.188",
-//   "http://134.209.81.188:80",
-// ];
+const whitelist = [
+  "http://localhost:3000",
+  "http://localhost",
+  "http://reactapp:3000",
+  "http://reactapp",
+  "http://134.209.81.188",
+  "http://134.209.81.188:80",
+];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     console.log(origin);
-//     if (whitelist.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Error de CORS"));
-//     }
-//   },
-// };
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log(origin);
+    if (whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Error de CORS"));
+    }
+  },
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 // CORS BYPASS
-app.use(cors());
+// app.use(cors());
 
 // Routing
 app.use("/api/users", userRoutes);
@@ -51,5 +53,5 @@ const hostname = "127.0.0.1";
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://${hostname}:${PORT}/`);
+  console.log(`Servidor corriendo en http://expressapp:${PORT}/`);
 });

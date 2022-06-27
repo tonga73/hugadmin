@@ -23,8 +23,8 @@ export const getUsers = createAsyncThunk(
 
 export const newUserAsync = createAsyncThunk(
   "admin/fetchNewUser",
-  async ({ rejectWithValue }) => {
-    const response = await fetchNewUser();
+  async (user, { rejectWithValue }) => {
+    const response = await fetchNewUser(user);
 
     if (response.status === "error") {
       return rejectWithValue(response.msg);

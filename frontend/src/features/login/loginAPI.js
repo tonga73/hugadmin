@@ -1,8 +1,8 @@
-import axios from "axios";
+import { axiosClient } from "../../app/axiosClient";
 
 export function fetchLogin(req) {
-  return axios
-    .post("http://127.0.0.1:4000/api/users/login", req)
+  return axiosClient
+    .post("/users/login", req)
     .then(({ data }) => {
       return data;
     })

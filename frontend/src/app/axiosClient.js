@@ -3,7 +3,7 @@ import axios from "axios";
 import { store } from "./store";
 
 export const axiosClient = axios.create({
-  baseURL: "http://127.0.0.1:4000/api",
+  baseURL: process.env.REACT_APP_REST,
 });
 
 axiosClient.interceptors.request.use(function (config) {

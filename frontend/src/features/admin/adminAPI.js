@@ -17,9 +17,9 @@ export function fetchGetUsers(req) {
 }
 
 export function fetchNewUser(req) {
-  const { name, password, email, role } = req;
+  console.log(req);
   return axiosClient
-    .post(`/users`, [name, password, email, role])
+    .post("/users", req)
     .then(({ data }) => {
       console.log(data);
     })

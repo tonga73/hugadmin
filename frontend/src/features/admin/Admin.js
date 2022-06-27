@@ -2,7 +2,12 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
-import { getUsers, selectUsers, newUserAsync } from "../admin/adminSlice";
+import {
+  getUsers,
+  selectUsers,
+  newUserAsync,
+  getAllRecords,
+} from "../admin/adminSlice";
 
 import { Tabs, TabsPanel, TabContent } from "../../commons/tabs/Tabs";
 
@@ -18,7 +23,9 @@ export function Admin() {
     reset,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = (data) => {
+    dispatch(newUserAsync(data));
+  };
   const users = useSelector(selectUsers);
 
   const UsersTable = () => {
@@ -32,19 +39,20 @@ export function Admin() {
           </tr>
         </thead>
         <tbody className="text-xl">
-          {users.map((user) => (
-            <tr
-              key={user._id}
-              className="border-y-4 border-y-slate-700 border-opacity-50 text-slate-300 font-semibold hover:bg-white hover:text-slate-900 transition-colors opacity-50"
-            >
-              <td>{user.name}</td>
-              <td>{user.role}</td>
-              <td>
-                {user.email}
-                <ClipboardButton value={"olis"} />
-              </td>
-            </tr>
-          ))}
+          {!!users &&
+            users.map((user) => (
+              <tr
+                key={user._id}
+                className="border-y-4 border-y-slate-700 border-opacity-50 text-slate-300 font-semibold hover:bg-white hover:text-slate-900 transition-colors opacity-50"
+              >
+                <td>{user.name}</td>
+                <td>{user.role}</td>
+                <td>
+                  {user.email}
+                  <ClipboardButton value={"olis"} />
+                </td>
+              </tr>
+            ))}
         </tbody>
         <tfoot className="text-lg uppercase font-bold dark:text-slate-200 opacity-10">
           <tr>
@@ -58,7 +66,7 @@ export function Admin() {
 
   useEffect(() => {
     dispatch(getUsers(""));
-  }, [dispatch]);
+  }, []);
 
   return (
     <div className="grid grid-cols-3 container mx-auto">
@@ -67,7 +75,7 @@ export function Admin() {
           Panel de Administración
         </h1>
       </div>
-      <div className="col-span-3">
+      {/* <div className="col-span-3">
         <Tabs>
           <h3 className="dark:text-slate-200 text-3xl uppercase text-center">
             General
@@ -79,7 +87,7 @@ export function Admin() {
             Juzgados
           </h3>
         </Tabs>
-      </div>
+      </div> */}
       <div className="col-span-3 grid grid-cols-3">
         <div className="col-span-1 flex flex-col gap-3">
           <h3 className="dark:text-slate-200 text-3xl uppercase text-center">

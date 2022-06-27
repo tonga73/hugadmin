@@ -16,6 +16,10 @@ export const login = createAsyncThunk(
       return rejectWithValue(response.msg);
     }
 
+    if (response === "") {
+      return;
+    }
+
     return response;
   }
 );
@@ -40,6 +44,7 @@ export const loginSlice = createSlice({
 });
 
 export const selectLoginStatus = (state) => state.login.status;
+
 export const selectLoginMessage = (state) => state.login.message;
 
 export default loginSlice.reducer;
