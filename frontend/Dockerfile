@@ -8,11 +8,11 @@ ENV REACT_APP_REST=/api
 
 RUN npm install
 
-# RUN npm run build
+RUN npm run build
 
-# RUN npm i -g serve
+RUN npm i -g serve
 
 EXPOSE 3000
 
-# CMD ["serve", "-s", "build"]
-CMD ["npm", "start"]
+CMD ["serve", "-s", "build"]
+# CMD ["npm", "start"]

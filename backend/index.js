@@ -23,8 +23,8 @@ const whitelist = [
   "http://localhost",
   "http://reactapp:3000",
   "http://reactapp",
-  "http://134.209.81.188",
-  "http://134.209.81.188:80",
+  "http://143.110.237.52.188",
+  "http://143.110.237.52.188:80",
 ];
 
 const corsOptions = {
