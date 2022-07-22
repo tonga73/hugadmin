@@ -15,7 +15,7 @@ services:
     container_name: mongodatabase
     image: mongo
     ports:
-      - 27017:27017
+      - 27018:27017
     volumes:
       - ~/apps/mongo:/data/db
   reactapp:
@@ -25,10 +25,11 @@ services:
       - 3000:3000
     volumes:
       - ./frontend:/usr/src/app
+    restart: always
   nginx:
     build: ./nginx
     ports:
-      - 80:80
+      - 8080:80
     links:
       - expressapp
       - reactapp
