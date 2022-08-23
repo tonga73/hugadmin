@@ -25,6 +25,8 @@ const whitelist = [
   "http://reactapp",
   "http://143.110.237.52.188",
   "http://143.110.237.52.188:80",
+  "https://dreamy-creponne-c7418c.netlify.app",
+  "https://dreamy-creponne-c7418c.netlify.app:3000",
 ];
 
 const corsOptions = {
