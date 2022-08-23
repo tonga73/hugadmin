@@ -72,8 +72,8 @@ export const recordSlice = createSlice({
   initialState,
   reducers: {
     setRecord: (state, action) => {
-      state.status = action.payload.status;
-      state.record = action.payload.record || state.record;
+      state.status = action.payload.status || initialState.status;
+      state.record = action.payload.record || initialState.record;
     },
     updateTracings: (state, action) => {
       state.tracings = action.payload;
@@ -85,11 +85,11 @@ export const recordSlice = createSlice({
         state.status = "loading";
       })
       .addCase(getRecords.fulfilled, (state, action) => {
-        state.status = "";
-        state.record = action.payload[0];
+        state.status = initialState.status;
+        state.record = action.payload[0] || {};
       })
       .addCase(getRecords.rejected, (state, action) => {
-        state.status = "";
+        state.status = initialState.status;
         state.message = action.payload;
       });
   },

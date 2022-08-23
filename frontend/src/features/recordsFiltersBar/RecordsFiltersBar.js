@@ -9,6 +9,8 @@ import { XIcon, DocumentAddIcon } from "@heroicons/react/outline";
 import { Button } from "../../commons/buttons/button/Button";
 import { SearchInput } from "../../commons/inputs/SearchInput";
 
+import { NewRecordButton } from "../record/buttons/NewRecordButton";
+
 export function RecordsFiltersBar() {
   const dispatch = useDispatch();
 
@@ -17,7 +19,7 @@ export function RecordsFiltersBar() {
 
   const CreateRecordButton = ({ recordStatus }) => {
     const closeForm = () => {
-      dispatch(setRecord({ status: "" }));
+      dispatch(setRecord({ status: "", record: {} }));
     };
     switch (recordStatus) {
       case "creating":
@@ -47,19 +49,7 @@ export function RecordsFiltersBar() {
       default:
         return (
           <>
-            <Button
-              type="button"
-              onClick={() => {
-                dispatch(
-                  setRecord({
-                    status: "creating",
-                    record: { order: "", cover: "" },
-                  })
-                );
-              }}
-              text="Crear Expediente"
-              icon={<DocumentAddIcon className="h-7 w-7" />}
-            />
+            <NewRecordButton />
           </>
         );
     }

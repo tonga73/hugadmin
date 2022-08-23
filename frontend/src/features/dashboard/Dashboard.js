@@ -4,10 +4,16 @@ import { Outlet } from "react-router-dom";
 
 import { delay } from "../../app/helpers/delay";
 
-import { XIcon, ExclamationIcon } from "@heroicons/react/outline";
+import {
+  XIcon,
+  ExclamationIcon,
+  DocumentAddIcon,
+} from "@heroicons/react/outline";
 
 import { Modal } from "../../commons/modals/modal/Modal";
 import { Button } from "../../commons/buttons/button/Button";
+
+import { NewRecordButton } from "../record/buttons/NewRecordButton";
 
 import { DashboardAside } from "../dashboardAside/DashboardAside";
 import { DashboardTopBar } from "../dashboardTopBar/DashboardTopBar";
@@ -110,6 +116,21 @@ export function Dashboard() {
     );
   };
 
+  const EmptyView = () => {
+    if (recordStatus === "creating") {
+      return "olis";
+    } else {
+      return (
+        <div className="flex flex-col gap-y-3 justify-center items-center w-full">
+          <p className="uppercase font-bold dark:text-slate-500">
+            Esta cuenta no tiene expedientes vinculados.
+          </p>
+          <NewRecordButton />
+        </div>
+      );
+    }
+  };
+
   useEffect(() => {
     dispatch(setUser({ status: "" }));
     dispatch(getRecords());
@@ -137,8 +158,8 @@ export function Dashboard() {
         >
           <DashboardTopBar onClick={toggleFullScreen} mode={mode} />
 
-          <div className="h-full grid grid-cols-3 gap-3 overflow-hidden p-3">
-            <Outlet />
+          <div className="h-full w-full flex overflow-hidden p-3">
+            {Object.keys(record).length === 0 ? <EmptyView /> : <Outlet />}
           </div>
         </div>
       </div>
