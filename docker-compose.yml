@@ -18,21 +18,21 @@ services:
       - 27018:27017
     volumes:
       - ~/apps/mongo:/data/db
-  reactapp:
-    container_name: reactapp
-    build: ./frontend
-    ports:
-      - 3000:3000
-    volumes:
-      - ./frontend:/usr/src/app
-    restart: always
+  # reactapp:
+  #   container_name: reactapp
+  #   build: ./frontend
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./frontend:/usr/src/app
+  #   restart: always
   nginx:
     build: ./nginx
     ports:
       - 8080:80
     links:
       - expressapp
-      - reactapp
+      # - reactapp
       - mongodb
     #   - nginx-proxy
     #   - letsencrypt
