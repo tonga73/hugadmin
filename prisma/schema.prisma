@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Court {
+  id         Int       @id @default(autoincrement())
+  name       String
+  city       String?
+  judge      String?
+  address    String?
+  districtId Int?
+  District   District? @relation(fields: [districtId], references: [id])
+  Office     Office[]
+}
+
+model District {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  Court Court[]
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  text      String
+  recordId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Record    Record   @relation(fields: [recordId], references: [id])
+}
+
+model Office {
+  id      Int      @id @default(autoincrement())
+  name    String
+  courtId Int?
+  Court   Court?   @relation(fields: [courtId], references: [id])
+  Record  Record[]
+}
+
+model Record {
+  id             Int              @id @default(autoincrement())
+  name           String
+  order          String           @unique
+  tracing        Tracing          @default(ACEPTA_CARGO)
+  priority       Priority         @default(NULA)
+  archive        Boolean          @default(false)
+  favorite       Boolean          @default(false)
+  defendant      String[]
+  prosecutor     String[]
+  insurance      String[]
+  officeId       Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  code           String?
+  code__VALUES   String?          @map("code) VALUES") @db.VarChar(50)
+  Note           Note[]
+  Office         Office?          @relation(fields: [officeId], references: [id])
+  RecordsAndUser RecordsAndUser[]
+}
+
+model RecordsAndUser {
+  recordId Int
+  userId   Int
+  Record   Record @relation(fields: [recordId], references: [id])
+  User     User   @relation(fields: [userId], references: [id])
+
+  @@id([recordId, userId])
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  email          String           @unique
+  name           String?
+  googleId       String?
+  verified       Boolean          @default(false)
+  role           Role             @default(USER)
+  image          String?
+  RecordsAndUser RecordsAndUser[]
+}
+
+enum Priority {
+  NULA
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+  INACTIVO
+}
+
+enum Role {
+  USER
+  ADMIN
+  PART
+  CLIENT
+}
+
+enum Tracing {
+  ACEPTA_CARGO
+  ACTO_PERICIAL_REALIZADO
+  PERICIA_REALIZADA
+  SENTENCIA_O_CONVENIO_DE_PARTES
+  HONORARIOS_REGULADOS
+  EN_TRATATIVA_DE_COBRO
+  COBRADO
+}
