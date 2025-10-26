@@ -1,7 +1,44 @@
-import { ModeToggle } from "@/components/shared";
+import { CircularProgress, ModeToggle } from "@/components/shared";
 import prisma from "@/lib/prisma";
 
 export default async function Home() {
-  const records = await prisma.record.findMany();
-  return <div className="">ola</div>;
+  const [total, destacado, inactivo, urgenteStat] = await Promise.all([
+    prisma.record.count(),
+    prisma.record.count({ where: { favorite: true } }),
+    prisma.record.count({ where: { archive: true } }),
+    prisma.record.count({ where: { priority: "URGENTE" } }),
+  ]);
+
+  return (
+    <div className="grid grid-cols-6">
+      <CircularProgress
+        color="#000"
+        count={total}
+        description="Totalidad de expedientes en el sitema"
+        title="Total"
+        progress={100}
+      />
+      <CircularProgress
+        color="#ef4444"
+        count={destacado}
+        description="Totalidad de expedientes en el sitema"
+        title="Total"
+        progress={100}
+      />
+      <CircularProgress
+        color="#f59e0b"
+        count={inactivo}
+        description="Totalidad de expedientes en el sitema"
+        title="Total"
+        progress={100}
+      />
+      <CircularProgress
+        color="#10b981"
+        count={urgenteStat}
+        description="Totalidad de expedientes en el sitema"
+        title="Total"
+        progress={100}
+      />
+    </div>
+  );
 }
