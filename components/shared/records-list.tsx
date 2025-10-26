@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 // 🔹 Tipo de registro (puede venir de Prisma)
 interface RecordItem {
@@ -80,9 +81,9 @@ export function RecordsList({
         {records.map((item) => (
           <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
-              <a href="#">
+              <Link href={`/records/${item.id}`}>
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

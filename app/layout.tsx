@@ -36,7 +36,7 @@ export default async function RootLayout({
           <SidebarProvider>
             <AppSidebar />
 
-            <main className="flex-1 min-h-screen overflow-x-hidden p-3">
+            <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
               <NavigationMenu />
               {children}
             </main>
