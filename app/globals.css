@@ -44,73 +44,129 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Background - beige/crema apagado, como papel vintage */
+  --background: oklch(88% 0.015 80);
+  --foreground: oklch(28% 0.015 240);
+
+  /* Cards - ligeramente más claro, muy sutil */
+  --card: oklch(91% 0.012 80);
+  --card-foreground: oklch(28% 0.015 240);
+
+  /* Popovers */
+  --popover: oklch(91% 0.012 80);
+  --popover-foreground: oklch(28% 0.015 240);
+
+  /* Primary - azul grisáceo suave */
+  --primary: oklch(50% 0.1 240);
+  --primary-foreground: oklch(95% 0.008 240);
+
+  /* Secondary - tono tierra muy suave */
+  --secondary: oklch(82% 0.015 80);
+  --secondary-foreground: oklch(32% 0.015 240);
+
+  /* Muted - para reducir jerarquía */
+  --muted: oklch(84% 0.012 80);
+  --muted-foreground: oklch(48% 0.015 240);
+
+  /* Accent */
+  --accent: oklch(83% 0.018 80);
+  --accent-foreground: oklch(32% 0.015 240);
+
+  /* Destructive - rojo tierra apagado */
+  --destructive: oklch(52% 0.13 25);
+  --destructive-foreground: oklch(95% 0.005 25);
+
+  /* Borders e inputs - apenas perceptibles */
+  --border: oklch(76% 0.012 80);
+  --input: oklch(78% 0.012 80);
+  --ring: oklch(50% 0.1 240);
+
+  /* Charts - paleta terrosa y armoniosa */
+  --chart-1: oklch(55% 0.11 240);
+  --chart-2: oklch(53% 0.09 170);
+  --chart-3: oklch(58% 0.1 80);
+  --chart-4: oklch(54% 0.12 310);
+  --chart-5: oklch(56% 0.11 20);
+
+  /* Sidebar */
+  --sidebar: oklch(86% 0.015 80);
+  --sidebar-foreground: oklch(28% 0.015 240);
+  --sidebar-primary: oklch(50% 0.1 240);
+  --sidebar-primary-foreground: oklch(95% 0.008 240);
+  --sidebar-accent: oklch(83% 0.018 80);
+  --sidebar-accent-foreground: oklch(32% 0.015 240);
+  --sidebar-border: oklch(78% 0.012 80);
+  --sidebar-ring: oklch(50% 0.1 240);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Background - tu color base con ajuste mínimo para confort */
+  --background: oklch(17% 0.025 220);
+  --foreground: oklch(92% 0.01 220);
+
+  /* Cards - contraste reducido para no cansar la vista */
+  --card: oklch(20% 0.028 220);
+  --card-foreground: oklch(92% 0.01 220);
+
+  /* Popovers */
+  --popover: oklch(20% 0.028 220);
+  --popover-foreground: oklch(92% 0.01 220);
+
+  /* Primary - azul medio, evita el brillo excesivo */
+  --primary: oklch(58% 0.11 240);
+  --primary-foreground: oklch(95% 0.01 240);
+
+  /* Secondary - sutil elevación del fondo */
+  --secondary: oklch(24% 0.028 220);
+  --secondary-foreground: oklch(92% 0.01 220);
+
+  /* Muted - desenfatiza sin perder claridad */
+  --muted: oklch(24% 0.028 220);
+  --muted-foreground: oklch(65% 0.015 220);
+
+  /* Accent */
+  --accent: oklch(26% 0.03 220);
+  --accent-foreground: oklch(92% 0.01 220);
+
+  /* Destructive - rojo apagado para modo oscuro */
+  --destructive: oklch(55% 0.16 25);
+  --destructive-foreground: oklch(95% 0 0);
+
+  /* Borders e inputs - sutiles pero definidos */
+  --border: oklch(30% 0.03 220);
+  --input: oklch(28% 0.03 220);
+  --ring: oklch(58% 0.11 240);
+
+  /* Charts - colores balanceados para modo oscuro */
+  --chart-1: oklch(62% 0.13 240);
+  --chart-2: oklch(60% 0.11 170);
+  --chart-3: oklch(65% 0.12 80);
+  --chart-4: oklch(61% 0.14 310);
+  --chart-5: oklch(63% 0.13 20);
+
+  /* Sidebar */
+  --sidebar: oklch(19% 0.027 220);
+  --sidebar-foreground: oklch(92% 0.01 220);
+  --sidebar-primary: oklch(58% 0.11 240);
+  --sidebar-primary-foreground: oklch(95% 0.01 240);
+  --sidebar-accent: oklch(24% 0.028 220);
+  --sidebar-accent-foreground: oklch(92% 0.01 220);
+  --sidebar-border: oklch(28% 0.03 220);
+  --sidebar-ring: oklch(58% 0.11 240);
 }
+
+/* 
+PRINCIPIOS DE DISEÑO APLICADOS:
+
+✓ Contraste reducido (no más de 12:1) para evitar fatiga
+✓ Saturación baja (0.01-0.15) para comodidad prolongada
+✓ Foreground en ~92% en lugar de 98% (menos deslumbramiento)
+✓ Fondo modo claro cálido (no blanco puro)
+✓ Transiciones suaves entre niveles de jerarquía
+✓ Colores primarios en rango medio (55-62% luminosidad)
+✓ Sin negros puros ni blancos puros
+✓ Temperatura de color consistente
+*/
 
 @layer base {
   * {
