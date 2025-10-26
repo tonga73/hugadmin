@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
+import { NavigationMenu } from "@/components/shared";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -25,13 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {" "}
         <ThemeProvider>
           <SidebarProvider>
             <AppSidebar />
 
-            <main>
-              <SidebarTrigger />
+            <main className="flex-1 min-h-screen overflow-x-hidden p-3">
+              <NavigationMenu />
               {children}
             </main>
           </SidebarProvider>
