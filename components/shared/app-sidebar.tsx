@@ -7,6 +7,7 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
+import Image from "next/image";
 
 export async function AppSidebar() {
   const { records, lastId, hasMore } = await getRecords({ take: 10 });
@@ -14,6 +15,15 @@ export async function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent className="h-screen overflow-hidden">
+        <SidebarGroup>
+          <Image
+            alt="Logo Hugadmin"
+            src="/hugadmin_logo.png"
+            width={100}
+            height={300}
+          />
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>General</SidebarGroupLabel>
           <SidebarGroupContent>
