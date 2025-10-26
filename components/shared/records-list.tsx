@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { getRecords } from "@/app/actions/getRecords";
 import {
   SidebarMenu,
@@ -8,15 +9,14 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Link from "next/link";
 
-// 🔹 Tipo de registro (puede venir de Prisma)
+// 🔹 Tipo de registro
 interface RecordItem {
   id: number;
   name: string;
 }
 
-// 🔹 Props del componente
+// 🔹 Props
 interface RecordsListProps {
   initialRecords: RecordItem[];
   lastId: number | null;
@@ -28,14 +28,20 @@ export function RecordsList({
   lastId,
   hasMore,
 }: RecordsListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [records, setRecords] = useState<RecordItem[]>(initialRecords);
   const [cursor, setCursor] = useState<number | null>(lastId);
   const [loading, setLoading] = useState<boolean>(false);
   const [more, setMore] = useState<boolean>(hasMore);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HTMLLIElement[]>([]);
 
+  // 🔹 Infinite scroll
   useEffect(() => {
     const viewport = scrollRef.current?.querySelector<HTMLElement>(
       "[data-radix-scroll-area-viewport]"
@@ -63,41 +69,91 @@ export function RecordsList({
           setLoading(false);
         }
       },
-      {
-        root: viewport,
-        rootMargin: "100px",
-        threshold: 0.1,
-      }
+      { root: viewport, rootMargin: "100px", threshold: 0.1 }
     );
 
     observer.observe(sentinelRef.current);
-
     return () => observer.disconnect();
   }, [cursor, loading, more]);
+
+  // 🔹 Determinar índice del item seleccionado según la ruta
+  useEffect(() => {
+    const currentIndex = records.findIndex(
+      (r) => `/records/${r.id}` === pathname
+    );
+    setSelectedIndex(currentIndex); // si no encuentra, devuelve -1
+  }, [pathname, records]);
+
+  // 🔹 Manejo de teclado
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!records.length) return;
+
+      if (e.key === "ArrowDown") {
+        const nextIndex = Math.min(selectedIndex + 1, records.length - 1);
+        router.push(`/records/${records[nextIndex].id}`);
+      } else if (e.key === "ArrowUp") {
+        const prevIndex = Math.max(selectedIndex - 1, 0);
+        router.push(`/records/${records[prevIndex].id}`);
+      } else if (e.key === "Enter") {
+        router.push(`/records/${records[selectedIndex].id}`);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [records, selectedIndex, router]);
+
+  // 🔹 Mantener el item seleccionado visible
+  useEffect(() => {
+    const el = itemsRef.current[selectedIndex];
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex, records]);
+
+  // 🔹 Click en item
+  const handleClick = (index: number) => {
+    const record = records[index];
+    const targetPath = `/records/${record.id}`;
+
+    if (pathname === targetPath) {
+      router.push("/"); // si es el mismo, volvemos a /
+    } else {
+      router.push(targetPath);
+    }
+  };
 
   return (
     <ScrollArea className="h-[calc(100vh-150px)]" ref={scrollRef}>
       <SidebarMenu>
-        {records.map((item) => (
-          <SidebarMenuItem key={item.id}>
-            <SidebarMenuButton asChild>
-              <Link href={`/records/${item.id}`}>
-                <span>{item.name}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {records.map((item, index) => {
+          const isSelected = selectedIndex === index;
+
+          return (
+            <SidebarMenuItem
+              key={item.id}
+              ref={(el) => {
+                if (el) itemsRef.current[index] = el;
+              }}
+              className={`transition-colors cursor-pointer ${
+                isSelected ? "bg-gray-200 dark:bg-gray-700 font-semibold" : ""
+              }`}
+            >
+              <SidebarMenuButton asChild>
+                <a onClick={() => handleClick(index)}>
+                  <span>{item.name}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
 
-      {/* 👇 Sentinel invisible que dispara el observer */}
       {more && <div ref={sentinelRef} className="h-6" />}
-
       {loading && (
         <div className="py-2 text-center text-sm text-muted-foreground">
           Cargando...
         </div>
       )}
-
       {!more && (
         <div className="py-2 text-center text-sm text-muted-foreground">
           No hay más expedientes

@@ -66,7 +66,8 @@ export default async function RecordPage({
           <CardAction>action</CardAction>
         </CardHeader>
         <CardContent>
-          <p>Card Content</p>
+          <p>{record.defendant}</p>
+          <p>{record.prosecutor}</p>
         </CardContent>
         <CardFooter>
           <p>Card Footer</p>
