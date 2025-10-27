@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { NavigationMenu } from "@/components/shared";
 import prisma from "@/lib/prisma";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -33,14 +34,16 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider>
-          <SidebarProvider>
-            <AppSidebar />
+          <AuthProvider>
+            <SidebarProvider>
+              <AppSidebar />
 
-            <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
-              <NavigationMenu />
-              {children}
-            </main>
-          </SidebarProvider>
+              <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
+                <NavigationMenu />
+                {children}
+              </main>
+            </SidebarProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
