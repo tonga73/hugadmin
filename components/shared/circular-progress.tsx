@@ -1,78 +1,123 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
 
 interface CircularProgressProps {
-  color: string;
-  count: number;
-  description: string;
-  title: string;
-  progress: number;
-  strokeColor?: string;
+  value: number;
+  renderLabel?: (progress: number) => number | string;
+  size?: number;
+  strokeWidth?: number;
+  circleStrokeWidth?: number;
+  progressStrokeWidth?: number;
+  shape?: "square" | "round";
+  className?: string;
+  progressClassName?: string;
+  labelClassName?: string;
+  showLabel?: boolean;
 }
 
-export const CircularProgress: React.FC<CircularProgressProps> = ({
-  color,
-  count,
-  description,
-  title,
-  progress,
-  strokeColor,
-}) => {
-  const radius = 70;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (progress / 100) * circumference;
+const CircularProgressItem = ({
+  value,
+  renderLabel,
+  className,
+  progressClassName,
+  labelClassName,
+  showLabel,
+  shape = "round",
+  size = 100,
+  strokeWidth,
+  circleStrokeWidth = 10,
+  progressStrokeWidth = 10,
+}: CircularProgressProps) => {
+  const radius = size / 2 - 10;
+  const circumference = Math.ceil(3.14 * radius * 2);
+  const percentage = Math.ceil(circumference * ((100 - value) / 100));
+
+  const viewBox = `-${size * 0.125} -${size * 0.125} ${size * 1.25} ${
+    size * 1.25
+  }`;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-center">
-          <div className="relative">
-            <svg width="200" height="200" className="transform -rotate-90">
-              <circle
-                cx="100"
-                cy="100"
-                r={radius}
-                stroke="#e5e7eb"
-                strokeWidth="12"
-                fill="none"
-              />
-              <circle
-                cx="100"
-                cy="100"
-                r={radius}
-                stroke={strokeColor ?? color}
-                strokeWidth="12"
-                fill="none"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                strokeLinecap="round"
-                className="transition-all duration-500 ease-out"
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl font-bold" style={{ color: color }}>
-                  {count}
-                </div>
-                <div className="text-xl text-slate-500 mt-1">{progress}%</div>
-              </div>
-            </div>
-          </div>
+    <div className="relative">
+      <svg
+        width={size}
+        height={size}
+        viewBox={viewBox}
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ transform: "rotate(-90deg)" }}
+        className="relative"
+      >
+        {/* Base Circle */}
+        <circle
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          fill="transparent"
+          strokeWidth={strokeWidth ?? circleStrokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset="0"
+          className={cn("stroke-primary/25", className)}
+        />
+
+        {/* Progress */}
+        <circle
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          strokeWidth={strokeWidth ?? progressStrokeWidth}
+          strokeLinecap={shape}
+          strokeDashoffset={percentage}
+          fill="transparent"
+          strokeDasharray={circumference}
+          className={cn("stroke-primary", progressClassName)}
+        />
+      </svg>
+      {showLabel && (
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-center text-md",
+            labelClassName
+          )}
+        >
+          {renderLabel ? renderLabel(value) : value}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
+
+export function CircularProgress({
+  size,
+  strokeWidth,
+  labelClassName,
+  progress,
+  className,
+  progressClassName,
+}: {
+  size?: number;
+  strokeWidth?: number;
+  labelClassName?: string;
+  progress: number;
+  className?: string;
+  progressClassName?: string;
+}) {
+  return (
+    <div className="max-w-xs mx-auto w-full flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        <CircularProgressItem
+          value={progress}
+          size={size ?? 120}
+          strokeWidth={strokeWidth ?? 10}
+          showLabel
+          labelClassName={`font-bold ${labelClassName || " text-xl"}`}
+          renderLabel={(progress) => `${progress}%`}
+          className={`stroke-indigo-500/25 ${className}`}
+          progressClassName={progressClassName || " stroke-indigo-600"}
+        />
+      </div>
+    </div>
+  );
+}
