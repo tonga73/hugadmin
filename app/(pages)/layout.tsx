@@ -1,4 +1,4 @@
-import { AppSidebar, AuthLoading, NavigationMenu } from "@/components/shared";
+import { AppSidebar, NavigationMenu } from "@/components/shared";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function PrivateLayout({
@@ -10,12 +10,10 @@ export default function PrivateLayout({
     <SidebarProvider>
       <AppSidebar />
 
-      <AuthLoading>
-        <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
-          <NavigationMenu />
-          {children}
-        </main>
-      </AuthLoading>
+      <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
+        <NavigationMenu />
+        {children}
+      </main>
     </SidebarProvider>
   );
 }

@@ -15,9 +15,17 @@ import {
 import { ModeToggle } from "./mode-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { UserMenu } from "./user-menu";
+import { useAuth } from "@/contexts/auth-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function NavigationMenu() {
   const isMobile = useIsMobile();
+  const { loading, user } = useAuth();
+
+  // ✅ Debug
+  console.log("🔍 NavigationMenu render");
+  console.log("   - loading:", loading);
+  console.log("   - user:", user);
 
   return (
     <div className="flex w-full items-center justify-between">
@@ -31,28 +39,16 @@ export function NavigationMenu() {
 
       <div className="flex items-center gap-2">
         <ModeToggle />
-        <UserMenu />
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+        ) : user ? (
+          <UserMenu />
+        ) : (
+          <span className="text-xs">No user</span>
+        )}
       </div>
     </div>
-  );
-}
-
-function ListItem({
-  title,
-  children,
-  href,
-  ...props
-}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
-  return (
-    <li {...props}>
-      <NavigationMenuLink asChild>
-        <Link href={href}>
-          <div className="text-sm leading-none font-medium">{title}</div>
-          <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
   );
 }

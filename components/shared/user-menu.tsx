@@ -1,7 +1,7 @@
-// components/UserMenu.tsx
 "use client";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Loader2 } from "lucide-react";
 
 export const UserMenu: React.FC = () => {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const [imageLoading, setImageLoading] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -47,6 +48,8 @@ export const UserMenu: React.FC = () => {
             <AvatarImage
               src={user.photoURL || undefined}
               alt={user.displayName || "User"}
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
             />
             <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
           </Avatar>
