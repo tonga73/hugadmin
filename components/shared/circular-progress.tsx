@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -51,30 +52,33 @@ const CircularProgressItem = ({
         className="relative"
       >
         {/* Base Circle */}
-        <circle
+        <motion.circle
           r={radius}
           cx={size / 2}
           cy={size / 2}
           fill="transparent"
           strokeWidth={strokeWidth ?? circleStrokeWidth}
           strokeDasharray={circumference}
-          strokeDashoffset="0"
+          strokeDashoffset={0}
           className={cn("stroke-primary/25", className)}
         />
 
-        {/* Progress */}
-        <circle
+        {/* Progress Animated */}
+        <motion.circle
           r={radius}
           cx={size / 2}
           cy={size / 2}
           strokeWidth={strokeWidth ?? progressStrokeWidth}
           strokeLinecap={shape}
-          strokeDashoffset={percentage}
           fill="transparent"
           strokeDasharray={circumference}
+          strokeDashoffset={circumference} // empieza vacío
           className={cn("stroke-primary", progressClassName)}
+          animate={{ strokeDashoffset: percentage }} // animación hasta porcentaje
+          transition={{ duration: 1, ease: "easeOut" }} // control de la duración
         />
       </svg>
+
       {showLabel && (
         <div
           className={cn(
