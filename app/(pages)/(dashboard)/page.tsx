@@ -1,5 +1,4 @@
 import { CircularProgress, ModeToggle } from "@/components/shared";
-import { StatCard } from "@/components/shared/stat-card";
 import {
   Card,
   CardContent,
