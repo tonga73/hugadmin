@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation"; // o 'next/router' en Pages Router
 import { useEffect } from "react";
 
-export default function ProtectedRoute({ children }: any) {
+export const ProtectedRoute: React.FC = ({ children }: any) => {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -23,4 +23,4 @@ export default function ProtectedRoute({ children }: any) {
   }
 
   return <>{children}</>;
-}
+};

@@ -35,14 +35,9 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider>
           <AuthProvider>
-            <SidebarProvider>
-              <AppSidebar />
-
-              <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
-                <NavigationMenu />
-                {children}
-              </main>
-            </SidebarProvider>
+            <main className="flex-1 min-h-screen overflow-x-hidden p-3 space-y-3">
+              {children}
+            </main>
           </AuthProvider>
         </ThemeProvider>
       </body>

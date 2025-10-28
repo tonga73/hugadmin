@@ -1,5 +1,4 @@
 import { CircularProgress, ModeToggle } from "@/components/shared";
-import LoginButton from "@/components/shared/login-button";
 import prisma from "@/lib/prisma";
 
 export default async function Home() {
@@ -10,9 +9,5 @@ export default async function Home() {
     prisma.record.count({ where: { priority: "URGENTE" } }),
   ]);
 
-  return (
-    <div className="grid place-items-center">
-      <LoginButton />
-    </div>
-  );
+  return <div className="grid place-items-center">inicio </div>;
 }
