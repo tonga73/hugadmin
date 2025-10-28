@@ -1,4 +1,5 @@
 import { Record } from "@/app/generated/prisma/client";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -21,6 +22,7 @@ export default async function RecordPage({
       id: Number(id),
     },
     include: {
+      Note: true,
       Office: {
         include: {
           Court: {
@@ -35,24 +37,22 @@ export default async function RecordPage({
 
   if (!record) return <div>No se ha encontrado ese expediente.</div>;
 
-  const { Office: RecordOffice } = record;
+  const { Note: RecordNote, Office: RecordOffice } = record;
 
   return (
     <div className="grid grid-cols-3 gap-1.5">
       <Card className="col-span-2">
         <CardHeader>
+          <Badge>{record.tracing}</Badge>
           <CardTitle>{record.order}</CardTitle>
           <CardDescription>{record.name}</CardDescription>
-          <CardAction>action</CardAction>
+          <CardAction className="font-bold text-white/50 text-2xl">
+            {record.code}
+          </CardAction>
         </CardHeader>
-        <CardContent>
-          <p>{record.defendant}</p>
-          <p>{record.prosecutor}</p>
-        </CardContent>
-        <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter>
+        <CardContent></CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{RecordOffice?.Court?.name}</CardTitle>
@@ -63,16 +63,38 @@ export default async function RecordPage({
               RecordOffice?.Court?.District?.name +
               " Circunscripción"}
           </CardDescription>
-          <CardAction>action</CardAction>
+          <CardFooter>{record.insurance}</CardFooter>
         </CardHeader>
         <CardContent>
-          <p>{record.defendant}</p>
-          <p>{record.prosecutor}</p>
+          <p className="text-sm text-white/50 mb-0.5">Defensor</p>
+          <ul className="border rounded-2xl p-1.5 text-sm text-white/50 space-y-1.5">
+            {record.defendant.map((item, index) => (
+              <li key={index}>- {item}</li>
+            ))}
+          </ul>
+
+          <p className="text-sm text-white/50 mt-1.5">Actor</p>
+          <ul className="border rounded-2xl p-1.5 text-sm text-white/50 space-y-1.5">
+            {record.prosecutor.map((item, index) => (
+              <li key={index}>- {item}</li>
+            ))}
+          </ul>
         </CardContent>
-        <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter>
       </Card>
+
+      <div className="space-y-1.5 mt-3">
+        <h3 className="text-2xl font-thin tracking-wide uppercase">Notas</h3>
+        {RecordNote.map((note, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <CardTitle className="text-white/50">
+                {note.name || "Nota sin título"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{note.text}</CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
