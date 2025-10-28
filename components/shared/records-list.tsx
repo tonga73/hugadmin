@@ -9,16 +9,12 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// 🔹 Tipo de registro
-interface RecordItem {
-  id: number;
-  name: string;
-}
+import { Record } from "@/app/generated/prisma/client";
+import { Badge } from "../ui/badge";
 
 // 🔹 Props
 interface RecordsListProps {
-  initialRecords: RecordItem[];
+  initialRecords: Record[];
   lastId: number | null;
   hasMore: boolean;
 }
@@ -31,7 +27,7 @@ export function RecordsList({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [records, setRecords] = useState<RecordItem[]>(initialRecords);
+  const [records, setRecords] = useState<Record[]>(initialRecords);
   const [cursor, setCursor] = useState<number | null>(lastId);
   const [loading, setLoading] = useState<boolean>(false);
   const [more, setMore] = useState<boolean>(hasMore);
@@ -138,8 +134,14 @@ export function RecordsList({
                 isSelected ? "bg-gray-200 dark:bg-gray-700 font-semibold" : ""
               }`}
             >
-              <SidebarMenuButton asChild>
-                <a onClick={() => handleClick(index)}>
+              <SidebarMenuButton asChild className="h-auto max-h-full">
+                <a
+                  className="flex flex-col items-start justify-start"
+                  onClick={() => handleClick(index)}
+                >
+                  <span className="flex items-center justify-between gap-1.5">
+                    <p>{item.order}</p> <Badge>{item.priority}</Badge>
+                  </span>
                   <span>{item.name}</span>
                 </a>
               </SidebarMenuButton>
