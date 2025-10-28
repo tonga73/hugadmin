@@ -1,3 +1,4 @@
+// app/api/auth/session/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -12,8 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ Guardar token Y datos del usuario juntos
+    const sessionData = JSON.stringify({
+      token: idToken,
+      user: user,
+      createdAt: Date.now(),
+    });
+
     const cookieStore = await cookies();
-    cookieStore.set("session", idToken, {
+    cookieStore.set("session", sessionData, {
       maxAge: 60 * 60 * 24 * 5, // 5 días
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

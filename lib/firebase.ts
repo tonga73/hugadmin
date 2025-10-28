@@ -1,5 +1,12 @@
+// lib/firebase.ts
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,13 +17,25 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Inicializar Firebase solo si no está inicializado
+// Inicializar Firebase
 const app =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
-// Configurar el provider para que siempre pida seleccionar cuenta
+// ✅ Configurar persistencia ANTES de cualquier operación
+if (typeof window !== "undefined") {
+  setPersistence(auth, indexedDBLocalPersistence)
+    .then(() => {
+      console.log("✅ Persistencia configurada correctamente");
+    })
+    .catch((error) => {
+      console.error("❌ Error configurando persistencia:", error);
+      // Fallback a browserLocalPersistence
+      return setPersistence(auth, browserLocalPersistence);
+    });
+}
+
+const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: "select_account",
 });

@@ -1,3 +1,4 @@
+// contexts/auth-context.tsx
 "use client";
 import {
   createContext,
@@ -10,6 +11,7 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  signInWithCustomToken,
   User as FirebaseUser,
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
@@ -45,62 +47,98 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkedSession, setCheckedSession] = useState(false);
 
+  // ✅ Al montar, verificar si hay sesión en el servidor
   useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const hasCookie = document.cookie.includes("session=");
+        console.log("🍪 Verificando cookie al iniciar:", hasCookie);
+
+        if (hasCookie) {
+          // Verificar la sesión con el servidor
+          const response = await fetch("/api/auth/verify");
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("✅ Sesión válida del servidor:", data.user);
+            setUser(data.user);
+          } else {
+            console.log("⚠️ Sesión inválida, limpiando...");
+            // Limpiar cookie inválida
+            await fetch("/api/auth/session", { method: "DELETE" });
+          }
+        }
+      } catch (error) {
+        console.error("Error verificando sesión:", error);
+      } finally {
+        setCheckedSession(true);
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // ✅ Escuchar cambios de Firebase SOLO después de verificar sesión
+  useEffect(() => {
+    if (!checkedSession) return;
+
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser: FirebaseUser | null) => {
+        console.log("🔥 Firebase auth changed:", firebaseUser?.uid || "null");
+
         if (firebaseUser) {
-          // ✅ Verificar si existe la cookie de sesión
           const hasCookie = document.cookie.includes("session=");
 
-          // Si Firebase tiene usuario pero no hay cookie, hacer logout
+          // Si Firebase tiene usuario pero NO hay cookie, significa que acaba de loguearse
           if (!hasCookie) {
-            console.log(
-              "⚠️ Firebase tiene sesión pero no hay cookie. Cerrando sesión..."
-            );
-            await firebaseSignOut(auth);
-            setUser(null);
-            setLoading(false);
-            return;
-          }
+            console.log("📝 Nuevo login, creando sesión...");
+            const idToken = await firebaseUser.getIdToken();
 
-          const idToken = await firebaseUser.getIdToken();
+            try {
+              const response = await fetch("/api/auth/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  idToken,
+                  user: {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                  },
+                }),
+              });
 
-          try {
-            await fetch("/api/auth/session", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                idToken,
-                user: {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  displayName: firebaseUser.displayName,
-                  photoURL: firebaseUser.photoURL,
-                },
-              }),
-            });
+              if (!response.ok) throw new Error("Error creando sesión");
 
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
-            });
-          } catch (error) {
-            console.error("Error creando sesión:", error);
-            setUser(null);
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+              });
+            } catch (error) {
+              console.error("❌ Error creando sesión:", error);
+              await firebaseSignOut(auth);
+              setUser(null);
+            }
           }
         } else {
-          setUser(null);
+          // Firebase no tiene usuario, verificar si debemos cerrar sesión
+          const hasCookie = document.cookie.includes("session=");
+          if (!hasCookie) {
+            setUser(null);
+          }
         }
-        setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [checkedSession]);
 
   const signInWithGoogle = async (): Promise<AuthUser> => {
     try {
@@ -114,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         photoURL: result.user.photoURL,
       };
 
-      await fetch("/api/auth/session", {
+      const response = await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,6 +160,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           user: profile,
         }),
       });
+
+      if (!response.ok) throw new Error("Error creando sesión");
 
       setUser(profile);
       return profile;
@@ -133,10 +173,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async (): Promise<void> => {
     try {
-      await fetch("/api/auth/session", {
-        method: "DELETE",
-      });
-
+      await fetch("/api/auth/session", { method: "DELETE" });
       await firebaseSignOut(auth);
       setUser(null);
     } catch (error) {

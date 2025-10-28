@@ -5,9 +5,9 @@ export async function middleware(request: NextRequest) {
   const session = request.cookies.get("session")?.value; // ✅ Cookie de Firebase
   const { pathname } = request.nextUrl;
 
-  console.log("🔍 Middleware - Path:", pathname);
-  console.log("🔍 Middleware - Session exists:", !!session);
-  console.log("🍪 Todas las cookies:", request.cookies.getAll());
+  // console.log("🔍 Middleware - Path:", pathname);
+  // console.log("🔍 Middleware - Session exists:", !!session);
+  // console.log("🍪 Todas las cookies:", request.cookies.getAll());
 
   // Si estás en login y tienes sesión, ir a home
   if (pathname === "/login" && session) {
