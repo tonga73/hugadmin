@@ -1,5 +1,3 @@
-import { TRACING_OPTIONS } from "@/app/constants/tracing";
-import { Record } from "@/app/generated/prisma/client";
 import { TracingBadge } from "@/components/shared/tracing-badge";
 import { FaExclamation } from "react-icons/fa";
 import {
