@@ -101,10 +101,10 @@ export function RecordsList({
   }, [records, selectedIndex, router]);
 
   // 🔹 Mantener el item seleccionado visible
-  useEffect(() => {
-    const el = itemsRef.current[selectedIndex];
-    if (el) el.scrollIntoView({ block: "nearest" });
-  }, [selectedIndex, records]);
+  // useEffect(() => {
+  //   const el = itemsRef.current[selectedIndex];
+  //   if (el) el.scrollIntoView({ block: "nearest" });
+  // }, [selectedIndex, records]);
 
   // 🔹 Click en item
   const handleClick = (index: number) => {
@@ -119,7 +119,7 @@ export function RecordsList({
   };
 
   return (
-    <ScrollArea className="h-[calc(100vh-150px)]" ref={scrollRef}>
+    <ScrollArea className="h-[calc(100vh-230px)]" ref={scrollRef}>
       <SidebarMenu>
         {records.map((item, index) => {
           const isSelected = selectedIndex === index;
