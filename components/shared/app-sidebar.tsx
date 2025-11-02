@@ -6,8 +6,21 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
+import { Separator } from "../ui/separator";
+import { PlusIcon } from "lucide-react";
+
+const sidebarItems = [
+  {
+    title: "Crear expediente",
+    url: "/records/create",
+    icon: PlusIcon,
+  },
+];
 
 export async function AppSidebar() {
   const { records, lastId, hasMore } = await getRecords({ take: 10 });
@@ -24,15 +37,25 @@ export async function AppSidebar() {
           />
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>General</SidebarGroupLabel>
+        <SidebarGroup className="gap-3 py-0">
           <SidebarGroupContent>
-            <div className="p-2 text-sm">Crear Expediente</div>
+            <SidebarGroupLabel>Expedientes</SidebarGroupLabel>
+            <Separator />
           </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Expedientes</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sidebarItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
           <SidebarGroupContent>
             <RecordsList
               initialRecords={records}

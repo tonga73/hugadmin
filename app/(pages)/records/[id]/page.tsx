@@ -1,5 +1,7 @@
+import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { Record } from "@/app/generated/prisma/client";
-import { Badge } from "@/components/ui/badge";
+import { TracingBadge } from "@/components/shared/tracing-badge";
+import { FaExclamation } from "react-icons/fa";
 import {
   Card,
   CardAction,
@@ -43,11 +45,35 @@ export default async function RecordPage({
     <div className="grid grid-cols-3 gap-1.5">
       <Card className="col-span-2">
         <CardHeader>
-          <Badge>{record.tracing}</Badge>
-          <CardTitle>{record.order}</CardTitle>
-          <CardDescription>{record.name}</CardDescription>
-          <CardAction className="font-bold text-white/50 text-2xl">
-            {record.code}
+          <div className="flex gap-3">
+            {record.code?.length && (
+              <>
+                <p className="font-bold text-white/50 text-2xl">
+                  {record.code}
+                </p>
+              </>
+            )}
+            <TracingBadge tracing={record.tracing} />
+          </div>
+          <CardTitle
+            style={{
+              fontWeight: "bolder",
+              fontSize: "2.5rem",
+            }}
+          >
+            {record.order}
+          </CardTitle>
+          <CardDescription
+            style={{
+              fontSize: "1.3rem",
+            }}
+          >
+            {record.name}
+          </CardDescription>
+          <CardAction>
+            <span>
+              <FaExclamation />
+            </span>
           </CardAction>
         </CardHeader>
         <CardContent></CardContent>
