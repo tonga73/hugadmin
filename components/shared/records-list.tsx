@@ -11,6 +11,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Record } from "@/app/generated/prisma/client";
 import { Badge } from "../ui/badge";
+import { TracingBadge } from "./tracing-badge";
+import { PRIORITY_OPTIONS } from "@/app/constants";
 
 // 🔹 Props
 interface RecordsListProps {
@@ -133,6 +135,11 @@ export function RecordsList({
               className={`transition-colors cursor-pointer ${
                 isSelected ? "bg-gray-200 dark:bg-gray-700 font-semibold" : ""
               }`}
+              style={{
+                borderLeft: `3px solid ${
+                  PRIORITY_OPTIONS[item.priority].color
+                }`,
+              }}
             >
               <SidebarMenuButton asChild className="h-auto max-h-full">
                 <a
@@ -140,9 +147,10 @@ export function RecordsList({
                   onClick={() => handleClick(index)}
                 >
                   <span className="flex items-center justify-between gap-1.5">
-                    <p>{item.order}</p> <Badge>{item.priority}</Badge>
+                    <p>{item.order}</p>
+                    <TracingBadge tracing={item.tracing} />
                   </span>
-                  <span>{item.name}</span>
+                  <span className="uppercase">{item.name}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>

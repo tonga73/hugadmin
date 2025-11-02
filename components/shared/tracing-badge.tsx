@@ -1,4 +1,4 @@
-import { TRACING_OPTIONS } from "@/app/constants/tracing";
+import { TRACING_OPTIONS } from "@/app/constants";
 import { Badge } from "@/components/ui/badge";
 
 interface BadgeTracingProps {
