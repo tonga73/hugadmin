@@ -26,7 +26,7 @@ const recordSchema = z.object({
   code: z.string().optional(),
   order: z.string().min(1, "Requerido"),
   name: z.string().min(3, "Mínimo 3 caracteres"),
-  insurance: z.string().optional(),
+  insurance: z.string().optional(), // Array
   defendant: z.array(z.string()),
   prosecutor: z.array(z.string()),
   tracing: z.string(),
@@ -56,7 +56,7 @@ export default function EditableRecordPage({
       code: record.code || "",
       order: record.order,
       name: record.name,
-      insurance: record.insurance || "",
+      insurance: record.insurance || [],
       defendant: record.defendant || [],
       prosecutor: record.prosecutor || [],
       tracing: record.tracing,
@@ -79,6 +79,13 @@ export default function EditableRecordPage({
         const error = await response.json();
         throw new Error(error.error || "Error al guardar");
       }
+
+      const updatedRecord = await response.json();
+
+      // 🔹 Disparar evento para actualizar la lista
+      window.dispatchEvent(
+        new CustomEvent("update-record", { detail: updatedRecord })
+      );
 
       toast.success("Cambios guardados correctamente");
     } catch (error) {

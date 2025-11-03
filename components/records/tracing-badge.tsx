@@ -6,13 +6,13 @@ interface BadgeTracingProps {
 }
 
 export function TracingBadge({ tracing }: BadgeTracingProps) {
-  const { label, color } = TRACING_OPTIONS[tracing];
+  const { label, color, textColor } = TRACING_OPTIONS[tracing];
 
   return (
     <Badge
       style={{
         backgroundColor: color,
-        color: "#fff",
+        color: textColor,
       }}
     >
       {label}

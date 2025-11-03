@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getRecords } from "@/app/actions/getRecords";
@@ -10,11 +9,9 @@ import {
 } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Record } from "@/app/generated/prisma/client";
-import { Badge } from "../ui/badge";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TracingBadge } from "./tracing-badge";
 
-// 🔹 Props
 interface RecordsListProps {
   initialRecords: Record[];
   lastId: number | null;
@@ -28,30 +25,74 @@ export function RecordsList({
 }: RecordsListProps) {
   const router = useRouter();
   const pathname = usePathname();
-
   const [records, setRecords] = useState<Record[]>(initialRecords);
   const [cursor, setCursor] = useState<number | null>(lastId);
   const [loading, setLoading] = useState<boolean>(false);
   const [more, setMore] = useState<boolean>(hasMore);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLLIElement[]>([]);
 
+  // 🔹 Refrescar lista desde el servidor
+  const refreshRecords = async () => {
+    try {
+      const {
+        records: freshRecords,
+        lastId: newLastId,
+        hasMore: newHasMore,
+      } = await getRecords({ take: records.length || 10 });
+
+      setRecords(freshRecords);
+      setCursor(newLastId);
+      setMore(newHasMore);
+    } catch (error) {
+      console.error("Error refreshing records:", error);
+    }
+  };
+
+  // 🔹 Escuchar eventos de creación
   useEffect(() => {
-    const handleNewRecord = (e: CustomEvent) => {
-      setRecords((prev) => [e.detail, ...prev]);
+    const handleNewRecord = (e: Event) => {
+      const customEvent = e as CustomEvent<Record>;
+      setRecords((prev) => [customEvent.detail, ...prev]);
     };
 
-    window.addEventListener("new-record", handleNewRecord as EventListener);
+    window.addEventListener("new-record", handleNewRecord);
     return () => {
-      window.removeEventListener(
-        "new-record",
-        handleNewRecord as EventListener
-      );
+      window.removeEventListener("new-record", handleNewRecord);
     };
   }, []);
+
+  // 🔹 Escuchar eventos de actualización
+  useEffect(() => {
+    const handleUpdateRecord = (e: Event) => {
+      const customEvent = e as CustomEvent<Record>;
+      const updatedRecord = customEvent.detail;
+
+      // Actualizar en la lista local
+      setRecords((prev) =>
+        prev.map((r) => (r.id === updatedRecord.id ? updatedRecord : r))
+      );
+    };
+
+    window.addEventListener("update-record", handleUpdateRecord);
+    return () => {
+      window.removeEventListener("update-record", handleUpdateRecord);
+    };
+  }, []);
+
+  // 🔹 Polling ligero para sincronizar cambios (opcional)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Solo refrescar si no estamos cargando
+      if (!loading) {
+        refreshRecords();
+      }
+    }, 30000); // Cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [loading, records.length]);
 
   // 🔹 Infinite scroll
   useEffect(() => {
@@ -65,7 +106,6 @@ export function RecordsList({
         const entry = entries[0];
         if (entry.isIntersecting && more && !loading) {
           setLoading(true);
-
           const {
             records: newRecords,
             lastId: newCursor,
@@ -74,7 +114,6 @@ export function RecordsList({
             cursor: cursor ?? undefined,
             take: 10,
           });
-
           setRecords((prev) => [...prev, ...newRecords]);
           setCursor(newCursor);
           setMore(hasMore);
@@ -93,14 +132,13 @@ export function RecordsList({
     const currentIndex = records.findIndex(
       (r) => `/records/${r.id}` === pathname
     );
-    setSelectedIndex(currentIndex); // si no encuentra, devuelve -1
+    setSelectedIndex(currentIndex);
   }, [pathname, records]);
 
   // 🔹 Manejo de teclado
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!records.length) return;
-
       if (e.key === "ArrowDown") {
         const nextIndex = Math.min(selectedIndex + 1, records.length - 1);
         router.push(`/records/${records[nextIndex].id}`);
@@ -111,24 +149,16 @@ export function RecordsList({
         router.push(`/records/${records[selectedIndex].id}`);
       }
     };
-
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [records, selectedIndex, router]);
-
-  // 🔹 Mantener el item seleccionado visible
-  // useEffect(() => {
-  //   const el = itemsRef.current[selectedIndex];
-  //   if (el) el.scrollIntoView({ block: "nearest" });
-  // }, [selectedIndex, records]);
 
   // 🔹 Click en item
   const handleClick = (index: number) => {
     const record = records[index];
     const targetPath = `/records/${record.id}`;
-
     if (pathname === targetPath) {
-      router.push("/"); // si es el mismo, volvemos a /
+      router.push("/");
     } else {
       router.push(targetPath);
     }
@@ -139,7 +169,6 @@ export function RecordsList({
       <SidebarMenu>
         {records.map((item, index) => {
           const isSelected = selectedIndex === index;
-
           return (
             <SidebarMenuItem
               key={item.id}
@@ -171,14 +200,13 @@ export function RecordsList({
           );
         })}
       </SidebarMenu>
-
       {more && <div ref={sentinelRef} className="h-6" />}
       {loading && (
         <div className="py-2 text-center text-sm text-muted-foreground">
           Cargando...
         </div>
       )}
-      {!more && (
+      {!more && records.length > 0 && (
         <div className="py-2 text-center text-sm text-muted-foreground">
           No hay más expedientes
         </div>
