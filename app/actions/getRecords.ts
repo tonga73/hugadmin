@@ -12,7 +12,7 @@ export async function getRecords({
   const records = await prisma.record.findMany({
     take,
     ...(cursor && { skip: 1, cursor: { id: cursor } }),
-    orderBy: { id: "asc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   const lastId = records.at(-1)?.id ?? null;

@@ -1,4 +1,3 @@
-import { TracingBadge } from "@/components/shared/tracing-badge";
 import { FaExclamation } from "react-icons/fa";
 import {
   Card,
@@ -10,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
+import { TracingBadge } from "@/components/records";
 
 export default async function RecordPage({
   params,

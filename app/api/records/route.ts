@@ -21,3 +21,26 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ records });
 }
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const { name, order, tracing, priority } = body;
+
+  const now = new Date();
+
+  const newRecord = await prisma.record.create({
+    data: {
+      name,
+      order,
+      tracing,
+      priority,
+      createdAt: now,
+      updatedAt: now,
+    },
+  });
+
+  // 🔹 invalida la cache de la lista
+  revalidateTag("records", "all");
+
+  return NextResponse.json(newRecord, { status: 201 });
+}

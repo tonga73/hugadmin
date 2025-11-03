@@ -11,8 +11,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Record } from "@/app/generated/prisma/client";
 import { Badge } from "../ui/badge";
-import { TracingBadge } from "./tracing-badge";
 import { PRIORITY_OPTIONS } from "@/app/constants";
+import { TracingBadge } from "./tracing-badge";
 
 // 🔹 Props
 interface RecordsListProps {
@@ -38,6 +38,20 @@ export function RecordsList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLLIElement[]>([]);
+
+  useEffect(() => {
+    const handleNewRecord = (e: CustomEvent) => {
+      setRecords((prev) => [e.detail, ...prev]);
+    };
+
+    window.addEventListener("new-record", handleNewRecord as EventListener);
+    return () => {
+      window.removeEventListener(
+        "new-record",
+        handleNewRecord as EventListener
+      );
+    };
+  }, []);
 
   // 🔹 Infinite scroll
   useEffect(() => {

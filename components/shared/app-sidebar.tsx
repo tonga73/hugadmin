@@ -1,5 +1,4 @@
 import { getRecords } from "@/app/actions/getRecords";
-import { RecordsList } from "./records-list";
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +12,7 @@ import {
 import Image from "next/image";
 import { Separator } from "../ui/separator";
 import { PlusIcon } from "lucide-react";
+import { RecordsList } from "../records";
 
 const sidebarItems = [
   {
