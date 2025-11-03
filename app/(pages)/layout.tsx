@@ -14,7 +14,7 @@ export default function PrivateLayout({
       <main className="flex-1 h-screen flex flex-col overflow-x-hidden p-3 space-y-3">
         <NavigationMenu />
         {children}
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="bottom-right" richColors closeButton />
       </main>
     </SidebarProvider>
   );
