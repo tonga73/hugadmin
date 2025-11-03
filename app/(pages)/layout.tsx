@@ -1,5 +1,6 @@
 import { AppSidebar, NavigationMenu } from "@/components/shared";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "sonner";
 
 export default function PrivateLayout({
   children,
@@ -13,6 +14,7 @@ export default function PrivateLayout({
       <main className="flex-1 h-screen flex flex-col overflow-x-hidden p-3 space-y-3">
         <NavigationMenu />
         {children}
+        <Toaster position="top-right" richColors closeButton />
       </main>
     </SidebarProvider>
   );
