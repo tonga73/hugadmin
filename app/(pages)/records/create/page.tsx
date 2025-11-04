@@ -1,27 +1,31 @@
-"use client";
-import { RecordForm, RecordFormValues } from "@/components/records/record-form";
-import { useRouter } from "next/navigation";
+import { RecordForm } from "@/components/records/record-form";
+import prisma from "@/lib/prisma";
 
-export default function CreateRecordPage() {
-  const router = useRouter();
-  const handleSubmit = async (data: RecordFormValues) => {
-    const res = await fetch("/api/records", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const newRecord = await res.json();
-
-    // 🔹 notificar al sidebar
-    window.dispatchEvent(new CustomEvent("new-record", { detail: newRecord }));
-
-    router.push(`/records/${newRecord.id}`);
-  };
+export default async function CreateRecordPage() {
+  const offices = await prisma.office.findMany({
+    include: {
+      Court: {
+        include: {
+          District: true,
+        },
+      },
+    },
+  });
+  const districts = await prisma.district.findMany({
+    include: {
+      Court: {
+        include: {
+          Office: true,
+        },
+      },
+    },
+  });
 
   return (
     <div className="p-4">
       <h1 className="text-2xl mb-4">Crear nuevo expediente</h1>
-      <RecordForm onSubmit={handleSubmit} />
+
+      <RecordForm districts={districts} />
     </div>
   );
 }
