@@ -2,15 +2,6 @@ import { RecordForm } from "@/components/records/record-form";
 import prisma from "@/lib/prisma";
 
 export default async function CreateRecordPage() {
-  const offices = await prisma.office.findMany({
-    include: {
-      Court: {
-        include: {
-          District: true,
-        },
-      },
-    },
-  });
   const districts = await prisma.district.findMany({
     include: {
       Court: {

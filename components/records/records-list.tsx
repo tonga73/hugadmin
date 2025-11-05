@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Record } from "@/app/generated/prisma/client";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TracingBadge } from "./tracing-badge";
+import { Skeleton } from "../ui/skeleton";
 
 interface RecordsListProps {
   initialRecords: Record[];
@@ -201,11 +202,7 @@ export function RecordsList({
         })}
       </SidebarMenu>
       {more && <div ref={sentinelRef} className="h-6" />}
-      {loading && (
-        <div className="py-2 text-center text-sm text-muted-foreground">
-          Cargando...
-        </div>
-      )}
+      {loading && <Skeleton className="w-full h-14 mt-1.5 animate-pulse" />}
       {!more && records.length > 0 && (
         <div className="py-2 text-center text-sm text-muted-foreground">
           No hay más expedientes

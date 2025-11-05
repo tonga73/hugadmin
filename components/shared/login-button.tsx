@@ -2,6 +2,8 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FaGoogle, FaSpinner } from "react-icons/fa";
+import { Button } from "../ui/button";
 
 export const LoginButton: React.FC = () => {
   const router = useRouter();
@@ -25,12 +27,18 @@ export const LoginButton: React.FC = () => {
   };
 
   return (
-    <button
-      onClick={handleLogin}
-      disabled={loading}
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-    >
-      {loading ? "Cargando..." : "Iniciar sesión con Google"}
-    </button>
+    <Button variant="ghost" size="lg" onClick={handleLogin} disabled={loading}>
+      {loading ? (
+        <>
+          <FaSpinner className="animate-spin" />
+          Cargando...
+        </>
+      ) : (
+        <>
+          <FaGoogle />
+          Iniciar sesión con Google
+        </>
+      )}
+    </Button>
   );
 };

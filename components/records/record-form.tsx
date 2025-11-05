@@ -1,5 +1,4 @@
 "use client";
-
 import { useForm, Controller, useFieldArray, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,9 +18,9 @@ export const recordSchema = z.object({
   priority: z.enum(Object.keys(PRIORITY_OPTIONS) as [string, ...string[]]),
   archive: z.boolean().default(false),
   favorite: z.boolean().default(false),
-  defendant: z.array(z.string()).default([]),
-  prosecutor: z.array(z.string()).default([]),
-  insurance: z.array(z.string()).default([]),
+  defendant: z.array(z.object({ value: z.string() })).default([]),
+  prosecutor: z.array(z.object({ value: z.string() })).default([]),
+  insurance: z.array(z.object({ value: z.string() })).default([]),
   officeId: z.union([z.number(), z.null()]).optional(),
   code: z.string().optional(),
   code__VALUES: z.string().optional(),
@@ -62,7 +61,7 @@ export function RecordForm({ districts }: RecordFormProps) {
       priority: Object.keys(PRIORITY_OPTIONS)[0],
       archive: false,
       favorite: false,
-      defendant: [""],
+      defendant: [{ value: "" }],
       prosecutor: [],
       insurance: [],
       officeId: null,
@@ -73,29 +72,37 @@ export function RecordForm({ districts }: RecordFormProps) {
     },
   });
 
-  const onSubmit = async (data: RecordFormValues) => {
+  const onSubmit = async (data: FormValues) => {
+    // Transformar los datos antes de enviar
+    const submitData = {
+      ...data,
+      defendant: data.defendant.map((d) => d.value),
+      prosecutor: data.prosecutor.map((p) => p.value),
+      insurance: data.insurance.map((i) => i.value),
+    };
+
     const res = await fetch("/api/records", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(submitData),
     });
-
     const newRecord = await res.json();
-
     window.dispatchEvent(new CustomEvent("new-record", { detail: newRecord }));
     router.push(`/records/${newRecord.id}`);
   };
 
   /* Arrays de partes */
-  const defendantArray = useFieldArray<FormValues>({
+  const defendantArray = useFieldArray({
     control,
     name: "defendant",
   });
-  const prosecutorArray = useFieldArray<FormValues>({
+
+  const prosecutorArray = useFieldArray({
     control,
     name: "prosecutor",
   });
-  const insuranceArray = useFieldArray<FormValues>({
+
+  const insuranceArray = useFieldArray({
     control,
     name: "insurance",
   });
@@ -307,6 +314,7 @@ export function RecordForm({ districts }: RecordFormProps) {
             </label>
           )}
         />
+
         <Controller
           control={control}
           name="favorite"
@@ -339,24 +347,30 @@ export function RecordForm({ districts }: RecordFormProps) {
       {/* Demandados, fiscales y aseguradoras */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-700 pt-6">
         {[
-          { label: "Demandados", arr: defendantArray, key: "defendant" },
-          { label: "Fiscales", arr: prosecutorArray, key: "prosecutor" },
-          { label: "Aseguradoras", arr: insuranceArray, key: "insurance" },
+          {
+            label: "Demandados",
+            arr: defendantArray,
+            key: "defendant" as const,
+          },
+          {
+            label: "Fiscales",
+            arr: prosecutorArray,
+            key: "prosecutor" as const,
+          },
+          {
+            label: "Aseguradoras",
+            arr: insuranceArray,
+            key: "insurance" as const,
+          },
         ].map(({ label, arr, key }) => (
           <div key={key} className="space-y-2">
             <h4 className="font-medium">{label}</h4>
             {arr.fields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
                 <Input
-                  {...register(
-                    `${key}.${index}` as
-                      | `defendant.${number}`
-                      | `prosecutor.${number}`
-                      | `insurance.${number}`
-                  )}
+                  {...register(`${key}.${index}.value`)}
                   placeholder={`${label.slice(0, -1)} #${index + 1}`}
                 />
-
                 <Button
                   type="button"
                   onClick={() => arr.remove(index)}
@@ -368,7 +382,7 @@ export function RecordForm({ districts }: RecordFormProps) {
             ))}
             <Button
               type="button"
-              onClick={() => arr.append("")}
+              onClick={() => arr.append({ value: "" })}
               className="bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm"
             >
               + Añadir {label.slice(0, -1)}
