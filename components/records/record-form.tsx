@@ -16,14 +16,11 @@ export const recordSchema = z.object({
   order: z.string().min(1, "Campo requerido"),
   tracing: z.enum(Object.keys(TRACING_OPTIONS) as [string, ...string[]]),
   priority: z.enum(Object.keys(PRIORITY_OPTIONS) as [string, ...string[]]),
-  archive: z.boolean().default(false),
-  favorite: z.boolean().default(false),
   defendant: z.array(z.object({ value: z.string() })).default([]),
   prosecutor: z.array(z.object({ value: z.string() })).default([]),
   insurance: z.array(z.object({ value: z.string() })).default([]),
   officeId: z.union([z.number(), z.null()]).optional(),
   code: z.string().optional(),
-  code__VALUES: z.string().optional(),
 });
 
 export type RecordFormValues = z.infer<typeof recordSchema>;
@@ -59,16 +56,13 @@ export function RecordForm({ districts }: RecordFormProps) {
       order: "",
       tracing: Object.keys(TRACING_OPTIONS)[0],
       priority: Object.keys(PRIORITY_OPTIONS)[0],
-      archive: false,
-      favorite: false,
-      defendant: [{ value: "" }],
+      defendant: [],
       prosecutor: [],
       insurance: [],
       officeId: null,
       districtId: undefined,
       courtId: undefined,
       code: "",
-      code__VALUES: "",
     },
   });
 
@@ -299,49 +293,10 @@ export function RecordForm({ districts }: RecordFormProps) {
         />
       </div>
 
-      {/* Checkboxes */}
-      <div className="flex items-center gap-6">
-        <Controller
-          control={control}
-          name="archive"
-          render={({ field }) => (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox
-                checked={field.value as boolean}
-                onCheckedChange={field.onChange}
-              />
-              <span>Archivado</span>
-            </label>
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="favorite"
-          render={({ field }) => (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox
-                checked={field.value as boolean}
-                onCheckedChange={field.onChange}
-              />
-              <span>Favorito</span>
-            </label>
-          )}
-        />
-      </div>
-
-      {/* Códigos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Código</label>
-          <Input placeholder="Código" {...register("code")} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Código "VALUES"
-          </label>
-          <Input placeholder='Código "VALUES"' {...register("code__VALUES")} />
-        </div>
+      {/* Código */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Código</label>
+        <Input placeholder="Código" {...register("code")} />
       </div>
 
       {/* Demandados, fiscales y aseguradoras */}
