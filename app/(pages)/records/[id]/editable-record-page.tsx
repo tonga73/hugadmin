@@ -179,13 +179,6 @@ export default function EditableRecordPage({
                 RecordOffice?.Court?.District?.name +
                 " Circunscripción"}
             </CardDescription>
-            <CardFooter>
-              <EditableField
-                value={formValues.insurance || ""}
-                onSave={(value) => handleFieldChange("insurance", value)}
-                placeholder="Cobertura"
-              />
-            </CardFooter>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-white/50 mb-0.5">Defensor</p>
@@ -200,6 +193,19 @@ export default function EditableRecordPage({
               items={formValues.prosecutor}
               onSave={(items) => handleFieldChange("prosecutor", items)}
               className="border rounded-2xl p-1.5 text-sm text-white/50 space-y-1.5"
+            />
+          </CardContent>
+          <CardContent>
+            <p className="text-sm text-white/50 mb-0.5">Aseguradora</p>
+
+            <EditableField
+              value={
+                formValues.insurance?.length && formValues.insurance?.length > 0
+                  ? formValues.insurance
+                  : "---"
+              }
+              onSave={(value) => handleFieldChange("insurance", value)}
+              placeholder="Seguro"
             />
           </CardContent>
         </Card>
