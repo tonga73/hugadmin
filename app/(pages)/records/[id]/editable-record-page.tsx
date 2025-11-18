@@ -20,6 +20,12 @@ import { EditableField } from "./editable-field";
 import { EditableSelect } from "./editable-select";
 import { EditableList } from "./editable-list";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { DeleteButton } from "@/components/records/delete-button";
 
 // Schema de validación
 const recordSchema = z.object({
@@ -44,6 +50,7 @@ export default function EditableRecordPage({
   tracingOptions,
 }: EditableRecordPageProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { Note: RecordNote, Office: RecordOffice } = record;
 
   const {
@@ -230,6 +237,17 @@ export default function EditableRecordPage({
           <p className="text-white/50">No hay notas disponibles</p>
         )}
       </div>
+
+      <Collapsible onOpenChange={() => setIsOpen(!isOpen)}>
+        <CollapsibleTrigger
+          className={isOpen ? "w-full text-sm font-medium" : "w-full text-sm"}
+        >
+          {isOpen ? "Ocultar opciones" : "Más opciones"}
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <DeleteButton recordId={record.id} recordName={record.name} />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
