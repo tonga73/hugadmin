@@ -108,7 +108,7 @@ export default function EditableRecordPage({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex-1 flex flex-col">
       {/* Indicador de guardado */}
       {isSaving && (
         <div className="fixed top-4 right-4 bg-background border rounded-lg p-3 shadow-lg flex items-center gap-2 z-50">
@@ -117,7 +117,7 @@ export default function EditableRecordPage({
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="flex-1 grid grid-cols-3 gap-1.5">
         <Card className="col-span-2">
           <CardHeader>
             <div className="flex gap-3">
@@ -209,20 +209,26 @@ export default function EditableRecordPage({
             />
           </CardContent>
         </Card>
+      </div>
 
-        <div className="space-y-1.5 mt-3">
-          <h3 className="text-2xl font-thin tracking-wide uppercase">Notas</h3>
-          {RecordNote.map((note: any, index: number) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-white/50">
-                  {note.name || "Nota sin título"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>{note.text}</CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="space-y-1.5 mt-3">
+        <h3 className="text-2xl font-thin tracking-wide uppercase">Notas</h3>
+        {RecordNote.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
+            {RecordNote.map((note: any, index: number) => (
+              <Card key={index} className="gap-0">
+                <CardHeader>
+                  <CardTitle className="text-white/50">
+                    {note.name || "Nota sin título"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>{note.text}</CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <p className="text-white/50">No hay notas disponibles</p>
+        )}
       </div>
     </div>
   );
