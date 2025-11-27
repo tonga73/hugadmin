@@ -25,6 +25,12 @@ const sidebarItems = [
 export async function AppSidebar() {
   const { records, lastId, hasMore } = await getRecords({ take: 10 });
 
+  const recordsWithDates = records.map((r) => ({
+    ...r,
+    createdAt: new Date(r.createdAt),
+    updatedAt: new Date(r.updatedAt),
+  }));
+
   return (
     <Sidebar>
       <SidebarContent className="h-screen overflow-hidden">
@@ -58,7 +64,7 @@ export async function AppSidebar() {
           </SidebarGroupContent>
           <SidebarGroupContent>
             <RecordsList
-              initialRecords={records}
+              initialRecords={recordsWithDates}
               lastId={lastId}
               hasMore={hasMore}
             />

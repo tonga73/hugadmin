@@ -511,10 +511,7 @@ export function RecordsList({
                                 {r.order} — {r.name}
                               </div>
                               <div className="text-xs text-muted-foreground truncate">
-                                <TracingBadge
-                                  tracing={r.tracing as any}
-                                  className="inline-block mr-2"
-                                />
+                                <TracingBadge tracing={r.tracing as any} />
                                 {TRACING_OPTIONS[
                                   r.tracing as keyof typeof TRACING_OPTIONS
                                 ]?.label || r.tracing}
@@ -576,10 +573,7 @@ export function RecordsList({
                   >
                     <span className="flex items-center justify-between gap-1.5">
                       <p>{itemToRender.order}</p>
-                      <TracingBadge
-                        tracing={itemToRender.tracing}
-                        className="max-w-32"
-                      />
+                      <TracingBadge tracing={itemToRender.tracing} />
                     </span>
                     <span className="uppercase">{itemToRender.name}</span>
                   </a>
