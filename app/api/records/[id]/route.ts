@@ -115,9 +115,8 @@ export async function PATCH(
       },
     });
 
-    // Invalida cache (Next.js 15)
-    revalidateTag("records", "default");
-    revalidateTag(`record-${id}`, "default");
+    // Invalida cache
+    revalidateTag("records");
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -160,9 +159,8 @@ export async function DELETE(
       where: { id: recordId },
     });
 
-    // Invalida cache (Next.js 15)
-    revalidateTag("records", "default");
-    revalidateTag(`record-${id}`, "default");
+    // Invalida cache
+    revalidateTag("records");
 
     return NextResponse.json({ success: true });
   } catch (error) {

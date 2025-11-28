@@ -10,6 +10,18 @@ import {
   recordExists,
 } from "@/lib/record-search";
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 // Helper para convertir fechas de string a Date (necesario porque JSON serializa Date como string)
 const parseRecordDates = (record: any): Record => ({
   ...record,
@@ -46,6 +58,7 @@ export function useRecordsList({
   const sentinelRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLLIElement[]>([]);
   const highlightedRef = useRef<HTMLDivElement>(null);
+  const lastScrolledHighlightRef = useRef<string | null>(null); // Track último highlight scrolleado
 
   // Búsqueda local
   const [pinnedQuery, setPinnedQuery] = useState("");
@@ -80,7 +93,7 @@ export function useRecordsList({
     [records]
   );
 
-  // Aplicar filtro
+  // Aplicar filtro (sin resetear selectedIndex al cargar más)
   useEffect(() => {
     const query = pinnedQuery.trim();
     if (query) {
@@ -88,8 +101,12 @@ export function useRecordsList({
     } else {
       setFilteredRecords(records);
     }
-    setSelectedIndex(0);
   }, [pinnedQuery, records, exactMatch]);
+  
+  // Resetear selectedIndex solo cuando cambia el query de búsqueda
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [pinnedQuery]);
 
   // Limpiar búsqueda fijada
   const clearPinnedSearch = useCallback(() => {
@@ -215,12 +232,33 @@ export function useRecordsList({
     };
   }, []);
 
-  // Polling para sincronizar cambios
+  // Polling para sincronizar cambios (solo cuando la ventana está visible)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!loading) refreshRecords();
-    }, 30000);
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+    
+    const startPolling = () => {
+      // Polling cada 60 segundos (antes era 30)
+      interval = setInterval(() => {
+        if (!loading && document.visibilityState === "visible") {
+          refreshRecords();
+        }
+      }, 60000);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Refrescar al volver a la pestaña
+        refreshRecords();
+      }
+    };
+
+    startPolling();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [loading, refreshRecords]);
 
   // Infinite scroll
@@ -359,12 +397,18 @@ export function useRecordsList({
     }
   }, [commandSelectedIndex, commandOpen]);
 
-  // Búsqueda en el Command
+  // Debounce del query de búsqueda (300ms)
+  const debouncedCommandQuery = useDebounce(commandQuery, 300);
+
+  // Búsqueda en el Command (con debounce)
   useEffect(() => {
     let active = true;
 
     const fetchResults = async () => {
-      if (!commandQuery?.trim()) {
+      const query = debouncedCommandQuery?.trim();
+      
+      // Sin query, mostrar recientes desde la lista local (sin llamada al servidor)
+      if (!query) {
         setCommandResults(recentRecords);
         setCommandLoading(false);
         setCommandCursor(null);
@@ -372,26 +416,36 @@ export function useRecordsList({
         return;
       }
 
+      // Primero intentar filtrar localmente
+      const localResults = filterRecords(records, query, exactMatch);
+      if (localResults.length > 0) {
+        setCommandResults(localResults);
+      }
+
+      // Luego buscar en servidor si hay query
       setCommandLoading(true);
       try {
         const { records: found, lastId, hasMore } = await getRecords({
-          query: commandQuery,
-          take: 100,
+          query,
+          take: 50, // Reducido de 100 a 50
           exactMatch,
         });
 
         if (active) {
-          setCommandResults(
-            found.length > 0
-              ? parseRecordsDates(found)
-              : filterRecords(recentRecords, commandQuery)
-          );
+          // Combinar resultados locales con los del servidor
+          const serverResults = parseRecordsDates(found);
+          const combined = serverResults.length > 0 
+            ? serverResults 
+            : localResults;
+          
+          setCommandResults(combined);
           setCommandCursor(lastId);
           setCommandHasMore(hasMore);
         }
       } catch {
+        // En caso de error, usar resultados locales
         if (active) {
-          setCommandResults(filterRecords(recentRecords, commandQuery));
+          setCommandResults(localResults.length > 0 ? localResults : filterRecords(recentRecords, query));
           setCommandCursor(null);
           setCommandHasMore(false);
         }
@@ -404,12 +458,15 @@ export function useRecordsList({
     return () => {
       active = false;
     };
-  }, [commandQuery, exactMatch, recentRecords]);
+  }, [debouncedCommandQuery, exactMatch, recentRecords, records]);
 
-  // Scroll al record destacado cuando viene del Command
+  // Scroll al record destacado cuando viene del Command (solo una vez por highlight)
   useEffect(() => {
     const highlightId = searchParams.get("highlight");
     if (!highlightId || !scrollRef.current) return;
+    
+    // Si ya hicimos scroll a este highlight, no hacerlo de nuevo
+    if (lastScrolledHighlightRef.current === highlightId) return;
 
     const highlightNumId = parseInt(highlightId, 10);
     const timeoutId = setTimeout(() => {
@@ -422,6 +479,7 @@ export function useRecordsList({
           behavior: "smooth",
           block: "start",
         });
+        lastScrolledHighlightRef.current = highlightId;
         return;
       }
 
@@ -432,11 +490,20 @@ export function useRecordsList({
           block: "center",
         });
         setSelectedIndex(index);
+        lastScrolledHighlightRef.current = highlightId;
       }
     }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [searchParams, filteredRecords, highlightedRecord]);
+
+  // Limpiar el highlight trackeado cuando cambia la URL (sin highlight)
+  useEffect(() => {
+    const highlightId = searchParams.get("highlight");
+    if (!highlightId) {
+      lastScrolledHighlightRef.current = null;
+    }
+  }, [searchParams]);
 
   // Manejar cierre del Command
   const handleCommandClose = useCallback(

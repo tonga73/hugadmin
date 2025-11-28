@@ -90,10 +90,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log("Record creado:", newRecord); // Debug
-
-    // Invalida la cache (Next.js 15)
-    revalidateTag("records", "default");
+    // Invalida la cache
+    revalidateTag("records");
 
     return NextResponse.json(newRecord, { status: 201 });
   } catch (error) {

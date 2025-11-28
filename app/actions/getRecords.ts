@@ -3,8 +3,10 @@
 import prisma from "@/lib/prisma";
 import { Tracing } from "@/app/generated/prisma/enums";
 import { TRACING_OPTIONS } from "@/app/constants";
+import { unstable_cache } from "next/cache";
 
-export async function getRecords({
+// Función interna sin caché
+async function fetchRecords({
   cursor,
   take = 10,
   query,
@@ -25,9 +27,7 @@ export async function getRecords({
       const normalized = searchTerm.toUpperCase();
       return Object.entries(Tracing)
         .filter(([key]) => {
-          // Búsqueda exacta del enum key
           if (normalized === key) return true;
-          // Búsqueda partial del enum key
           if (!exactMatch && key.includes(normalized)) return true;
           return false;
         })
@@ -39,9 +39,7 @@ export async function getRecords({
       const normalized = searchTerm.toLowerCase();
       return Object.entries(TRACING_OPTIONS)
         .filter(([_, opt]) => {
-          // Búsqueda exacta en label
           if (exactMatch && opt.label.toLowerCase() === normalized) return true;
-          // Búsqueda partial en label
           if (!exactMatch && opt.label.toLowerCase().includes(normalized))
             return true;
           return false;
@@ -100,7 +98,7 @@ export async function getRecords({
   const lastId = records.at(-1)?.id ?? null;
   const hasMore = records.length === take;
 
-  // Serializar fechas explícitamente para evitar problemas con RSC serialization
+  // Serializar fechas explícitamente
   const serializedRecords = records.map((r) => ({
     ...r,
     createdAt: r.createdAt.toISOString(),
@@ -108,4 +106,54 @@ export async function getRecords({
   }));
 
   return { records: serializedRecords, lastId, hasMore };
+}
+
+// Versión cacheada para listados iniciales (sin búsqueda)
+const getCachedRecords = unstable_cache(
+  async (cursor?: number, take?: number) => {
+    return fetchRecords({ cursor, take });
+  },
+  ["records-list"],
+  { revalidate: 30, tags: ["records"] } // Cache por 30 segundos
+);
+
+// Versión cacheada para búsquedas
+const getCachedSearchResults = unstable_cache(
+  async (query: string, take: number, exactMatch: boolean) => {
+    return fetchRecords({ query, take, exactMatch });
+  },
+  ["records-search"],
+  { revalidate: 60, tags: ["records"] } // Cache por 60 segundos
+);
+
+// Función pública que decide si usar caché o no
+export async function getRecords({
+  cursor,
+  take = 10,
+  query,
+  exactMatch = false,
+}: {
+  cursor?: number;
+  take?: number;
+  query?: string;
+  exactMatch?: boolean;
+}) {
+  // Si hay cursor (paginación), no cachear para tener datos frescos
+  if (cursor) {
+    return fetchRecords({ cursor, take, query, exactMatch });
+  }
+
+  // Si hay query, usar caché de búsqueda
+  if (query && query.trim()) {
+    return getCachedSearchResults(query.trim(), take, exactMatch);
+  }
+
+  // Sin query ni cursor, usar caché de listado
+  return getCachedRecords(undefined, take);
+}
+
+// Función para invalidar caché (llamar después de crear/actualizar/eliminar)
+export async function revalidateRecordsCache() {
+  const { revalidateTag } = await import("next/cache");
+  revalidateTag("records");
 }
