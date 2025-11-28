@@ -8,14 +8,18 @@ export default async function CreateRecordPage() {
         include: {
           Office: true,
         },
+        orderBy: {
+          name: "asc",
+        },
       },
+    },
+    orderBy: {
+      name: "asc",
     },
   });
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl mb-4">Crear nuevo expediente</h1>
-
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <RecordForm districts={districts} />
     </div>
   );
