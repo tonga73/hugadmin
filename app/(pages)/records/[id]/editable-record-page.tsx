@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { FaExclamation } from "react-icons/fa";
 import {
   Card,
@@ -80,6 +81,7 @@ export default function EditableRecordPage({
   record,
   tracingOptions,
 }: EditableRecordPageProps) {
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isFavorite, setIsFavorite] = useState(record.favorite);
@@ -200,10 +202,21 @@ export default function EditableRecordPage({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
+    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden relative">
+      {/* Botón cerrar */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => router.push("/")}
+        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground z-40"
+        title="Cerrar expediente"
+      >
+        <X className="h-5 w-5" />
+      </Button>
+
       {/* Indicador de guardado */}
       {isSaving && (
-        <div className="fixed top-4 right-4 bg-background border rounded-lg p-3 shadow-lg flex items-center gap-2 z-50">
+        <div className="fixed top-4 right-14 bg-background border rounded-lg p-3 shadow-lg flex items-center gap-2 z-50">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Guardando...</span>
         </div>
