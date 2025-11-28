@@ -179,9 +179,11 @@ export function useRecordsList({
 
     const handleUpdateRecord = (e: Event) => {
       const { detail: updated } = e as CustomEvent<Record>;
-      setRecords((prev) =>
-        prev.map((r) => (r.id === updated.id ? updated : r))
-      );
+      // Mover el record actualizado al inicio de la lista
+      setRecords((prev) => {
+        const filtered = prev.filter((r) => r.id !== updated.id);
+        return [updated, ...filtered];
+      });
     };
 
     const handleDeleteRecord = (e: Event) => {
