@@ -116,7 +116,7 @@ export async function PATCH(
     });
 
     // Invalida cache
-    revalidateTag("records");
+    revalidateTag("records", "default");
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -160,7 +160,7 @@ export async function DELETE(
     });
 
     // Invalida cache
-    revalidateTag("records");
+    revalidateTag("records", "default");
 
     return NextResponse.json({ success: true });
   } catch (error) {

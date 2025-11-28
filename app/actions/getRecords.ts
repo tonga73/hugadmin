@@ -152,8 +152,3 @@ export async function getRecords({
   return getCachedRecords(undefined, take);
 }
 
-// Función para invalidar caché (llamar después de crear/actualizar/eliminar)
-export async function revalidateRecordsCache() {
-  const { revalidateTag } = await import("next/cache");
-  revalidateTag("records");
-}

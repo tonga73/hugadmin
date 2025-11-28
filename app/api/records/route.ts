@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Invalida la cache
-    revalidateTag("records");
+    revalidateTag("records", "default");
 
     return NextResponse.json(newRecord, { status: 201 });
   } catch (error) {
