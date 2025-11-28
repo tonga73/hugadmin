@@ -13,11 +13,14 @@ const updateRecordSchema = z.object({
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
     .optional(),
-  insurance: z.array(z.string()).optional(), // Array de strings
+  insurance: z.array(z.string()).optional(),
   defendant: z.array(z.string()).optional(),
   prosecutor: z.array(z.string()).optional(),
   tracing: z.nativeEnum(Tracing).optional(),
   priority: z.nativeEnum(Priority).optional(),
+  favorite: z.boolean().optional(),
+  archive: z.boolean().optional(),
+  officeId: z.number().nullable().optional(),
 });
 
 export async function GET(
@@ -84,6 +87,15 @@ export async function PATCH(
       updateData.tracing = validatedData.tracing;
     if (validatedData.priority !== undefined)
       updateData.priority = validatedData.priority;
+    if (validatedData.favorite !== undefined)
+      updateData.favorite = validatedData.favorite;
+    if (validatedData.archive !== undefined)
+      updateData.archive = validatedData.archive;
+    if (validatedData.officeId !== undefined) {
+      updateData.Office = validatedData.officeId
+        ? { connect: { id: validatedData.officeId } }
+        : { disconnect: true };
+    }
 
     // Actualizar en base de datos
     const updated = await prisma.record.update({
@@ -136,9 +148,16 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const recordId = Number(id);
 
+    // Primero eliminar las notas asociadas
+    await prisma.note.deleteMany({
+      where: { recordId },
+    });
+
+    // Luego eliminar el record
     await prisma.record.delete({
-      where: { id: Number(id) },
+      where: { id: recordId },
     });
 
     // Invalida cache (Next.js 15)

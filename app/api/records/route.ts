@@ -4,17 +4,17 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
 
-// Schema de validación para POST - CORREGIDO: agregado officeId
+// Schema de validación para POST
 const createRecordSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
   order: z.string().min(1, "El orden es requerido"),
   tracing: z.nativeEnum(Tracing),
-  priority: z.nativeEnum(Priority),
+  priority: z.nativeEnum(Priority).optional().default(Priority.NULA),
   code: z.string().optional(),
   insurance: z.array(z.string()).optional(),
   defendant: z.array(z.string()).optional(),
   prosecutor: z.array(z.string()).optional(),
-  officeId: z.number().nullable().optional(), // ← AGREGADO
+  officeId: z.number().nullable().optional(),
 });
 
 export async function GET(req: NextRequest) {

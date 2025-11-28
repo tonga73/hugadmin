@@ -13,6 +13,7 @@ import Image from "next/image";
 import { Separator } from "../ui/separator";
 import { PlusIcon } from "lucide-react";
 import { RecordsList } from "../records";
+import { Logo } from "./logo";
 
 const sidebarItems = [
   {
@@ -35,12 +36,7 @@ export async function AppSidebar() {
     <Sidebar>
       <SidebarContent className="h-screen overflow-hidden">
         <SidebarGroup>
-          <Image
-            alt="Logo Hugadmin"
-            src="/hugadmin_logo.png"
-            width={100}
-            height={300}
-          />
+          <Logo />
         </SidebarGroup>
 
         <SidebarGroup className="gap-3 py-0">

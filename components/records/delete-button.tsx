@@ -1,40 +1,74 @@
-export const DeleteButton: React.FC<{
-  recordId: string;
-  recordName: string;
-}> = ({ recordId, recordName }) => {
-  const handleDelete = async () => {
-    const confirmed = window.confirm(
-      `¿Estás seguro de que deseas eliminar el registro "${recordName}"? Esta acción no se puede deshacer.`
-    );
-    if (!confirmed) return;
+"use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
+
+interface DeleteButtonProps {
+  recordId: string | number;
+  recordName: string;
+}
+
+export function DeleteButton({ recordId, recordName }: DeleteButtonProps) {
+  const router = useRouter();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/records/${recordId}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        alert(`El registro "${recordName}" ha sido eliminado.`);
-        window.location.href = "/"; // Redirigir a la lista de registros
+        // Notificar a la lista para que se actualice
+        window.dispatchEvent(
+          new CustomEvent("delete-record", { detail: { id: recordId } })
+        );
+        toast.success(`El expediente "${recordName}" ha sido eliminado.`);
+        setShowConfirm(false);
+        router.push("/");
       } else {
-        alert(
-          "Hubo un error al eliminar el registro. Por favor, inténtalo de nuevo."
+        toast.error(
+          "Hubo un error al eliminar el expediente. Por favor, inténtalo de nuevo."
         );
       }
     } catch (error) {
       console.error("Error deleting record:", error);
-      alert(
-        "Hubo un error al eliminar el registro. Por favor, inténtalo de nuevo."
+      toast.error(
+        "Hubo un error al eliminar el expediente. Por favor, inténtalo de nuevo."
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <button
-      onClick={handleDelete}
-      className="mt-4 w-full rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-    >
-      Eliminar Registro
-    </button>
+    <>
+      <Button
+        variant="destructive"
+        onClick={() => setShowConfirm(true)}
+        className="w-full gap-2"
+      >
+        <Trash2 className="h-4 w-4" />
+        Eliminar Expediente
+      </Button>
+
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Eliminar expediente"
+        description={`¿Estás seguro de que deseas eliminar el expediente "${recordName}"? Esta acción eliminará también todas las notas asociadas y no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={handleDelete}
+        loading={isDeleting}
+      />
+    </>
   );
-};
+}
