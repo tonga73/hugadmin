@@ -45,11 +45,14 @@ export function RecordsList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLLIElement[]>([]);
-  // Sidebar search (local)
+  // Sidebar search (local) - ahora sincronizado con Command
   const [query, setQuery] = useState<string>("");
   const [filteredRecords, setFilteredRecords] = useState<Record[]>(records);
   const [debouncedQuery, setDebouncedQuery] = useState<string>(query);
   const [exactMatch, setExactMatch] = useState<boolean>(false);
+  // Búsqueda "fijada" desde el Command
+  const [pinnedQuery, setPinnedQuery] = useState<string>("");
+  const [pinnedResults, setPinnedResults] = useState<Record[] | null>(null);
 
   // Command palette search (remote)
   const [commandOpen, setCommandOpen] = useState(false);
@@ -58,6 +61,14 @@ export function RecordsList({
   const [commandResults, setCommandResults] = useState<Record[]>([]);
   const [commandCursor, setCommandCursor] = useState<number | null>(null);
   const [commandHasMore, setCommandHasMore] = useState(false);
+  // Índice seleccionado en el Command para navegación por teclado
+  const [commandSelectedIndex, setCommandSelectedIndex] = useState<number>(0);
+  const commandItemsRef = useRef<HTMLButtonElement[]>([]);
+  // Record temporal destacado (seleccionado desde Command pero no en la lista original)
+  const [highlightedRecord, setHighlightedRecord] = useState<Record | null>(
+    null
+  );
+  const highlightedRef = useRef<HTMLDivElement>(null);
 
   // 🔹 Refrescar lista desde el servidor
   const refreshRecords = async () => {
@@ -149,15 +160,58 @@ export function RecordsList({
     const t = setTimeout(() => setDebouncedQuery(query), 200);
     return () => clearTimeout(t);
   }, [query]);
+
+  // Aplicar filtro: priorizar búsqueda fijada, luego query local
   useEffect(() => {
-    applyFilter(debouncedQuery, records);
-  }, [debouncedQuery, records]);
+    if (pinnedQuery) {
+      // Si hay una búsqueda fijada, aplicar ese filtro sobre todos los records
+      applyFilter(pinnedQuery, records);
+    } else {
+      applyFilter(debouncedQuery, records);
+    }
+  }, [debouncedQuery, records, pinnedQuery]);
+
+  // Función para limpiar la búsqueda fijada
+  const clearPinnedSearch = useCallback(() => {
+    setPinnedQuery("");
+    setPinnedResults(null);
+    setQuery("");
+    setCommandQuery(""); // También limpiar el query del Command
+  }, []);
+
+  // Función para destacar un record si no está en la lista (para scroll y visualización)
+  const ensureRecordInList = useCallback(
+    (record: Record) => {
+      // Verificar si existe en records o filteredRecords
+      const existsInRecords = records.some(
+        (r) => Number(r.id) === Number(record.id)
+      );
+      const existsInFiltered = filteredRecords.some(
+        (r) => Number(r.id) === Number(record.id)
+      );
+
+      if (!existsInRecords || !existsInFiltered) {
+        // Guardar como record destacado temporal
+        setHighlightedRecord(record);
+      } else {
+        // Si ya existe en la lista, no necesitamos destacarlo
+        setHighlightedRecord(null);
+      }
+    },
+    [records, filteredRecords]
+  );
 
   // 🔹 Escuchar eventos de creación
   useEffect(() => {
     const handleNewRecord = (e: Event) => {
       const customEvent = e as CustomEvent<Record>;
-      setRecords((prev) => [customEvent.detail, ...prev]);
+      const newRecord = customEvent.detail;
+      // Evitar duplicados verificando si ya existe
+      setRecords((prev) => {
+        const exists = prev.some((r) => Number(r.id) === Number(newRecord.id));
+        if (exists) return prev;
+        return [newRecord, ...prev];
+      });
     };
 
     window.addEventListener("new-record", handleNewRecord);
@@ -183,11 +237,6 @@ export function RecordsList({
       window.removeEventListener("update-record", handleUpdateRecord);
     };
   }, []);
-
-  // Mantener filteredRecords sincronizado cuando cambian records
-  useEffect(() => {
-    applyFilter(query, records);
-  }, [records]);
 
   // 🔹 Polling ligero para sincronizar cambios (opcional)
   useEffect(() => {
@@ -221,7 +270,14 @@ export function RecordsList({
             cursor: cursor ?? undefined,
             take: 10,
           });
-          setRecords((prev) => [...prev, ...(newRecords as any)]);
+          setRecords((prev) => {
+            // Filtrar duplicados antes de agregar
+            const existingIds = new Set(prev.map((r) => Number(r.id)));
+            const uniqueNew = (newRecords as any[]).filter(
+              (r) => !existingIds.has(Number(r.id))
+            );
+            return [...prev, ...uniqueNew];
+          });
           setCursor(newCursor);
           setMore(hasMore);
           setLoading(false);
@@ -243,9 +299,23 @@ export function RecordsList({
     setSelectedIndex(currentIndex);
   }, [pathname, filteredRecords]);
 
-  // 🔹 Manejo de teclado
+  // 🔹 Limpiar record destacado cuando se navega a otro expediente
+  useEffect(() => {
+    if (!highlightedRecord) return;
+
+    // Si se navega a un expediente diferente o a otra página, limpiar el destacado
+    const isViewingHighlighted =
+      pathname === `/records/${highlightedRecord.id}`;
+    if (!isViewingHighlighted) {
+      setHighlightedRecord(null);
+    }
+  }, [pathname, highlightedRecord]);
+
+  // 🔹 Manejo de teclado - deshabilitado cuando Command está abierto
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      // No ejecutar si el Command está abierto
+      if (commandOpen) return;
       if (!filteredRecords.length) return;
 
       if (e.key === "ArrowDown") {
@@ -270,7 +340,7 @@ export function RecordsList({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [filteredRecords, selectedIndex, router]);
+  }, [filteredRecords, selectedIndex, router, commandOpen]);
 
   // 🔹 Click en item
   const handleClick = (index: number) => {
@@ -286,8 +356,25 @@ export function RecordsList({
   // Scroll to highlighted record when navigating from command palette
   useEffect(() => {
     const highlightId = searchParams.get("highlight");
-    if (highlightId && scrollRef.current) {
-      const highlightNumId = parseInt(highlightId, 10);
+    if (!highlightId || !scrollRef.current) return;
+
+    const highlightNumId = parseInt(highlightId, 10);
+
+    // Usar setTimeout para asegurar que el DOM esté renderizado
+    const timeoutId = setTimeout(() => {
+      // Si hay un record destacado temporal, hacer scroll a él
+      if (
+        highlightedRecord &&
+        Number(highlightedRecord.id) === highlightNumId &&
+        highlightedRef.current
+      ) {
+        highlightedRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+        return;
+      }
+
       // Encuentra el índice del record a highlight en la lista filtrada
       const index = filteredRecords.findIndex((r) => r.id === highlightNumId);
       if (index >= 0 && itemsRef.current[index]) {
@@ -299,11 +386,22 @@ export function RecordsList({
         // Highlight visual
         setSelectedIndex(index);
       }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchParams, filteredRecords, highlightedRecord]);
+
+  // Scroll al item seleccionado cuando cambia selectedIndex (navegación, selección, etc.)
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemsRef.current[selectedIndex]) {
+      itemsRef.current[selectedIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest", // "nearest" evita scroll innecesario si ya está visible
+      });
     }
-  }, [searchParams, filteredRecords]);
+  }, [selectedIndex]);
 
   // Precompute recent records (last modified)
-  const { useCallback } = require("react");
   const recentRecords = useMemo(
     () =>
       [...records]
@@ -380,7 +478,7 @@ export function RecordsList({
         });
         if (active) {
           setCommandResults(
-            found.length > 0 ? found : filterLocalRecent(commandQuery)
+            found.length > 0 ? (found as any) : filterLocalRecent(commandQuery)
           );
           setCommandCursor(lastId);
           setCommandHasMore(hasMore);
@@ -416,7 +514,14 @@ export function RecordsList({
         take: 100,
         exactMatch,
       });
-      setCommandResults((prev) => [...prev, ...(found as any)]);
+      setCommandResults((prev) => {
+        // Filtrar duplicados
+        const existingIds = new Set(prev.map((r) => Number(r.id)));
+        const uniqueNew = (found as any[]).filter(
+          (r) => !existingIds.has(Number(r.id))
+        );
+        return [...prev, ...uniqueNew];
+      });
       setCommandCursor(lastId);
       setCommandHasMore(hasMore);
     } catch (e) {
@@ -438,6 +543,72 @@ export function RecordsList({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Navegación por teclado en el Command
+  useEffect(() => {
+    if (!commandOpen) return;
+
+    const handleCommandKey = (e: KeyboardEvent) => {
+      if (!commandResults.length) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setCommandSelectedIndex((prev) =>
+          Math.min(prev + 1, commandResults.length - 1)
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setCommandSelectedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const selectedRecord = commandResults[commandSelectedIndex];
+        if (selectedRecord) {
+          // Asegurar que el record esté en la lista local para scroll
+          ensureRecordInList(selectedRecord);
+          // Fijar la búsqueda actual
+          if (commandQuery.trim()) {
+            setPinnedQuery(commandQuery);
+            setPinnedResults(commandResults);
+          }
+          setCommandOpen(false);
+          router.push(
+            `/records/${selectedRecord.id}?highlight=${selectedRecord.id}`
+          );
+        }
+      } else if (e.key === "Escape") {
+        // Si hay query, fijar los resultados al cerrar
+        if (commandQuery.trim()) {
+          setPinnedQuery(commandQuery);
+          setPinnedResults(commandResults);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleCommandKey);
+    return () => window.removeEventListener("keydown", handleCommandKey);
+  }, [
+    commandOpen,
+    commandResults,
+    commandSelectedIndex,
+    commandQuery,
+    router,
+    ensureRecordInList,
+  ]);
+
+  // Resetear índice seleccionado cuando cambian los resultados
+  useEffect(() => {
+    setCommandSelectedIndex(0);
+  }, [commandResults]);
+
+  // Scroll al item seleccionado en el Command
+  useEffect(() => {
+    if (commandOpen && commandItemsRef.current[commandSelectedIndex]) {
+      commandItemsRef.current[commandSelectedIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [commandSelectedIndex, commandOpen]);
+
   console.log(
     "🏁 Component render, commandResults.length:",
     commandResults.length,
@@ -448,21 +619,48 @@ export function RecordsList({
   return (
     <div className="w-full">
       {/* Trigger (sticky at top of sidebar area) */}
-      <div className="sticky top-0 z-20 bg-background px-2 py-3">
+      <div className="sticky top-0 z-20 bg-background px-2 py-3 space-y-2">
         <button
           className="flex items-center gap-2 w-full rounded-md border px-3 py-2 text-sm bg-transparent"
           onClick={() => setCommandOpen(true)}
           aria-label="Buscar expedientes (Cmd/Ctrl+K)"
         >
           <Search className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Buscar...</span>
-          <span className="ml-auto text-xs text-muted-foreground">⌘K</span>
+          <span className="text-sm text-muted-foreground truncate flex-1 text-left">
+            {pinnedQuery ? pinnedQuery : "Buscar..."}
+          </span>
+          <span className="text-xs text-muted-foreground">⌘K</span>
         </button>
+        {/* Indicador de búsqueda fijada con botón para limpiar */}
+        {pinnedQuery && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs text-muted-foreground truncate flex-1">
+              Filtro: &quot;{pinnedQuery}&quot; ({filteredRecords.length}{" "}
+              resultados)
+            </span>
+            <button
+              onClick={clearPinnedSearch}
+              className="shrink-0 p-1 rounded hover:bg-accent transition-colors"
+              aria-label="Limpiar búsqueda"
+              title="Limpiar búsqueda"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        )}
         <CommandDialog
           open={commandOpen}
           onOpenChange={(open) => {
             setCommandOpen(open);
-            if (!open) setCommandQuery("");
+            if (!open) {
+              // Al cerrar, fijar la búsqueda si hay query
+              if (commandQuery.trim() && commandResults.length > 0) {
+                setPinnedQuery(commandQuery);
+                setPinnedResults(commandResults);
+              }
+              setCommandQuery("");
+              setCommandSelectedIndex(0);
+            }
           }}
           className="top-0 left-0 translate-x-0 translate-y-0 w-full h-full max-w-none rounded-none p-0"
         >
@@ -494,16 +692,32 @@ export function RecordsList({
                       : "Últimos modificados"}
                   </div>
                   <div className="divide-y">
-                    {commandResults.map((r) => {
+                    {commandResults.map((r, index) => {
+                      const isCommandSelected = commandSelectedIndex === index;
                       return (
                         <button
                           key={r.id}
+                          ref={(el) => {
+                            if (el) commandItemsRef.current[index] = el;
+                          }}
                           onClick={() => {
+                            // Asegurar que el record esté en la lista local para scroll
+                            ensureRecordInList(r);
+                            // Fijar la búsqueda al seleccionar
+                            if (commandQuery.trim()) {
+                              setPinnedQuery(commandQuery);
+                              setPinnedResults(commandResults);
+                            }
                             setCommandOpen(false);
                             // Push con hash para marcar el record a scrollear
                             router.push(`/records/${r.id}?highlight=${r.id}`);
                           }}
-                          className="w-full px-3 py-2 text-left hover:bg-accent transition-colors"
+                          onMouseEnter={() => setCommandSelectedIndex(index)}
+                          className={`w-full px-3 py-2 text-left transition-colors ${
+                            isCommandSelected
+                              ? "bg-accent"
+                              : "hover:bg-accent/50"
+                          }`}
                         >
                           <div className="flex items-center gap-3 w-full">
                             <div className="flex-1 min-w-0">
@@ -548,39 +762,111 @@ export function RecordsList({
       </div>
 
       <ScrollArea className="h-[calc(100vh-230px)]" ref={scrollRef}>
-        <SidebarMenu>
-          {filteredRecords.map((itemToRender, index) => {
-            const isSelected = selectedIndex === index;
-            return (
-              <SidebarMenuItem
-                key={itemToRender.id}
-                ref={(el) => {
-                  if (el) itemsRef.current[index] = el;
-                }}
-                className={`transition-colors cursor-pointer ${
-                  isSelected ? "bg-gray-200 dark:bg-gray-700 font-semibold" : ""
-                }`}
-                style={{
-                  borderLeft: `3px solid ${
-                    PRIORITY_OPTIONS[itemToRender.priority].color
-                  }`,
-                }}
+        {/* Record destacado temporal (seleccionado desde Command) */}
+        {highlightedRecord && (
+          <div
+            ref={highlightedRef}
+            className="mx-2 mb-3 rounded-lg overflow-hidden shadow-md border-2 border-primary"
+          >
+            {/* Header distintivo */}
+            <div className="bg-primary px-3 py-1.5 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-wider text-primary-foreground font-semibold">
+                📍 Resultado de búsqueda
+              </span>
+              <button
+                onClick={() => setHighlightedRecord(null)}
+                className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                aria-label="Cerrar"
               >
-                <SidebarMenuButton asChild className="h-auto max-h-full">
-                  <a
-                    className="flex flex-col items-start justify-start"
-                    onClick={() => handleClick(index)}
-                  >
-                    <span className="flex items-center justify-between gap-1.5">
-                      <p>{itemToRender.order}</p>
-                      <TracingBadge tracing={itemToRender.tracing} />
-                    </span>
-                    <span className="uppercase">{itemToRender.name}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {/* Contenido del record */}
+            <button
+              className="w-full bg-primary/5 hover:bg-primary/10 transition-colors p-3 text-left"
+              onClick={() => {
+                const targetPath = `/records/${highlightedRecord.id}`;
+                if (pathname === targetPath) {
+                  router.push("/");
+                } else {
+                  router.push(targetPath);
+                }
+              }}
+              style={{
+                borderLeft: `4px solid ${
+                  PRIORITY_OPTIONS[highlightedRecord.priority].color
+                }`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-sm">
+                  {highlightedRecord.order}
+                </span>
+                <TracingBadge tracing={highlightedRecord.tracing} />
+              </div>
+              <span className="text-sm uppercase text-foreground/80">
+                {highlightedRecord.name}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Separador visual si hay record destacado */}
+        {highlightedRecord && filteredRecords.length > 0 && (
+          <div className="flex items-center gap-2 px-3 mb-2">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Lista
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+        )}
+
+        <SidebarMenu>
+          {filteredRecords
+            .filter(
+              (r) =>
+                !highlightedRecord ||
+                Number(r.id) !== Number(highlightedRecord.id)
+            )
+            .map((itemToRender, index) => {
+              // Ajustar índice para selectedIndex si hay highlightedRecord
+              const actualIndex = filteredRecords.findIndex(
+                (r) => r.id === itemToRender.id
+              );
+              const isSelected = selectedIndex === actualIndex;
+              return (
+                <SidebarMenuItem
+                  key={itemToRender.id}
+                  ref={(el) => {
+                    if (el) itemsRef.current[actualIndex] = el;
+                  }}
+                  className={`transition-colors cursor-pointer ${
+                    isSelected
+                      ? "bg-gray-200 dark:bg-gray-700 font-semibold"
+                      : ""
+                  }`}
+                  style={{
+                    borderLeft: `3px solid ${
+                      PRIORITY_OPTIONS[itemToRender.priority].color
+                    }`,
+                  }}
+                >
+                  <SidebarMenuButton asChild className="h-auto max-h-full">
+                    <a
+                      className="flex flex-col items-start justify-start"
+                      onClick={() => handleClick(actualIndex)}
+                    >
+                      <span className="flex items-center justify-between gap-1.5">
+                        <p>{itemToRender.order}</p>
+                        <TracingBadge tracing={itemToRender.tracing} />
+                      </span>
+                      <span className="uppercase">{itemToRender.name}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
         </SidebarMenu>
         {more && <div ref={sentinelRef} className="h-6" />}
         {loading && <Skeleton className="w-full h-14 mt-1.5 animate-pulse" />}
