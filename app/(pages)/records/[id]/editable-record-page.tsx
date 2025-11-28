@@ -11,7 +11,6 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,6 +18,7 @@ import { TracingBadge } from "@/components/records";
 import { EditableField } from "./editable-field";
 import { EditableSelect } from "./editable-select";
 import { EditableList } from "./editable-list";
+import { NotesSection } from "./notes-section";
 import { toast } from "sonner";
 import {
   Collapsible,
@@ -218,24 +218,18 @@ export default function EditableRecordPage({
         </Card>
       </div>
 
-      <div className="space-y-1.5 mt-3">
-        <h3 className="text-2xl font-thin tracking-wide uppercase">Notas</h3>
-        {RecordNote.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
-            {RecordNote.map((note: any, index: number) => (
-              <Card key={index} className="gap-0">
-                <CardHeader>
-                  <CardTitle className="text-white/50">
-                    {note.name || "Nota sin título"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>{note.text}</CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <p className="text-white/50">No hay notas disponibles</p>
-        )}
+      <div className="mt-2">
+        <NotesSection
+          recordId={record.id}
+          initialNotes={RecordNote.map((note: any) => ({
+            id: note.id,
+            name: note.name,
+            text: note.text,
+            recordId: record.id,
+            createdAt: note.createdAt,
+            updatedAt: note.updatedAt,
+          }))}
+        />
       </div>
 
       <Collapsible onOpenChange={() => setIsOpen(!isOpen)}>
