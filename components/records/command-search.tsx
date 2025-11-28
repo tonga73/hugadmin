@@ -2,26 +2,24 @@
 
 import { Search, X } from "lucide-react";
 import { Record } from "@/app/generated/prisma/client";
-import { TRACING_OPTIONS } from "@/app/constants";
 import { TracingBadge } from "./tracing-badge";
 import { CommandDialog, CommandInput } from "@/components/ui/command";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefObject, useRef, useEffect } from "react";
 
 // Skeleton que simula un resultado de búsqueda
 function CommandResultSkeleton() {
   return (
-    <div className="px-3 py-2 animate-pulse">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0 space-y-1.5">
-          <Skeleton className="h-4 w-3/4" />
-          <div className="flex items-center gap-1">
-            <Skeleton className="h-4 w-14 rounded-full" />
-            <Skeleton className="h-3 w-20" />
+    <div className="px-4 py-3 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-16 rounded-full" />
           </div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
         </div>
-        <Skeleton className="h-3 w-24 shrink-0" />
       </div>
     </div>
   );
@@ -72,15 +70,9 @@ export function CommandSearch({
   useEffect(() => {
     if (!open || !hasMore || loading) return;
 
-    const scrollArea = scrollAreaRef.current;
+    const scrollContainer = scrollAreaRef.current;
     const sentinel = sentinelRef.current;
-    if (!scrollArea || !sentinel) return;
-
-    // Buscar el viewport del ScrollArea
-    const viewport = scrollArea.querySelector<HTMLElement>(
-      "[data-radix-scroll-area-viewport]"
-    );
-    if (!viewport) return;
+    if (!scrollContainer || !sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -88,7 +80,7 @@ export function CommandSearch({
           onLoadMore();
         }
       },
-      { root: viewport, rootMargin: "100px", threshold: 0.1 }
+      { root: scrollContainer, rootMargin: "100px", threshold: 0.1 }
     );
 
     observer.observe(sentinel);
@@ -127,20 +119,25 @@ export function CommandSearch({
         </div>
       )}
 
-      {/* Command Dialog */}
+      {/* Command Dialog - Pantalla completa */}
       <CommandDialog
         open={open}
         onOpenChange={onOpenChange}
-        className="top-0 left-0 translate-x-0 translate-y-0 w-full h-full max-w-none rounded-none p-0"
+        className="fixed inset-0 top-0 left-0 translate-x-0 translate-y-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 border-0"
       >
-        <CommandInput
-          value={query}
-          onValueChange={onQueryChange}
-          placeholder="Buscar por orden, nombre o tracing..."
-        />
+        <div className="flex flex-col h-screen">
+          <CommandInput
+            value={query}
+            onValueChange={onQueryChange}
+            placeholder="Buscar por orden, nombre o estado..."
+            className="h-14 text-base shrink-0"
+          />
 
-        <ScrollArea className="h-[calc(100vh-100px)] w-full" ref={scrollAreaRef}>
-          <div className="w-full">
+          <div 
+            className="flex-1 overflow-y-auto overflow-x-hidden min-h-0" 
+            ref={scrollAreaRef}
+          >
+            <div className="w-full">
             {/* Estado de carga inicial */}
             {loading && results.length === 0 && (
               <div className="divide-y">
@@ -206,16 +203,17 @@ export function CommandSearch({
 
                 {/* Fin de resultados */}
                 {!hasMore && !loading && (
-                  <div className="py-3 text-center">
-                    <span className="text-[10px] text-muted-foreground/50">
+                  <div className="py-4 text-center">
+                    <span className="text-xs text-muted-foreground/50">
                       — {results.length} expedientes —
                     </span>
                   </div>
                 )}
               </>
             )}
+            </div>
           </div>
-        </ScrollArea>
+        </div>
       </CommandDialog>
     </div>
   );
@@ -233,36 +231,25 @@ interface CommandResultItemProps {
 
 const CommandResultItem = forwardRef<HTMLButtonElement, CommandResultItemProps>(
   ({ record, isSelected, onClick, onMouseEnter }, ref) => {
-    const formattedDate =
-      typeof record.updatedAt === "string"
-        ? new Date(record.updatedAt).toLocaleString()
-        : record.updatedAt
-        ? new Date(record.createdAt).toLocaleString()
-        : "";
-
     return (
       <button
         ref={ref}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
-        className={`w-full px-3 py-2 text-left transition-colors ${
+        className={`w-full px-4 py-3 text-left transition-colors ${
           isSelected ? "bg-accent" : "hover:bg-accent/50"
         }`}
       >
-        <div className="flex items-center gap-3 w-full">
-          <div className="flex-1 min-w-0">
-            <div className="text-sm truncate">
-              {record.order} — {record.name}
-            </div>
-            <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
-              <TracingBadge tracing={record.tracing} />
-              {TRACING_OPTIONS[record.tracing as keyof typeof TRACING_OPTIONS]
-                ?.label || record.tracing}
-            </div>
+        <div className="w-full overflow-hidden">
+          {/* Header: Orden + Badge */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-semibold shrink-0">{record.order}</span>
+            <TracingBadge tracing={record.tracing} />
           </div>
-          <div className="text-xs text-muted-foreground shrink-0">
-            {formattedDate}
-          </div>
+          {/* Nombre: máximo 2 líneas */}
+          <p className="text-sm text-muted-foreground line-clamp-2 break-words">
+            {record.name}
+          </p>
         </div>
       </button>
     );
