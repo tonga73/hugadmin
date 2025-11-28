@@ -136,9 +136,16 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const recordId = Number(id);
 
+    // Primero eliminar las notas asociadas
+    await prisma.note.deleteMany({
+      where: { recordId },
+    });
+
+    // Luego eliminar el record
     await prisma.record.delete({
-      where: { id: Number(id) },
+      where: { id: recordId },
     });
 
     // Invalida cache (Next.js 15)

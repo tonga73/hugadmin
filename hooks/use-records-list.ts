@@ -168,7 +168,7 @@ export function useRecordsList({
     }
   }, [commandCursor, commandQuery, exactMatch]);
 
-  // Event listeners para new-record y update-record
+  // Event listeners para new-record, update-record y delete-record
   useEffect(() => {
     const handleNewRecord = (e: Event) => {
       const { detail: newRecord } = e as CustomEvent<Record>;
@@ -184,11 +184,23 @@ export function useRecordsList({
       );
     };
 
+    const handleDeleteRecord = (e: Event) => {
+      const { detail } = e as CustomEvent<{ id: number | string }>;
+      const deletedId = Number(detail.id);
+      setRecords((prev) => prev.filter((r) => Number(r.id) !== deletedId));
+      // También limpiar el highlightedRecord si es el eliminado
+      setHighlightedRecord((prev) =>
+        prev && Number(prev.id) === deletedId ? null : prev
+      );
+    };
+
     window.addEventListener("new-record", handleNewRecord);
     window.addEventListener("update-record", handleUpdateRecord);
+    window.addEventListener("delete-record", handleDeleteRecord);
     return () => {
       window.removeEventListener("new-record", handleNewRecord);
       window.removeEventListener("update-record", handleUpdateRecord);
+      window.removeEventListener("delete-record", handleDeleteRecord);
     };
   }, []);
 
