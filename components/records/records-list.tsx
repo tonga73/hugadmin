@@ -311,6 +311,16 @@ export function RecordsList({
     }
   }, [pathname, highlightedRecord]);
 
+  // Función para hacer scroll a un item específico (solo se llama explícitamente)
+  const scrollToItem = useCallback((index: number) => {
+    if (index >= 0 && itemsRef.current[index]) {
+      itemsRef.current[index].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, []);
+
   // 🔹 Manejo de teclado - deshabilitado cuando Command está abierto
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -319,6 +329,7 @@ export function RecordsList({
       if (!filteredRecords.length) return;
 
       if (e.key === "ArrowDown") {
+        e.preventDefault();
         const nextIndex = Math.min(
           selectedIndex + 1,
           filteredRecords.length - 1
@@ -326,11 +337,15 @@ export function RecordsList({
         // solo navegar si el índice existe
         if (nextIndex >= 0 && nextIndex < filteredRecords.length) {
           router.push(`/records/${filteredRecords[nextIndex].id}`);
+          // Scroll explícito después de un pequeño delay
+          setTimeout(() => scrollToItem(nextIndex), 50);
         }
       } else if (e.key === "ArrowUp") {
+        e.preventDefault();
         const prevIndex = Math.max(selectedIndex - 1, 0);
         if (prevIndex >= 0 && prevIndex < filteredRecords.length) {
           router.push(`/records/${filteredRecords[prevIndex].id}`);
+          setTimeout(() => scrollToItem(prevIndex), 50);
         }
       } else if (e.key === "Enter") {
         if (selectedIndex >= 0 && selectedIndex < filteredRecords.length) {
@@ -340,7 +355,7 @@ export function RecordsList({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [filteredRecords, selectedIndex, router, commandOpen]);
+  }, [filteredRecords, selectedIndex, router, commandOpen, scrollToItem]);
 
   // 🔹 Click en item
   const handleClick = (index: number) => {
@@ -390,16 +405,6 @@ export function RecordsList({
 
     return () => clearTimeout(timeoutId);
   }, [searchParams, filteredRecords, highlightedRecord]);
-
-  // Scroll al item seleccionado cuando cambia selectedIndex (navegación, selección, etc.)
-  useEffect(() => {
-    if (selectedIndex >= 0 && itemsRef.current[selectedIndex]) {
-      itemsRef.current[selectedIndex].scrollIntoView({
-        behavior: "smooth",
-        block: "nearest", // "nearest" evita scroll innecesario si ya está visible
-      });
-    }
-  }, [selectedIndex]);
 
   // Precompute recent records (last modified)
   const recentRecords = useMemo(
@@ -764,61 +769,67 @@ export function RecordsList({
       <ScrollArea className="h-[calc(100vh-230px)]" ref={scrollRef}>
         {/* Record destacado temporal (seleccionado desde Command) */}
         {highlightedRecord && (
-          <div
-            ref={highlightedRef}
-            className="mx-2 mb-3 rounded-lg overflow-hidden shadow-md border-2 border-primary"
-          >
-            {/* Header distintivo */}
-            <div className="bg-primary px-3 py-1.5 flex items-center justify-between">
-              <span className="text-[11px] uppercase tracking-wider text-primary-foreground font-semibold">
-                📍 Resultado de búsqueda
-              </span>
+          <div className="p-2 pb-0">
+            <div
+              ref={highlightedRef}
+              className="rounded-xl overflow-hidden shadow-lg ring-2 ring-blue-500 dark:ring-blue-400 bg-gradient-to-b from-blue-50 to-white dark:from-blue-950 dark:to-gray-900"
+            >
+              {/* Header distintivo */}
+              <div className="bg-blue-500 dark:bg-blue-600 px-3 py-2 flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  Resultado de búsqueda
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHighlightedRecord(null);
+                  }}
+                  className="text-white/70 hover:text-white hover:bg-white/20 rounded p-0.5 transition-colors"
+                  aria-label="Cerrar"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {/* Contenido del record */}
               <button
-                onClick={() => setHighlightedRecord(null)}
-                className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-                aria-label="Cerrar"
+                className="w-full p-3 text-left hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition-colors"
+                onClick={() => {
+                  const targetPath = `/records/${highlightedRecord.id}`;
+                  if (pathname === targetPath) {
+                    router.push("/");
+                  } else {
+                    router.push(targetPath);
+                  }
+                }}
+                style={{
+                  borderLeft: `4px solid ${
+                    PRIORITY_OPTIONS[highlightedRecord.priority].color
+                  }`,
+                }}
               >
-                <X className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-sm text-blue-700 dark:text-blue-300">
+                    {highlightedRecord.order}
+                  </span>
+                  <TracingBadge tracing={highlightedRecord.tracing} />
+                </div>
+                <span className="text-sm uppercase font-medium">
+                  {highlightedRecord.name}
+                </span>
               </button>
             </div>
-            {/* Contenido del record */}
-            <button
-              className="w-full bg-primary/5 hover:bg-primary/10 transition-colors p-3 text-left"
-              onClick={() => {
-                const targetPath = `/records/${highlightedRecord.id}`;
-                if (pathname === targetPath) {
-                  router.push("/");
-                } else {
-                  router.push(targetPath);
-                }
-              }}
-              style={{
-                borderLeft: `4px solid ${
-                  PRIORITY_OPTIONS[highlightedRecord.priority].color
-                }`,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">
-                  {highlightedRecord.order}
-                </span>
-                <TracingBadge tracing={highlightedRecord.tracing} />
-              </div>
-              <span className="text-sm uppercase text-foreground/80">
-                {highlightedRecord.name}
-              </span>
-            </button>
-          </div>
-        )}
 
-        {/* Separador visual si hay record destacado */}
-        {highlightedRecord && filteredRecords.length > 0 && (
-          <div className="flex items-center gap-2 px-3 mb-2">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Lista
-            </span>
-            <div className="flex-1 h-px bg-border" />
+            {/* Separador visual */}
+            {filteredRecords.length > 0 && (
+              <div className="flex items-center gap-2 py-3">
+                <div className="flex-1 border-t-2 border-dashed border-gray-300 dark:border-gray-600" />
+                <span className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium px-2">
+                  Expedientes
+                </span>
+                <div className="flex-1 border-t-2 border-dashed border-gray-300 dark:border-gray-600" />
+              </div>
+            )}
           </div>
         )}
 
