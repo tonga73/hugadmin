@@ -10,6 +10,15 @@ import {
   recordExists,
 } from "@/lib/record-search";
 
+// Helper para convertir fechas de string a Date (necesario porque JSON serializa Date como string)
+const parseRecordDates = (record: any): Record => ({
+  ...record,
+  createdAt: record.createdAt instanceof Date ? record.createdAt : new Date(record.createdAt),
+  updatedAt: record.updatedAt instanceof Date ? record.updatedAt : new Date(record.updatedAt),
+});
+
+const parseRecordsDates = (records: any[]): Record[] => records.map(parseRecordDates);
+
 interface UseRecordsListProps {
   initialRecords: Record[];
   lastId: number | null;
@@ -106,7 +115,7 @@ export function useRecordsList({
         hasMore: newHasMore,
       } = await getRecords({ take: records.length || 10 });
 
-      setRecords(freshRecords as Record[]);
+      setRecords(parseRecordsDates(freshRecords));
       setCursor(newLastId);
       setMore(newHasMore);
     } catch (error) {
@@ -158,7 +167,7 @@ export function useRecordsList({
         take: 100,
         exactMatch,
       });
-      setCommandResults((prev) => mergeUniqueRecords(prev, found as Record[]));
+      setCommandResults((prev) => mergeUniqueRecords(prev, parseRecordsDates(found)));
       setCommandCursor(lastId);
       setCommandHasMore(hasMore);
     } catch (error) {
@@ -231,7 +240,7 @@ export function useRecordsList({
             hasMore,
           } = await getRecords({ cursor: cursor ?? undefined, take: 10 });
 
-          setRecords((prev) => mergeUniqueRecords(prev, newRecords as Record[]));
+          setRecords((prev) => mergeUniqueRecords(prev, parseRecordsDates(newRecords)));
           setCursor(newCursor);
           setMore(hasMore);
           setLoading(false);
@@ -374,7 +383,7 @@ export function useRecordsList({
         if (active) {
           setCommandResults(
             found.length > 0
-              ? (found as Record[])
+              ? parseRecordsDates(found)
               : filterRecords(recentRecords, commandQuery)
           );
           setCommandCursor(lastId);
