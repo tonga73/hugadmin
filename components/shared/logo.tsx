@@ -9,7 +9,7 @@ export function Logo() {
           "bg-linear-to-r from-[#07f49e] to-[#0380b6] bg-size-[200%_200%] bg-clip-text text-transparent animate-gradient"
         )}
       >
-        HM
+        HA
       </h1>
       <span className="text-xs text-muted-foreground">
         Sistema de control de expedientes
