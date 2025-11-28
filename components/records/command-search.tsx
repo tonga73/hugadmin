@@ -6,7 +6,26 @@ import { TRACING_OPTIONS } from "@/app/constants";
 import { TracingBadge } from "./tracing-badge";
 import { CommandDialog, CommandInput } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RefObject } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RefObject, useRef, useEffect } from "react";
+
+// Skeleton que simula un resultado de búsqueda
+function CommandResultSkeleton() {
+  return (
+    <div className="px-3 py-2 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <Skeleton className="h-4 w-3/4" />
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-4 w-14 rounded-full" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <Skeleton className="h-3 w-24 shrink-0" />
+      </div>
+    </div>
+  );
+}
 
 interface CommandSearchProps {
   // State
@@ -46,6 +65,36 @@ export function CommandSearch({
   onLoadMore,
   onClearPinned,
 }: CommandSearchProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Infinite scroll para cargar más resultados
+  useEffect(() => {
+    if (!open || !hasMore || loading) return;
+
+    const scrollArea = scrollAreaRef.current;
+    const sentinel = sentinelRef.current;
+    if (!scrollArea || !sentinel) return;
+
+    // Buscar el viewport del ScrollArea
+    const viewport = scrollArea.querySelector<HTMLElement>(
+      "[data-radix-scroll-area-viewport]"
+    );
+    if (!viewport) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          onLoadMore();
+        }
+      },
+      { root: viewport, rootMargin: "100px", threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [open, hasMore, loading, onLoadMore]);
+
   return (
     <div className="sticky top-0 z-20 bg-background px-2 py-3 space-y-2">
       {/* Botón trigger */}
@@ -90,25 +139,42 @@ export function CommandSearch({
           placeholder="Buscar por orden, nombre o tracing..."
         />
 
-        <ScrollArea className="h-[calc(100vh-100px)] w-full">
+        <ScrollArea className="h-[calc(100vh-100px)] w-full" ref={scrollAreaRef}>
           <div className="w-full">
-            {loading && (
-              <div className="px-3 py-2 text-xs text-muted-foreground">
-                Buscando...
+            {/* Estado de carga inicial */}
+            {loading && results.length === 0 && (
+              <div className="divide-y">
+                <div className="px-3 py-2 text-xs text-muted-foreground">
+                  Buscando...
+                </div>
+                <CommandResultSkeleton />
+                <CommandResultSkeleton />
+                <CommandResultSkeleton />
+                <CommandResultSkeleton />
+                <CommandResultSkeleton />
               </div>
             )}
 
+            {/* Sin resultados */}
             {!loading && results.length === 0 && (
-              <div className="px-3 py-2 text-xs text-muted-foreground">
-                No se encontraron expedientes.
+              <div className="px-3 py-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No se encontraron expedientes
+                </p>
+                {query?.trim() && (
+                  <p className="text-xs text-muted-foreground/60 mt-1">
+                    Intenta con otros términos de búsqueda
+                  </p>
+                )}
               </div>
             )}
 
-            {!loading && results.length > 0 && (
+            {/* Resultados */}
+            {results.length > 0 && (
               <>
-                <div className="px-3 py-2 text-xs text-muted-foreground sticky top-0 bg-background">
+                <div className="px-3 py-2 text-xs text-muted-foreground sticky top-0 bg-background z-10 border-b">
                   {query?.trim()
-                    ? `Resultados para "${query}"`
+                    ? `${results.length} resultado${results.length !== 1 ? 's' : ''} para "${query}"`
                     : "Últimos modificados"}
                 </div>
 
@@ -127,15 +193,23 @@ export function CommandSearch({
                   ))}
                 </div>
 
-                {hasMore && (
-                  <div className="px-3 py-3 border-t">
-                    <button
-                      onClick={onLoadMore}
-                      disabled={loading}
-                      className="w-full py-2 px-3 text-sm rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 transition-colors"
-                    >
-                      {loading ? "Cargando..." : "Cargar más"}
-                    </button>
+                {/* Sentinel para infinite scroll */}
+                {hasMore && <div ref={sentinelRef} className="h-4" />}
+
+                {/* Cargando más resultados */}
+                {loading && (
+                  <div className="divide-y">
+                    <CommandResultSkeleton />
+                    <CommandResultSkeleton />
+                  </div>
+                )}
+
+                {/* Fin de resultados */}
+                {!hasMore && !loading && (
+                  <div className="py-3 text-center">
+                    <span className="text-[10px] text-muted-foreground/50">
+                      — {results.length} expedientes —
+                    </span>
                   </div>
                 )}
               </>

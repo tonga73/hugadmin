@@ -79,6 +79,7 @@ export function useRecordsList({
   const [commandHasMore, setCommandHasMore] = useState(false);
   const [commandSelectedIndex, setCommandSelectedIndex] = useState(0);
   const commandItemsRef = useRef<HTMLButtonElement[]>([]);
+  const shouldScrollCommandRef = useRef(false); // Solo scroll cuando navega con teclado
 
   // Records recientes (últimos modificados)
   const recentRecords = useMemo(
@@ -357,11 +358,13 @@ export function useRecordsList({
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
+        shouldScrollCommandRef.current = true; // Activar scroll
         setCommandSelectedIndex((prev) =>
           Math.min(prev + 1, commandResults.length - 1)
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        shouldScrollCommandRef.current = true; // Activar scroll
         setCommandSelectedIndex((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "Enter") {
         e.preventDefault();
@@ -382,23 +385,28 @@ export function useRecordsList({
     handleCommandSelect,
   ]);
 
-  // Resetear índice del Command cuando cambian los resultados
+  // Scroll al item seleccionado en el Command (solo si fue navegación por teclado)
   useEffect(() => {
-    setCommandSelectedIndex(0);
-  }, [commandResults]);
-
-  // Scroll al item seleccionado en el Command
-  useEffect(() => {
-    if (commandOpen && commandItemsRef.current[commandSelectedIndex]) {
+    if (
+      commandOpen &&
+      shouldScrollCommandRef.current &&
+      commandItemsRef.current[commandSelectedIndex]
+    ) {
       commandItemsRef.current[commandSelectedIndex].scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });
+      shouldScrollCommandRef.current = false; // Resetear flag
     }
   }, [commandSelectedIndex, commandOpen]);
 
   // Debounce del query de búsqueda (300ms)
   const debouncedCommandQuery = useDebounce(commandQuery, 300);
+
+  // Resetear índice del Command solo cuando cambia la búsqueda (no al cargar más)
+  useEffect(() => {
+    setCommandSelectedIndex(0);
+  }, [debouncedCommandQuery]);
 
   // Búsqueda en el Command (con debounce)
   useEffect(() => {
