@@ -35,7 +35,7 @@ const recordSchema = z.object({
   code: z.string().optional(),
   order: z.string().min(1, "Requerido"),
   name: z.string().min(3, "Mínimo 3 caracteres"),
-  insurance: z.string().optional(),
+  insurance: z.array(z.string()),
   defendant: z.array(z.string()),
   prosecutor: z.array(z.string()),
   tracing: z.string(),
@@ -301,14 +301,10 @@ export default function EditableRecordPage({
           </CardContent>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-0.5">Aseguradora</p>
-            <EditableField
-              value={
-                formValues.insurance && formValues.insurance.length > 0
-                  ? formValues.insurance
-                  : "---"
-              }
-              onSave={(value) => handleFieldChange("insurance", value)}
-              placeholder="Seguro"
+            <EditableList
+              items={formValues.insurance || []}
+              onSave={(items) => handleFieldChange("insurance", items)}
+              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
             />
           </CardContent>
         </Card>
