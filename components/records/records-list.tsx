@@ -132,39 +132,37 @@ export function RecordsList({
                 );
                 const isSelected = selectedIndex === actualIndex;
 
-            return (
-              <SidebarMenuItem
+                return (
+                  <SidebarMenuItem
                     key={record.id}
-                ref={(el) => {
+                    ref={(el) => {
                       if (el) itemsRef.current[actualIndex] = el;
                     }}
                     className={`transition-colors duration-150 cursor-pointer ${
-                      isSelected
-                        ? "bg-accent/80"
-                        : "hover:bg-accent/40"
-                }`}
-                style={{
-                  borderLeft: `3px solid ${
+                      isSelected ? "bg-accent/80" : "hover:bg-accent/40"
+                    }`}
+                    style={{
+                      borderLeft: `3px solid ${
                         PRIORITY_OPTIONS[record.priority].color
-                  }`,
-                }}
-              >
-                <SidebarMenuButton asChild className="h-auto max-h-full">
-                  <a
+                      }`,
+                    }}
+                  >
+                    <SidebarMenuButton asChild className="h-auto max-h-full">
+                      <a
                         className="flex flex-col items-start justify-start py-1"
                         onClick={() => handleItemClick(actualIndex)}
                       >
-                        <span className="flex items-center justify-between gap-1.5 w-full">
-                          <p className="text-sm font-medium">{record.order}</p>
+                        <span className="flex items-center gap-1.5 w-full">
+                          <span className="text-sm font-medium">{record.order}</span>
                           <TracingBadge tracing={record.tracing} />
                         </span>
                         <span className="text-xs text-muted-foreground uppercase truncate w-full">
                           {record.name}
-                    </span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
+                        </span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
               })
           )}
         </SidebarMenu>
