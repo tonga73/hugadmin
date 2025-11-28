@@ -10,9 +10,7 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TracingBadge } from "@/components/records";
@@ -202,7 +200,7 @@ export default function EditableRecordPage({
   );
 
   return (
-    <div className="relative flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
       {/* Indicador de guardado */}
       {isSaving && (
         <div className="fixed top-4 right-4 bg-background border rounded-lg p-3 shadow-lg flex items-center gap-2 z-50">
@@ -211,129 +209,138 @@ export default function EditableRecordPage({
         </div>
       )}
 
-      <div className="flex-1 grid grid-cols-3 gap-1.5">
-        {/* Card principal */}
-        <Card className="col-span-2">
-          <CardHeader>
-            <div className="flex gap-3">
+      {/* Contenido principal con altura flexible */}
+      <div className="flex-1 flex flex-col gap-2 min-h-0">
+        {/* Grid de cards - altura fija */}
+        <div className="grid grid-cols-3 gap-1.5 shrink-0">
+          {/* Card principal */}
+          <Card className="col-span-2">
+            <CardHeader className="pb-2">
+              <div className="flex gap-3">
+                <EditableField
+                  value={formValues.code || ""}
+                  onSave={(value) => handleFieldChange("code", value)}
+                  className="font-bold text-muted-foreground text-xl"
+                  placeholder="Código"
+                />
+                <EditableSelect
+                  value={formValues.tracing}
+                  options={tracingOptions}
+                  onSave={(value) => handleFieldChange("tracing", value)}
+                  renderDisplay={() => (
+                    <TracingBadge tracing={formValues.tracing} />
+                  )}
+                  getLabel={(key) => tracingOptions[key]?.label || key}
+                />
+              </div>
+
               <EditableField
-                value={formValues.code || ""}
-                onSave={(value) => handleFieldChange("code", value)}
-                className="font-bold text-muted-foreground text-2xl"
-                placeholder="Código"
+                value={formValues.order}
+                onSave={(value) => handleFieldChange("order", value)}
+                className="font-bold text-2xl"
+                style={{ fontWeight: "bolder", fontSize: "2rem" }}
+                placeholder="Orden"
               />
-              <EditableSelect
-                value={formValues.tracing}
-                options={tracingOptions}
-                onSave={(value) => handleFieldChange("tracing", value)}
-                renderDisplay={() => (
-                  <TracingBadge tracing={formValues.tracing} />
-                )}
-                getLabel={(key) => tracingOptions[key]?.label || key}
+
+              <EditableField
+                value={formValues.name}
+                onSave={(value) => handleFieldChange("name", value)}
+                className="text-muted-foreground text-base"
+                placeholder="Nombre del expediente"
+                isDescription
               />
+
+              {/* Botón de favorito */}
+              <CardAction>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleFavorite}
+                  disabled={isTogglingFavorite}
+                  className={cn(
+                    "h-8 w-8 transition-all",
+                    isFavorite
+                      ? "text-emerald-400 hover:text-emerald-500 bg-emerald-400/10"
+                      : "text-muted-foreground hover:text-emerald-400"
+                  )}
+                  title={isFavorite ? "Quitar de destacados" : "Marcar como destacado"}
+                >
+                  {isTogglingFavorite ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FaExclamation className="h-4 w-4" />
+                  )}
+                </Button>
+              </CardAction>
+            </CardHeader>
+          </Card>
+
+          {/* Card de detalles */}
+          <Card className="flex flex-col min-h-0 overflow-hidden">
+            <CardHeader className="pb-1 shrink-0">
+              <OfficeSelector
+                currentOffice={currentOffice}
+                onSave={handleOfficeSave}
+              />
+            </CardHeader>
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-3 space-y-2">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Defensor</p>
+                <EditableList
+                  items={formValues.defendant}
+                  onSave={(items) => handleFieldChange("defendant", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Actor</p>
+                <EditableList
+                  items={formValues.prosecutor}
+                  onSave={(items) => handleFieldChange("prosecutor", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Aseguradora</p>
+                <EditableList
+                  items={formValues.insurance || []}
+                  onSave={(items) => handleFieldChange("insurance", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
+              </div>
             </div>
+          </Card>
+        </div>
 
-            <EditableField
-              value={formValues.order}
-              onSave={(value) => handleFieldChange("order", value)}
-              className="font-bold text-2xl"
-              style={{ fontWeight: "bolder", fontSize: "2.5rem" }}
-              placeholder="Orden"
-            />
+        {/* Sección de notas - altura flexible */}
+        <div className="shrink-0">
+          <NotesSection
+            recordId={record.id}
+            initialNotes={RecordNote.map((note) => ({
+              id: note.id,
+              name: note.name,
+              text: note.text,
+              recordId: record.id,
+              createdAt: note.createdAt,
+              updatedAt: note.updatedAt,
+            }))}
+          />
+        </div>
 
-            <EditableField
-              value={formValues.name}
-              onSave={(value) => handleFieldChange("name", value)}
-              className="text-muted-foreground"
-              style={{ fontSize: "1.3rem" }}
-              placeholder="Nombre del expediente"
-              isDescription
-            />
-
-            {/* Botón de favorito */}
-            <CardAction>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFavorite}
-                disabled={isTogglingFavorite}
-                className={cn(
-                  "h-8 w-8 transition-all",
-                  isFavorite
-                    ? "text-emerald-400 hover:text-emerald-500 bg-emerald-400/10"
-                    : "text-muted-foreground hover:text-emerald-400"
-                )}
-                title={isFavorite ? "Quitar de destacados" : "Marcar como destacado"}
-              >
-                {isTogglingFavorite ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FaExclamation className="h-4 w-4" />
-                )}
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent />
-        </Card>
-
-        {/* Card de detalles */}
-        <Card>
-          <CardHeader>
-            <OfficeSelector
-              currentOffice={currentOffice}
-              onSave={handleOfficeSave}
-            />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-0.5">Defensor</p>
-            <EditableList
-              items={formValues.defendant}
-              onSave={(items) => handleFieldChange("defendant", items)}
-              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
-            />
-
-            <p className="text-sm text-muted-foreground mt-1.5">Actor</p>
-            <EditableList
-              items={formValues.prosecutor}
-              onSave={(items) => handleFieldChange("prosecutor", items)}
-              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
-            />
-          </CardContent>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-0.5">Aseguradora</p>
-            <EditableList
-              items={formValues.insurance || []}
-              onSave={(items) => handleFieldChange("insurance", items)}
-              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
-            />
-          </CardContent>
-        </Card>
+        {/* Opciones adicionales - al final */}
+        <div className="shrink-0 pb-2">
+          <Collapsible open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
+            <CollapsibleTrigger className="w-full text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors py-1">
+              {isOptionsOpen ? "Ocultar opciones" : "Más opciones"}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-1">
+              <DeleteButton recordId={record.id} recordName={record.name} />
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </div>
-
-      {/* Sección de notas */}
-      <div className="mt-2">
-        <NotesSection
-          recordId={record.id}
-          initialNotes={RecordNote.map((note) => ({
-            id: note.id,
-            name: note.name,
-            text: note.text,
-            recordId: record.id,
-            createdAt: note.createdAt,
-            updatedAt: note.updatedAt,
-          }))}
-        />
-      </div>
-
-      {/* Opciones adicionales */}
-      <Collapsible open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
-        <CollapsibleTrigger className="w-full text-sm hover:underline">
-          {isOptionsOpen ? "Ocultar opciones" : "Más opciones"}
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2">
-          <DeleteButton recordId={record.id} recordName={record.name} />
-        </CollapsibleContent>
-      </Collapsible>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { cn } from "@/lib/utils";
 
 export interface Note {
   id?: number;
@@ -28,6 +29,7 @@ interface NoteCardProps {
   onSave: (note: Note) => Promise<void>;
   onDelete?: (noteId: number) => Promise<void>;
   onCancel?: () => void;
+  fullWidth?: boolean;
 }
 
 export function NoteCard({
@@ -36,6 +38,7 @@ export function NoteCard({
   onSave,
   onDelete,
   onCancel,
+  fullWidth = false,
 }: NoteCardProps) {
   const [isEditing, setIsEditing] = useState(isNew);
   const [isSaving, setIsSaving] = useState(false);
@@ -128,51 +131,52 @@ export function NoteCard({
   if (isEditing) {
     return (
       <>
-        <Card className="gap-0 min-w-[280px] max-w-[280px] ring-2 ring-primary/50 flex flex-col">
-          <CardHeader className="py-2 px-3">
+        <Card className={cn(
+          "gap-0 ring-2 ring-primary/50 flex flex-col",
+          fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
+        )}>
+          <CardHeader className="py-1.5 px-2.5">
             <Input
               ref={inputRef}
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Título (opcional)"
-              className="h-7 text-xs font-medium bg-transparent border-0 border-b border-dashed focus-visible:ring-0 rounded-none px-0"
+              className="h-6 text-xs font-medium bg-transparent border-0 border-b border-dashed focus-visible:ring-0 rounded-none px-0"
             />
           </CardHeader>
-          <CardContent className="py-2 px-3 flex flex-col gap-2">
+          <CardContent className="py-1.5 px-2.5 flex flex-col gap-1.5">
             <Textarea
               ref={textareaRef}
               value={editedText}
               onChange={(e) => setEditedText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Contenido de la nota..."
-              className="min-h-[60px] max-h-[80px] resize-none text-xs"
+              placeholder="Contenido..."
+              className="min-h-[50px] max-h-[70px] resize-none text-xs"
               autoFocus={!isNew}
             />
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[9px] text-muted-foreground">
-                ⌘↵ guardar
-              </span>
-              <div className="flex gap-1">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[8px] text-muted-foreground">⌘↵</span>
+              <div className="flex gap-0.5">
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={handleCancel}
                   disabled={isSaving}
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-2.5 w-2.5" />
                 </Button>
                 <Button
                   size="icon"
                   onClick={handleSave}
                   disabled={isSaving || !editedText.trim()}
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                 >
                   {isSaving ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
                   ) : (
-                    <Check className="h-3 w-3" />
+                    <Check className="h-2.5 w-2.5" />
                   )}
                 </Button>
               </div>
@@ -198,33 +202,36 @@ export function NoteCard({
   return (
     <>
       <Card
-        className="gap-0 min-w-[280px] max-w-[280px] cursor-pointer hover:bg-accent/50 transition-colors group flex flex-col"
+        className={cn(
+          "gap-0 cursor-pointer hover:bg-accent/50 transition-colors group flex flex-col",
+          fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
+        )}
         onClick={() => setIsEditing(true)}
       >
-        <CardHeader className="py-2 px-3">
-          <div className="flex items-start justify-between gap-2">
+        <CardHeader className="py-1.5 px-2.5">
+          <div className="flex items-start justify-between gap-1">
             <CardTitle className="text-muted-foreground text-xs flex-1 truncate">
-              {note.name || "Nota sin título"}
+              {note.name || "Sin título"}
             </CardTitle>
             {note.id && onDelete && (
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                 onClick={handleDeleteClick}
                 disabled={isDeleting}
               >
                 {isDeleting ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
                 ) : (
-                  <Trash2 className="h-3 w-3 text-destructive" />
+                  <Trash2 className="h-2.5 w-2.5 text-destructive" />
                 )}
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent className="py-2 px-3 pt-0">
-          <p className="text-xs line-clamp-3">{note.text}</p>
+        <CardContent className="py-1.5 px-2.5 pt-0">
+          <p className="text-xs line-clamp-2">{note.text}</p>
         </CardContent>
       </Card>
 
