@@ -225,7 +225,7 @@ export function NotesSection({ recordId, initialNotes }: NotesSectionProps) {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       ) : (
-        <div className="text-white/50 py-3 text-center border-2 border-dashed rounded-lg">
+        <div className="text-muted-foreground py-3 text-center border-2 border-dashed rounded-lg">
           <p className="text-xs mb-1">No hay notas</p>
           <Button
             variant="ghost"

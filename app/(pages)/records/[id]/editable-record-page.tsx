@@ -131,7 +131,7 @@ export default function EditableRecordPage({
               <EditableField
                 value={formValues.code || ""}
                 onSave={(value) => handleFieldChange("code", value)}
-                className="font-bold text-white/50 text-2xl"
+                className="font-bold text-muted-foreground text-2xl"
                 placeholder="Código"
               />
               <EditableSelect
@@ -159,7 +159,7 @@ export default function EditableRecordPage({
             <EditableField
               value={formValues.name}
               onSave={(value) => handleFieldChange("name", value)}
-              className="text-white/50"
+              className="text-muted-foreground"
               style={{
                 fontSize: "1.3rem",
               }}
@@ -188,22 +188,22 @@ export default function EditableRecordPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-white/50 mb-0.5">Defensor</p>
+            <p className="text-sm text-muted-foreground mb-0.5">Defensor</p>
             <EditableList
               items={formValues.defendant}
               onSave={(items) => handleFieldChange("defendant", items)}
-              className="border rounded-2xl p-1.5 text-sm text-white/50 space-y-1.5"
+              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
             />
 
-            <p className="text-sm text-white/50 mt-1.5">Actor</p>
+            <p className="text-sm text-muted-foreground mt-1.5">Actor</p>
             <EditableList
               items={formValues.prosecutor}
               onSave={(items) => handleFieldChange("prosecutor", items)}
-              className="border rounded-2xl p-1.5 text-sm text-white/50 space-y-1.5"
+              className="border rounded-2xl p-1.5 text-sm text-muted-foreground space-y-1.5"
             />
           </CardContent>
           <CardContent>
-            <p className="text-sm text-white/50 mb-0.5">Aseguradora</p>
+            <p className="text-sm text-muted-foreground mb-0.5">Aseguradora</p>
 
             <EditableField
               value={

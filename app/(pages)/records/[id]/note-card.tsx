@@ -203,7 +203,7 @@ export function NoteCard({
       >
         <CardHeader className="py-2 px-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-white/50 text-xs flex-1 truncate">
+            <CardTitle className="text-muted-foreground text-xs flex-1 truncate">
               {note.name || "Nota sin título"}
             </CardTitle>
             {note.id && onDelete && (

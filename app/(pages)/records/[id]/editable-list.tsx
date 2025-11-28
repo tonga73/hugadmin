@@ -83,7 +83,7 @@ export function EditableList({ items, onSave, className }: EditableListProps) {
       <div className={className}>
         {localItems.map((item, index) => (
           <div key={index} className="flex items-center gap-2 mb-1.5">
-            <span className="text-white/50">-</span>
+            <span className="text-muted-foreground">-</span>
             <Input
               value={item}
               onChange={(e) => handleUpdateItem(index, e.target.value)}
@@ -158,7 +158,7 @@ export function EditableList({ items, onSave, className }: EditableListProps) {
       {items.length > 0 ? (
         items.map((item, index) => <li key={index}>- {item}</li>)
       ) : (
-        <li className="text-white/30 italic">Click para agregar</li>
+        <li className="text-muted-foreground/50 italic">Click para agregar</li>
       )}
     </ul>
   );

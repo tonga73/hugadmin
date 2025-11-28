@@ -97,7 +97,7 @@ export function EditableField({
           onKeyDown={handleKeyDown}
           className={cn(
             "bg-transparent border-dashed flex-1",
-            isDescription && "text-white/50",
+            isDescription && "text-muted-foreground",
             className
           )}
           style={style}
@@ -132,13 +132,13 @@ export function EditableField({
       onClick={() => setIsEditing(true)}
       className={cn(
         "cursor-pointer hover:bg-white/5 rounded px-2 py-1 transition-colors",
-        isDescription && "text-white/50",
+        isDescription && "text-muted-foreground",
         className
       )}
       style={style}
       title="Click para editar"
     >
-      {value || <span className="text-white/30 italic">{placeholder}</span>}
+      {value || <span className="text-muted-foreground/50 italic">{placeholder}</span>}
     </div>
   );
 }

@@ -68,7 +68,7 @@ export default async function Home() {
                 <CircularProgress
                   size={280}
                   strokeWidth={20}
-                  labelClassName="text-white/50 text-3xl"
+                  labelClassName="text-muted-foreground text-3xl"
                   progressClassName="stroke-white/50"
                   progress={100}
                 />
