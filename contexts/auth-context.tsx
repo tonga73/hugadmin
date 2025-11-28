@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   ReactNode,
 } from "react";
 import {
@@ -46,86 +47,63 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
+    // Evitar doble inicialización en StrictMode
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     let isMounted = true;
 
     const initAuth = async () => {
-      console.log("🚀 Inicializando auth...");
-
-      // Primero verificar si hay sesión en el servidor
-      const hasCookie = document.cookie.includes("session=");
-      console.log("🍪 Cookie exists:", hasCookie);
-
-      if (hasCookie) {
-        try {
-          const response = await fetch("/api/auth/verify");
-
-          if (response.ok && isMounted) {
-            const data = await response.json();
-            console.log("✅ Sesión válida del servidor:", data.user);
+      // 1. Primero verificar si hay sesión en el servidor (cookie)
+      try {
+        const response = await fetch("/api/auth/verify");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && isMounted) {
             setUser(data.user);
             setLoading(false);
-            return; // Ya tenemos el usuario, no necesitamos esperar a Firebase
-          } else {
-            console.log("⚠️ Sesión inválida, limpiando...");
-            await fetch("/api/auth/session", { method: "DELETE" });
+            return; // Sesión válida, no necesitamos Firebase
           }
-        } catch (error) {
-          console.error("❌ Error verificando sesión:", error);
         }
+      } catch (e) {
+        console.error("Error verificando sesión:", e);
       }
 
-      // Si no hay sesión válida, escuchar cambios de Firebase
-      console.log("👂 Escuchando cambios de Firebase...");
-
+      // 2. Si no hay sesión en servidor, escuchar Firebase
       const unsubscribe = onAuthStateChanged(
         auth,
         async (firebaseUser: FirebaseUser | null) => {
           if (!isMounted) return;
 
-          console.log("🔥 Firebase auth changed:", firebaseUser?.uid || "null");
-
           if (firebaseUser) {
-            const cookieExists = document.cookie.includes("session=");
-
-            if (!cookieExists) {
-              console.log("📝 Nuevo login, creando sesión...");
+            // Firebase tiene usuario - intentar crear/restaurar sesión
+            try {
               const idToken = await firebaseUser.getIdToken();
+              const userProfile: AuthUser = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+              };
 
-              try {
-                const userProfile = {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  displayName: firebaseUser.displayName,
-                  photoURL: firebaseUser.photoURL,
-                };
+              const response = await fetch("/api/auth/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken, user: userProfile }),
+              });
 
-                const response = await fetch("/api/auth/session", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    idToken,
-                    user: userProfile,
-                  }),
-                });
-
-                if (!response.ok) throw new Error("Error creando sesión");
-
-                if (isMounted) {
-                  setUser(userProfile);
-                }
-              } catch (error) {
-                console.error("❌ Error creando sesión:", error);
-                await firebaseSignOut(auth);
-                if (isMounted) {
-                  setUser(null);
-                }
+              if (response.ok && isMounted) {
+                setUser(userProfile);
               }
+            } catch (error) {
+              console.error("Error sincronizando sesión:", error);
             }
           } else {
-            const cookieExists = document.cookie.includes("session=");
-            if (!cookieExists && isMounted) {
+            // Firebase no tiene usuario - limpiar estado
+            if (isMounted) {
               setUser(null);
             }
           }
@@ -136,57 +114,67 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       );
 
-      return unsubscribe;
+      return () => {
+        unsubscribe();
+      };
     };
 
-    const unsubscribePromise = initAuth();
+    initAuth();
 
     return () => {
       isMounted = false;
-      unsubscribePromise.then((unsub) => unsub && unsub());
     };
   }, []);
 
+  // Verificar sesión cuando la ventana recupera el foco
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible" && user) {
+        try {
+          const response = await fetch("/api/auth/verify");
+          if (!response.ok) {
+            // Sesión expirada - limpiar
+            setUser(null);
+            await firebaseSignOut(auth);
+            await fetch("/api/auth/session", { method: "DELETE" });
+          }
+        } catch {
+          // Ignorar errores de red
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user]);
+
   const signInWithGoogle = async (): Promise<AuthUser> => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
+    const result = await signInWithPopup(auth, googleProvider);
+    const idToken = await result.user.getIdToken();
 
-      const profile: AuthUser = {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-        photoURL: result.user.photoURL,
-      };
+    const profile: AuthUser = {
+      uid: result.user.uid,
+      email: result.user.email,
+      displayName: result.user.displayName,
+      photoURL: result.user.photoURL,
+    };
 
-      const response = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idToken,
-          user: profile,
-        }),
-      });
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken, user: profile }),
+    });
 
-      if (!response.ok) throw new Error("Error creando sesión");
+    if (!response.ok) throw new Error("Error creando sesión");
 
-      setUser(profile);
-      return profile;
-    } catch (error) {
-      console.error("Error al iniciar sesión:", error);
-      throw error;
-    }
+    setUser(profile);
+    return profile;
   };
 
   const signOut = async (): Promise<void> => {
-    try {
-      await fetch("/api/auth/session", { method: "DELETE" });
-      await firebaseSignOut(auth);
-      setUser(null);
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      throw error;
-    }
+    await fetch("/api/auth/session", { method: "DELETE" });
+    await firebaseSignOut(auth);
+    setUser(null);
   };
 
   return (
