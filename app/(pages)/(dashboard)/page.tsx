@@ -1,4 +1,4 @@
-import { CircularProgress, ModeToggle } from "@/components/shared";
+import { CircularProgress } from "@/components/shared";
 import {
   Card,
   CardContent,
@@ -8,234 +8,276 @@ import {
 } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 
-const statSections = {
-  main: [
-    {
-      label: "Pericia Realizada",
-      value: "PERICIA_REALIZADA",
-      color: "oklch(54.98% 0.0547 246.16)",
-    },
-    {
-      label: "Cobrado",
-      value: "COBRADO",
-      color: "oklch(55.54% 0.257 284.63)",
-    },
-    {
-      label: "Total",
-      value: "TOTAL",
-      color: "oklch(56.85% 0.1236 237.07)",
-    },
-    {
-      label: "Inactivo",
-      value: "PERICIA_REALIZADA",
-      color: "oklch(85.28% 0.196 158.83)",
-    },
-    {
-      label: "Destacado",
-      value: "PERICIA_REALIZADA",
-      color: "oklch(85.28% 0.196 158.83)",
-    },
-  ],
-};
-
 export default async function Home() {
   const [
     totalStat,
     destacadoStat,
     inactivoStat,
+    // Prioridades
     mediaStat,
     altaStat,
     urgenteStat,
-    cobradoStat,
+    // Estados de tracing
+    aceptaCargoStat,
+    actoPericialStat,
     periciaRealizadaStat,
     sentenciaStat,
     honorariosReguladosStat,
     tratativaStat,
+    cobradoStat,
   ] = await Promise.all([
     prisma.record.count(),
     prisma.record.count({ where: { favorite: true } }),
     prisma.record.count({ where: { archive: true } }),
+    // Prioridades
     prisma.record.count({ where: { priority: "MEDIA" } }),
     prisma.record.count({ where: { priority: "ALTA" } }),
     prisma.record.count({ where: { priority: "URGENTE" } }),
-    prisma.record.count({ where: { tracing: "COBRADO" } }),
+    // Estados de tracing
+    prisma.record.count({ where: { tracing: "ACEPTA_CARGO" } }),
+    prisma.record.count({ where: { tracing: "ACTO_PERICIAL_REALIZADO" } }),
     prisma.record.count({ where: { tracing: "PERICIA_REALIZADA" } }),
-    prisma.record.count({
-      where: { tracing: "SENTENCIA_O_CONVENIO_DE_PARTES" },
-    }),
+    prisma.record.count({ where: { tracing: "SENTENCIA_O_CONVENIO_DE_PARTES" } }),
     prisma.record.count({ where: { tracing: "HONORARIOS_REGULADOS" } }),
     prisma.record.count({ where: { tracing: "EN_TRATATIVA_DE_COBRO" } }),
+    prisma.record.count({ where: { tracing: "COBRADO" } }),
   ]);
+
+  // Helper para calcular porcentaje
+  const getPercentage = (value: number) =>
+    totalStat > 0 ? Math.round((value / totalStat) * 100) : 0;
+
+  // Expedientes activos (no archivados)
+  const activosStat = totalStat - inactivoStat;
 
   return (
     <div className="h-full grid grid-cols-3 grid-rows-2 gap-1.5">
+      {/* Sección principal - 2 columnas, 2 filas */}
       <div className="col-span-2 row-span-2 flex flex-col gap-1.5">
+        {/* Fila superior - Total y Cobrados */}
         <div className="flex-1 grid grid-cols-2 gap-1.5">
           <Card className="flex flex-col">
             <CardHeader>
-              <CardTitle>Total</CardTitle>
+              <CardTitle>Total Expedientes</CardTitle>
               <CardDescription>
-                Total de expedientes en el sistema
+                {activosStat} activos · {inactivoStat} archivados
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex items-center justify-center">
-              <div className="w-full h-full max-h-64 flex items-center justify-center">
+              <div className="w-full h-full max-h-64 flex flex-col items-center justify-center">
                 <CircularProgress
-                  size={300}
+                  size={280}
                   strokeWidth={20}
                   labelClassName="text-white/50 text-3xl"
                   progressClassName="stroke-white/50"
                   progress={100}
                 />
+                <span className="text-xs text-muted-foreground mt-2">
+                  {totalStat} expedientes registrados
+                </span>
               </div>
             </CardContent>
           </Card>
           <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Cobrados</CardTitle>
-              <CardDescription>Total de expedientes cobrados</CardDescription>
+              <CardDescription>
+                Expedientes con cobro completado
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex items-center justify-center">
-              <div className="w-full h-full max-h-64 flex items-center justify-center">
+              <div className="w-full h-full max-h-64 flex flex-col items-center justify-center">
                 <CircularProgress
-                  size={300}
+                  size={280}
                   strokeWidth={20}
-                  labelClassName="text-white/50 text-3xl"
-                  className="stroke-teal-700/50"
-                  progressClassName="stroke-teal-700"
-                  progress={Math.round((cobradoStat / totalStat) * 100)}
+                  labelClassName="text-teal-400 text-3xl"
+                  className="stroke-teal-700/30"
+                  progressClassName="stroke-teal-500"
+                  progress={getPercentage(cobradoStat)}
                 />
+                <span className="text-xs text-muted-foreground mt-2">
+                  {cobradoStat} de {totalStat} expedientes
+                </span>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Fila inferior - Stats rápidos */}
         <div className="grid grid-cols-3 gap-1.5">
-          <Card className="h-full flex items-center gap-4">
-            <div className="flex-1">Pericia Realizada</div>
-            <div className="w-24 h-24">
-              <CircularProgress
-                className="stroke-indigo-700/50"
-                progressClassName="stroke-indigo-700"
-                progress={Math.round((periciaRealizadaStat / totalStat) * 100)}
-              />
+          <Card className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Pericia Realizada</p>
+              <p className="text-[10px] text-muted-foreground">
+                {periciaRealizadaStat} expedientes
+              </p>
             </div>
+            <CircularProgress
+              size={80}
+              className="stroke-indigo-700/30"
+              progressClassName="stroke-indigo-500"
+              labelClassName="text-sm"
+              progress={getPercentage(periciaRealizadaStat)}
+            />
           </Card>
-          <Card className="h-full flex items-center gap-4">
-            <div className="flex-1">Inactivos</div>
-            <div className="w-24 h-24">
-              <CircularProgress
-                className="stroke-gray-700/50"
-                progressClassName="stroke-gray-700"
-                progress={Math.round((inactivoStat / totalStat) * 100)}
-              />
+          <Card className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Archivados</p>
+              <p className="text-[10px] text-muted-foreground">
+                {inactivoStat} expedientes
+              </p>
             </div>
+            <CircularProgress
+              size={80}
+              className="stroke-gray-700/30"
+              progressClassName="stroke-gray-500"
+              labelClassName="text-sm"
+              progress={getPercentage(inactivoStat)}
+            />
           </Card>
-          <Card className="h-full flex items-center gap-4">
-            <div className="flex-1">Destacados</div>
-            <div className="w-24 h-24">
-              <CircularProgress
-                className="stroke-[#07F49E]/50"
-                progressClassName="stroke-[#07F49E]"
-                progress={Math.round((destacadoStat / totalStat) * 100)}
-              />
+          <Card className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Destacados</p>
+              <p className="text-[10px] text-muted-foreground">
+                {destacadoStat} expedientes
+              </p>
             </div>
+            <CircularProgress
+              size={80}
+              className="stroke-emerald-700/30"
+              progressClassName="stroke-emerald-400"
+              labelClassName="text-sm"
+              progress={getPercentage(destacadoStat)}
+            />
           </Card>
         </div>
       </div>
 
+      {/* Columna derecha - Prioridad */}
       <div className="space-y-1.5 flex flex-col">
-        <p className="uppercase font-light text-white/50 px-1.5">Prioridad</p>
-        <div className="flex-1 grid grid-rows-3 gap-1.5">
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">Media</div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-yellow-700/50"
-                  progressClassName="stroke-yellow-700"
-                  labelClassName="text-sm"
-                  progress={Math.round((mediaStat / totalStat) * 100)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">Alta</div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-orange-700/50"
-                  progressClassName="stroke-orange-700"
-                  labelClassName="text-sm"
-                  progress={Math.round((altaStat / totalStat) * 100)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">Urgente</div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-red-700/50"
-                  progressClassName="stroke-red-700"
-                  labelClassName="text-sm"
-                  progress={Math.round((urgenteStat / totalStat) * 100)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <div className="space-y-1.5 flex flex-col">
-        <p className="uppercase font-light text-white/50 px-1.5">
-          Estado Pericial
+        <p className="uppercase text-xs font-medium text-muted-foreground px-1.5 tracking-wider">
+          Por Prioridad
         </p>
         <div className="flex-1 grid grid-rows-3 gap-1.5">
           <Card className="flex flex-row items-center gap-4 py-0">
             <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">Sentencia o convenio de partes</div>
+              <div className="flex-1">
+                <p className="text-sm">Media</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {mediaStat} expedientes
+                </p>
+              </div>
               <div className="flex-0">
                 <CircularProgress
                   size={87}
-                  className="stroke-slate-700/50"
-                  progressClassName="stroke-slate-700"
+                  className="stroke-yellow-700/30"
+                  progressClassName="stroke-yellow-500"
                   labelClassName="text-sm"
-                  progress={Math.round((sentenciaStat / totalStat) * 100)}
+                  progress={getPercentage(mediaStat)}
                 />
               </div>
             </CardContent>
           </Card>
           <Card className="flex flex-row items-center gap-4 py-0">
             <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">Pericia Realizada</div>
+              <div className="flex-1">
+                <p className="text-sm">Alta</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {altaStat} expedientes
+                </p>
+              </div>
               <div className="flex-0">
                 <CircularProgress
                   size={87}
-                  className="stroke-amber-700/50"
-                  progressClassName="stroke-amber-700"
+                  className="stroke-orange-700/30"
+                  progressClassName="stroke-orange-500"
                   labelClassName="text-sm"
-                  progress={Math.round(
-                    (periciaRealizadaStat / totalStat) * 100
-                  )}
+                  progress={getPercentage(altaStat)}
                 />
               </div>
             </CardContent>
           </Card>
           <Card className="flex flex-row items-center gap-4 py-0">
             <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">En tratativa de cobro</div>
+              <div className="flex-1">
+                <p className="text-sm">Urgente</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {urgenteStat} expedientes
+                </p>
+              </div>
               <div className="flex-0">
                 <CircularProgress
                   size={87}
-                  className="stroke-rose-700/50"
-                  progressClassName="stroke-rose-700"
+                  className="stroke-red-700/30"
+                  progressClassName="stroke-red-500"
                   labelClassName="text-sm"
-                  progress={Math.round((urgenteStat / totalStat) * 100)}
+                  progress={getPercentage(urgenteStat)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Columna derecha - Estado de cobro */}
+      <div className="space-y-1.5 flex flex-col">
+        <p className="uppercase text-xs font-medium text-muted-foreground px-1.5 tracking-wider">
+          Estado de Cobro
+        </p>
+        <div className="flex-1 grid grid-rows-3 gap-1.5">
+          <Card className="flex flex-row items-center gap-4 py-0">
+            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
+              <div className="flex-1">
+                <p className="text-sm">Sentencia/Convenio</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {sentenciaStat} expedientes
+                </p>
+              </div>
+              <div className="flex-0">
+                <CircularProgress
+                  size={87}
+                  className="stroke-slate-700/30"
+                  progressClassName="stroke-slate-400"
+                  labelClassName="text-sm"
+                  progress={getPercentage(sentenciaStat)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="flex flex-row items-center gap-4 py-0">
+            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
+              <div className="flex-1">
+                <p className="text-sm">Honorarios Regulados</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {honorariosReguladosStat} expedientes
+                </p>
+              </div>
+              <div className="flex-0">
+                <CircularProgress
+                  size={87}
+                  className="stroke-violet-700/30"
+                  progressClassName="stroke-violet-500"
+                  labelClassName="text-sm"
+                  progress={getPercentage(honorariosReguladosStat)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="flex flex-row items-center gap-4 py-0">
+            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
+              <div className="flex-1">
+                <p className="text-sm">En Tratativa</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {tratativaStat} expedientes
+                </p>
+              </div>
+              <div className="flex-0">
+                <CircularProgress
+                  size={87}
+                  className="stroke-amber-700/30"
+                  progressClassName="stroke-amber-500"
+                  labelClassName="text-sm"
+                  progress={getPercentage(tratativaStat)}
                 />
               </div>
             </CardContent>
