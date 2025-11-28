@@ -20,6 +20,7 @@ const updateRecordSchema = z.object({
   priority: z.nativeEnum(Priority).optional(),
   favorite: z.boolean().optional(),
   archive: z.boolean().optional(),
+  officeId: z.number().nullable().optional(),
 });
 
 export async function GET(
@@ -90,6 +91,11 @@ export async function PATCH(
       updateData.favorite = validatedData.favorite;
     if (validatedData.archive !== undefined)
       updateData.archive = validatedData.archive;
+    if (validatedData.officeId !== undefined) {
+      updateData.Office = validatedData.officeId
+        ? { connect: { id: validatedData.officeId } }
+        : { disconnect: true };
+    }
 
     // Actualizar en base de datos
     const updated = await prisma.record.update({

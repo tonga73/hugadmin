@@ -20,6 +20,7 @@ import { EditableField } from "./editable-field";
 import { EditableSelect } from "./editable-select";
 import { EditableList } from "./editable-list";
 import { NotesSection } from "./notes-section";
+import { OfficeSelector } from "./office-selector";
 import { toast } from "sonner";
 import {
   Collapsible,
@@ -53,6 +54,7 @@ interface EditableRecordPageProps {
     prosecutor?: string[];
     tracing: string;
     favorite: boolean;
+    officeId?: number | null;
     Note: Array<{
       id: number;
       name: string | null;
@@ -61,14 +63,17 @@ interface EditableRecordPageProps {
       updatedAt: Date;
     }>;
     Office?: {
+      id: number;
       name: string;
       Court?: {
+        id: number;
         name: string;
         District?: {
+          id: number;
           name: string;
-        };
-      };
-    };
+        } | null;
+      } | null;
+    } | null;
   };
   tracingOptions: Record<string, { label: string; color?: string }>;
 }
@@ -81,8 +86,9 @@ export default function EditableRecordPage({
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isFavorite, setIsFavorite] = useState(record.favorite);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [currentOffice, setCurrentOffice] = useState(record.Office);
 
-  const { Note: RecordNote, Office: RecordOffice } = record;
+  const { Note: RecordNote } = record;
 
   const { setValue, watch } = useForm<RecordFormValues>({
     resolver: zodResolver(recordSchema),
@@ -166,6 +172,35 @@ export default function EditableRecordPage({
     }
   }, [isFavorite, saveField]);
 
+  // Guardar office
+  const handleOfficeSave = useCallback(
+    async (officeId: number | null) => {
+      const response = await fetch(`/api/records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ officeId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Error al guardar");
+      }
+
+      const updatedRecord = await response.json();
+
+      // Actualizar estado local
+      setCurrentOffice(updatedRecord.Office);
+
+      // Disparar evento para actualizar la lista
+      window.dispatchEvent(
+        new CustomEvent("update-record", { detail: updatedRecord })
+      );
+
+      toast.success("Ubicación actualizada");
+    },
+    [record.id]
+  );
+
   return (
     <div className="relative flex-1 flex flex-col">
       {/* Indicador de guardado */}
@@ -244,12 +279,10 @@ export default function EditableRecordPage({
         {/* Card de detalles */}
         <Card>
           <CardHeader>
-            <CardTitle>{RecordOffice?.Court?.name || "Sin juzgado"}</CardTitle>
-            <CardDescription>
-              {RecordOffice
-                ? `Secretaría ${RecordOffice.name} | ${RecordOffice.Court?.District?.name || ""} Circunscripción`
-                : "Sin oficina asignada"}
-            </CardDescription>
+            <OfficeSelector
+              currentOffice={currentOffice}
+              onSave={handleOfficeSave}
+            />
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-0.5">Defensor</p>
