@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FaExclamation } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
+import { FaExclamation } from "react-icons/fa";
 import {
   Card,
   CardAction,
@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { TracingBadge } from "@/components/records";
 import { EditableField } from "./editable-field";
 import { EditableSelect } from "./editable-select";
@@ -26,13 +27,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { DeleteButton } from "@/components/records/delete-button";
+import { cn } from "@/lib/utils";
 
-// Schema de validación
+// Schema de validación para campos editables
 const recordSchema = z.object({
   code: z.string().optional(),
   order: z.string().min(1, "Requerido"),
   name: z.string().min(3, "Mínimo 3 caracteres"),
-  insurance: z.string().optional(), // Array
+  insurance: z.string().optional(),
   defendant: z.array(z.string()),
   prosecutor: z.array(z.string()),
   tracing: z.string(),
@@ -41,7 +43,33 @@ const recordSchema = z.object({
 type RecordFormValues = z.infer<typeof recordSchema>;
 
 interface EditableRecordPageProps {
-  record: any; // Tipea según tu Prisma schema
+  record: {
+    id: number;
+    code?: string | null;
+    order: string;
+    name: string;
+    insurance?: string[];
+    defendant?: string[];
+    prosecutor?: string[];
+    tracing: string;
+    favorite: boolean;
+    Note: Array<{
+      id: number;
+      name: string | null;
+      text: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
+    Office?: {
+      name: string;
+      Court?: {
+        name: string;
+        District?: {
+          name: string;
+        };
+      };
+    };
+  };
   tracingOptions: Record<string, { label: string; color?: string }>;
 }
 
@@ -50,14 +78,13 @@ export default function EditableRecordPage({
   tracingOptions,
 }: EditableRecordPageProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(record.favorite);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
   const { Note: RecordNote, Office: RecordOffice } = record;
 
-  const {
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<RecordFormValues>({
+  const { setValue, watch } = useForm<RecordFormValues>({
     resolver: zodResolver(recordSchema),
     defaultValues: {
       code: record.code || "",
@@ -72,47 +99,72 @@ export default function EditableRecordPage({
 
   const formValues = watch();
 
-  // Función para guardar cambios
-  const saveField = async (fieldName: keyof RecordFormValues, value: any) => {
-    setIsSaving(true);
-    try {
-      const response = await fetch(`/api/records/${record.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [fieldName]: value }),
-      });
+  // Función genérica para guardar cualquier campo
+  const saveField = useCallback(
+    async (fieldName: string, value: unknown) => {
+      setIsSaving(true);
+      try {
+        const response = await fetch(`/api/records/${record.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [fieldName]: value }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Error al guardar");
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Error al guardar");
+        }
+
+        const updatedRecord = await response.json();
+
+        // Disparar evento para actualizar la lista
+        window.dispatchEvent(
+          new CustomEvent("update-record", { detail: updatedRecord })
+        );
+
+        toast.success("Cambios guardados");
+        return updatedRecord;
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "No se pudo guardar los cambios"
+        );
+        throw error;
+      } finally {
+        setIsSaving(false);
       }
+    },
+    [record.id]
+  );
 
-      const updatedRecord = await response.json();
+  // Handler para campos del formulario
+  const handleFieldChange = useCallback(
+    (fieldName: keyof RecordFormValues, value: unknown) => {
+      setValue(fieldName, value as any);
+      saveField(fieldName, value).catch(() => {
+        // Revertir en caso de error
+        setValue(fieldName, record[fieldName] as any);
+      });
+    },
+    [setValue, saveField, record]
+  );
 
-      // 🔹 Disparar evento para actualizar la lista
-      window.dispatchEvent(
-        new CustomEvent("update-record", { detail: updatedRecord })
-      );
+  // Toggle de favorito
+  const toggleFavorite = useCallback(async () => {
+    const newValue = !isFavorite;
+    setIsTogglingFavorite(true);
+    setIsFavorite(newValue); // Optimistic update
 
-      toast.success("Cambios guardados correctamente");
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo guardar los cambios"
-      );
-      // Revertir el cambio en el formulario
-      setValue(fieldName, record[fieldName]);
+    try {
+      await saveField("favorite", newValue);
+    } catch {
+      setIsFavorite(!newValue); // Revertir en caso de error
     } finally {
-      setIsSaving(false);
+      setIsTogglingFavorite(false);
     }
-  };
-
-  const handleFieldChange = (fieldName: keyof RecordFormValues, value: any) => {
-    setValue(fieldName, value);
-    saveField(fieldName, value);
-  };
+  }, [isFavorite, saveField]);
 
   return (
     <div className="relative flex-1 flex flex-col">
@@ -125,6 +177,7 @@ export default function EditableRecordPage({
       )}
 
       <div className="flex-1 grid grid-cols-3 gap-1.5">
+        {/* Card principal */}
         <Card className="col-span-2">
           <CardHeader>
             <div className="flex gap-3">
@@ -149,10 +202,7 @@ export default function EditableRecordPage({
               value={formValues.order}
               onSave={(value) => handleFieldChange("order", value)}
               className="font-bold text-2xl"
-              style={{
-                fontWeight: "bolder",
-                fontSize: "2.5rem",
-              }}
+              style={{ fontWeight: "bolder", fontSize: "2.5rem" }}
               placeholder="Orden"
             />
 
@@ -160,31 +210,45 @@ export default function EditableRecordPage({
               value={formValues.name}
               onSave={(value) => handleFieldChange("name", value)}
               className="text-muted-foreground"
-              style={{
-                fontSize: "1.3rem",
-              }}
+              style={{ fontSize: "1.3rem" }}
               placeholder="Nombre del expediente"
               isDescription
             />
 
+            {/* Botón de favorito */}
             <CardAction>
-              <span>
-                <FaExclamation />
-              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleFavorite}
+                disabled={isTogglingFavorite}
+                className={cn(
+                  "h-8 w-8 transition-all",
+                  isFavorite
+                    ? "text-emerald-400 hover:text-emerald-500 bg-emerald-400/10"
+                    : "text-muted-foreground hover:text-emerald-400"
+                )}
+                title={isFavorite ? "Quitar de destacados" : "Marcar como destacado"}
+              >
+                {isTogglingFavorite ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FaExclamation className="h-4 w-4" />
+                )}
+              </Button>
             </CardAction>
           </CardHeader>
-          <CardContent></CardContent>
+          <CardContent />
         </Card>
 
+        {/* Card de detalles */}
         <Card>
           <CardHeader>
-            <CardTitle>{RecordOffice?.Court?.name}</CardTitle>
+            <CardTitle>{RecordOffice?.Court?.name || "Sin juzgado"}</CardTitle>
             <CardDescription>
-              {"Secretaría " +
-                RecordOffice?.name +
-                " | " +
-                RecordOffice?.Court?.District?.name +
-                " Circunscripción"}
+              {RecordOffice
+                ? `Secretaría ${RecordOffice.name} | ${RecordOffice.Court?.District?.name || ""} Circunscripción`
+                : "Sin oficina asignada"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -204,10 +268,9 @@ export default function EditableRecordPage({
           </CardContent>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-0.5">Aseguradora</p>
-
             <EditableField
               value={
-                formValues.insurance?.length && formValues.insurance?.length > 0
+                formValues.insurance && formValues.insurance.length > 0
                   ? formValues.insurance
                   : "---"
               }
@@ -218,10 +281,11 @@ export default function EditableRecordPage({
         </Card>
       </div>
 
+      {/* Sección de notas */}
       <div className="mt-2">
         <NotesSection
           recordId={record.id}
-          initialNotes={RecordNote.map((note: any) => ({
+          initialNotes={RecordNote.map((note) => ({
             id: note.id,
             name: note.name,
             text: note.text,
@@ -232,13 +296,12 @@ export default function EditableRecordPage({
         />
       </div>
 
-      <Collapsible onOpenChange={() => setIsOpen(!isOpen)}>
-        <CollapsibleTrigger
-          className={isOpen ? "w-full text-sm font-medium" : "w-full text-sm"}
-        >
-          {isOpen ? "Ocultar opciones" : "Más opciones"}
+      {/* Opciones adicionales */}
+      <Collapsible open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
+        <CollapsibleTrigger className="w-full text-sm hover:underline">
+          {isOptionsOpen ? "Ocultar opciones" : "Más opciones"}
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <CollapsibleContent className="pt-2">
           <DeleteButton recordId={record.id} recordName={record.name} />
         </CollapsibleContent>
       </Collapsible>
