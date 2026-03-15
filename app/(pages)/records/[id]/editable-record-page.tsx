@@ -296,32 +296,39 @@ export default function EditableRecordPage({
                 onSave={handleOfficeSave}
               />
             </CardHeader>
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-3 space-y-2">
+            <div className="flex-1 overflow-y-auto min-h-0 px-3 pb-3 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Defensor</p>
-                <EditableList
-                  items={formValues.defendant}
-                  onSave={(items) => handleFieldChange("defendant", items)}
-                  className="border rounded-xl p-1.5 text-sm"
-                />
-              </div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5">
+                  Partes
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Defensor</p>
+                    <EditableList
+                      items={formValues.defendant}
+                      onSave={(items) => handleFieldChange("defendant", items)}
+                      className="border rounded-xl p-1.5 text-sm"
+                    />
+                  </div>
 
-              <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Actor</p>
-                <EditableList
-                  items={formValues.prosecutor}
-                  onSave={(items) => handleFieldChange("prosecutor", items)}
-                  className="border rounded-xl p-1.5 text-sm"
-                />
-              </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Actor</p>
+                    <EditableList
+                      items={formValues.prosecutor}
+                      onSave={(items) => handleFieldChange("prosecutor", items)}
+                      className="border rounded-xl p-1.5 text-sm"
+                    />
+                  </div>
 
-              <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Aseguradora</p>
-                <EditableList
-                  items={formValues.insurance || []}
-                  onSave={(items) => handleFieldChange("insurance", items)}
-                  className="border rounded-xl p-1.5 text-sm"
-                />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Aseguradora</p>
+                    <EditableList
+                      items={formValues.insurance || []}
+                      onSave={(items) => handleFieldChange("insurance", items)}
+                      className="border rounded-xl p-1.5 text-sm"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
