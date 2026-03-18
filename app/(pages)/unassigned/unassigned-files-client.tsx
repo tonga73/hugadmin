@@ -42,7 +42,7 @@ import {
   CommandEmpty,
   CommandItem,
 } from "@/components/ui/command";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { ChevronsUpDown, Check, Search, X } from "lucide-react";
 
 interface RecordFile {
   id: number;
@@ -105,6 +105,32 @@ function countFiles(node: TreeNode): number {
   let count = node.files.length;
   for (const child of node.children.values()) count += countFiles(child);
   return count;
+}
+
+function collectFileIds(node: TreeNode): number[] {
+  const ids = node.files.map((f) => f.id);
+  for (const child of node.children.values()) ids.push(...collectFileIds(child));
+  return ids;
+}
+
+function filterTree(node: TreeNode, query: string): TreeNode {
+  if (!query) return node;
+  const q = query.toLowerCase();
+
+  const matchingFiles = node.files.filter((f) => f.name.toLowerCase().includes(q));
+
+  const matchingChildren = new Map<string, TreeNode>();
+  for (const [key, child] of node.children) {
+    if (child.name.toLowerCase().includes(q)) {
+      // Folder name matches — include entire subtree
+      matchingChildren.set(key, child);
+    } else {
+      const filtered = filterTree(child, query);
+      if (countFiles(filtered) > 0) matchingChildren.set(key, filtered);
+    }
+  }
+
+  return { ...node, files: matchingFiles, children: matchingChildren };
 }
 
 function fileIcon(mimeType: string) {
@@ -301,6 +327,105 @@ function FileRow({
   );
 }
 
+// ─── Folder assign button ─────────────────────────────────────────────────────
+
+function FolderAssignButton({
+  node,
+  records,
+  onAssigned,
+}: {
+  node: TreeNode;
+  records: RecordOption[];
+  onAssigned: (fileIds: number[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const total = countFiles(node);
+
+  const handleAssign = async () => {
+    if (!selectedId) return;
+    setIsAssigning(true);
+    try {
+      const fileIds = collectFileIds(node);
+      const res = await fetch("/api/files/bulk-assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileIds, recordId: parseInt(selectedId) }),
+      });
+      if (!res.ok) throw new Error();
+      onAssigned(fileIds);
+      setOpen(false);
+      setSelectedId("");
+      toast.success(`${fileIds.length} archivo${fileIds.length !== 1 ? "s" : ""} asignados`);
+    } catch {
+      toast.error("Error al asignar la carpeta");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedId(""); setSearch(""); } }}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 text-[11px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity px-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FolderOpen className="h-3 w-3" />
+          Asignar carpeta ({total})
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-3" align="start" onClick={(e) => e.stopPropagation()}>
+        <p className="text-xs font-medium mb-2">
+          Asignar <span className="text-muted-foreground">{node.name}</span> ({total} archivos)
+        </p>
+        <Command>
+          <CommandInput
+            placeholder="Buscar expediente…"
+            className="h-8 text-xs"
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList className="max-h-44">
+            <CommandEmpty className="text-xs py-3 text-center text-muted-foreground">
+              No se encontró ningún expediente
+            </CommandEmpty>
+            {records.map((r) => (
+              <CommandItem
+                key={r.id}
+                value={`${r.order} ${r.name} ${r.code ?? ""}`}
+                onSelect={() => setSelectedId(r.id.toString())}
+                className="text-xs"
+              >
+                <Check
+                  className={cn(
+                    "mr-1.5 h-3 w-3 shrink-0",
+                    selectedId === r.id.toString() ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <span className="font-medium mr-1.5">{r.order}</span>
+                <span className="truncate text-muted-foreground">{r.name}</span>
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+        <Button
+          size="sm"
+          className="w-full mt-2 h-7 text-xs"
+          disabled={!selectedId || isAssigning}
+          onClick={handleAssign}
+        >
+          {isAssigning ? <Loader2 className="h-3 w-3 animate-spin" /> : `Asignar ${total} archivos`}
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Folder node (recursive) ──────────────────────────────────────────────────
 
 function FolderNode({
@@ -312,8 +437,10 @@ function FolderNode({
   onAssign,
   onAnalyze,
   onDelete,
+  onFolderAssigned,
   assigning,
   analyzing,
+  searchActive,
 }: {
   node: TreeNode;
   depth: number;
@@ -323,11 +450,14 @@ function FolderNode({
   onAssign: (fileId: number) => void;
   onAnalyze: (fileId: number) => void;
   onDelete: (fileId: number) => void;
+  onFolderAssigned: (fileIds: number[]) => void;
   assigning: number | null;
   analyzing: number | null;
+  searchActive: boolean;
 }) {
   const [open, setOpen] = useState(depth === 0);
   const total = countFiles(node);
+  const isOpen = searchActive || open;
 
   const sortedChildren = Array.from(node.children.values()).sort((a, b) =>
     a.name.localeCompare(b.name)
@@ -337,35 +467,46 @@ function FolderNode({
     <div>
       {/* Folder header (not shown for root) */}
       {node.name && (
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className={cn(
-            "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium hover:bg-muted/60 transition-colors",
-            depth === 1 && "text-foreground",
-            depth > 1 && "text-muted-foreground"
-          )}
+        <div
+          className="group flex items-center rounded-lg hover:bg-muted/60 transition-colors"
           style={{ paddingLeft: `${(depth - 1) * 16 + 8}px` }}
         >
-          <ChevronRight
+          <button
+            onClick={() => setOpen((v) => !v)}
             className={cn(
-              "h-3.5 w-3.5 shrink-0 transition-transform text-muted-foreground/60",
-              open && "rotate-90"
+              "flex-1 flex items-center gap-2 py-1.5 text-sm font-medium min-w-0",
+              depth === 1 && "text-foreground",
+              depth > 1 && "text-muted-foreground"
             )}
-          />
-          {open ? (
-            <FolderOpen className="h-4 w-4 shrink-0 text-amber-400" />
-          ) : (
-            <Folder className="h-4 w-4 shrink-0 text-amber-400" />
-          )}
-          <span className="truncate">{node.name}</span>
-          <span className="ml-auto text-xs text-muted-foreground/60 font-normal shrink-0">
-            {total}
-          </span>
-        </button>
+          >
+            <ChevronRight
+              className={cn(
+                "h-3.5 w-3.5 shrink-0 transition-transform text-muted-foreground/60",
+                isOpen && "rotate-90"
+              )}
+            />
+            {isOpen ? (
+              <FolderOpen className="h-4 w-4 shrink-0 text-amber-400" />
+            ) : (
+              <Folder className="h-4 w-4 shrink-0 text-amber-400" />
+            )}
+            <span className="truncate">{node.name}</span>
+            <span className="ml-2 text-xs text-muted-foreground/60 font-normal shrink-0">
+              {total}
+            </span>
+          </button>
+          <div className="pr-2 shrink-0">
+            <FolderAssignButton
+              node={node}
+              records={records}
+              onAssigned={onFolderAssigned}
+            />
+          </div>
+        </div>
       )}
 
       {/* Contents */}
-      {open && (
+      {isOpen && (
         <div style={{ paddingLeft: node.name ? `${depth * 16}px` : 0 }}>
           {/* Subfolders first */}
           {sortedChildren.map((child) => (
@@ -379,8 +520,10 @@ function FolderNode({
               onAssign={onAssign}
               onAnalyze={onAnalyze}
               onDelete={onDelete}
+              onFolderAssigned={onFolderAssigned}
               assigning={assigning}
               analyzing={analyzing}
+              searchActive={searchActive}
             />
           ))}
 
@@ -418,7 +561,10 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
   const [assigning, setAssigning] = useState<number | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<Record<number, string>>({});
 
+  const [search, setSearch] = useState("");
+
   const tree = useMemo(() => buildTree(files), [files]);
+  const filteredTree = useMemo(() => filterTree(tree, search), [tree, search]);
 
   const handleSelectRecord = useCallback((id: number, val: string) => {
     setSelectedRecord((prev) => ({ ...prev, [id]: val }));
@@ -499,19 +645,37 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
     toast.success("Eliminado de la DB");
   }, []);
 
+  const handleFolderAssigned = useCallback((fileIds: number[]) => {
+    const idSet = new Set(fileIds);
+    setFiles((prev) => prev.filter((f) => !idSet.has(f.id)));
+  }, []);
+
   return (
     <div className="flex flex-col gap-3">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {files.length === 0
-            ? "Todos los archivos están asignados"
-            : `${files.length} archivo${files.length !== 1 ? "s" : ""} sin asignar`}
-        </p>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar archivos o carpetas…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-8 pl-8 pr-8 text-sm rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
         <Button
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-2 shrink-0"
           onClick={handleSync}
           disabled={isSyncing}
         >
@@ -523,6 +687,13 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
           {isSyncing ? "Sincronizando..." : "Sync con Drive"}
         </Button>
       </div>
+      <p className="text-xs text-muted-foreground">
+        {files.length === 0
+          ? "Todos los archivos están asignados"
+          : search
+          ? `${countFiles(filteredTree)} resultado${countFiles(filteredTree) !== 1 ? "s" : ""} de ${files.length} archivos`
+          : `${files.length} archivo${files.length !== 1 ? "s" : ""} sin asignar`}
+      </p>
 
       {files.length === 0 ? (
         <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 py-16">
@@ -531,7 +702,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
       ) : (
         <div className="rounded-xl border p-2">
           <FolderNode
-            node={tree}
+            node={filteredTree}
             depth={0}
             records={records}
             selectedRecord={selectedRecord}
@@ -539,8 +710,10 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
             onAssign={handleAssign}
             onAnalyze={handleAnalyze}
             onDelete={handleDelete}
+            onFolderAssigned={handleFolderAssigned}
             assigning={assigning}
             analyzing={analyzing}
+            searchActive={!!search}
           />
         </div>
       )}
