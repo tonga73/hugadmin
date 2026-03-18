@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { Separator } from "../ui/separator";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, FolderOpen } from "lucide-react";
 import { RecordsList } from "../records";
 import { Logo } from "./logo";
 
@@ -20,6 +20,11 @@ const sidebarItems = [
     title: "Crear expediente",
     url: "/records/create",
     icon: PlusIcon,
+  },
+  {
+    title: "Archivos sin asignar",
+    url: "/unassigned",
+    icon: FolderOpen,
   },
 ];
 

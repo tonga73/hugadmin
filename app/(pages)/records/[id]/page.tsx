@@ -15,6 +15,9 @@ export default async function RecordPage({
     },
     include: {
       Note: true,
+      files: {
+        orderBy: { createdAt: "desc" },
+      },
       Office: {
         include: {
           Court: {

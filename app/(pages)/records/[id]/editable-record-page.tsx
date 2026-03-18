@@ -21,6 +21,7 @@ import { NotesSection } from "./notes-section";
 import { OfficeSelector } from "./office-selector";
 import { toast } from "sonner";
 import { DeleteButton } from "@/components/records/delete-button";
+import { FilesSection } from "@/components/records/files-section";
 import { cn } from "@/lib/utils";
 
 // Schema de validación para campos editables
@@ -56,6 +57,18 @@ interface EditableRecordPageProps {
       text: string;
       createdAt: Date;
       updatedAt: Date;
+    }>;
+    files: Array<{
+      id: number;
+      recordId: number | null;
+      name: string;
+      url: string;
+      storagePath: string;
+      type: string;
+      size: number;
+      aiMatch: boolean;
+      aiConfidence: number | null;
+      createdAt: Date;
     }>;
     Office?: {
       id: number;
@@ -359,6 +372,17 @@ export default function EditableRecordPage({
               recordId: record.id,
               createdAt: note.createdAt,
               updatedAt: note.updatedAt,
+            }))}
+          />
+        </div>
+
+        {/* Sección de archivos adjuntos */}
+        <div className="shrink-0">
+          <FilesSection
+            recordId={record.id}
+            initialFiles={record.files.map((f) => ({
+              ...f,
+              createdAt: f.createdAt.toISOString(),
             }))}
           />
         </div>

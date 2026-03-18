@@ -62,6 +62,22 @@ model Record {
   Note           Note[]
   Office         Office?          @relation(fields: [officeId], references: [id])
   RecordsAndUser RecordsAndUser[]
+  files          RecordFile[]
+}
+
+model RecordFile {
+  id           Int      @id @default(autoincrement())
+  recordId     Int?
+  name         String
+  url          String
+  storagePath  String
+  folderPath   String?
+  type         String
+  size         Int
+  aiMatch      Boolean  @default(false)
+  aiConfidence Float?
+  createdAt    DateTime @default(now())
+  record       Record?  @relation(fields: [recordId], references: [id])
 }
 
 model RecordsAndUser {
