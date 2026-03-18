@@ -5,27 +5,21 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, X } from "lucide-react";
-import { FaExclamation } from "react-icons/fa";
+import { Loader2, ArrowLeft, Star } from "lucide-react";
 import {
   Card,
-  CardAction,
-  CardContent,
   CardHeader,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { TracingBadge } from "@/components/records";
+import { PRIORITY_OPTIONS } from "@/app/constants";
 import { EditableField } from "./editable-field";
 import { EditableSelect } from "./editable-select";
 import { EditableList } from "./editable-list";
 import { NotesSection } from "./notes-section";
 import { OfficeSelector } from "./office-selector";
 import { toast } from "sonner";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { DeleteButton } from "@/components/records/delete-button";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +32,7 @@ const recordSchema = z.object({
   defendant: z.array(z.string()),
   prosecutor: z.array(z.string()),
   tracing: z.string(),
+  priority: z.string(),
 });
 
 type RecordFormValues = z.infer<typeof recordSchema>;
@@ -52,6 +47,7 @@ interface EditableRecordPageProps {
     defendant?: string[];
     prosecutor?: string[];
     tracing: string;
+    priority: string;
     favorite: boolean;
     officeId?: number | null;
     Note: Array<{
@@ -85,7 +81,6 @@ export default function EditableRecordPage({
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isFavorite, setIsFavorite] = useState(record.favorite);
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [currentOffice, setCurrentOffice] = useState(record.Office);
 
   const { Note: RecordNote } = record;
@@ -100,6 +95,7 @@ export default function EditableRecordPage({
       defendant: record.defendant || [],
       prosecutor: record.prosecutor || [],
       tracing: record.tracing,
+      priority: record.priority,
     },
   });
 
@@ -202,25 +198,48 @@ export default function EditableRecordPage({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden relative">
-      {/* Botón cerrar */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => router.push("/")}
-        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground z-40"
-        title="Cerrar expediente"
-      >
-        <X className="h-5 w-5" />
-      </Button>
+    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
 
-      {/* Indicador de guardado */}
-      {isSaving && (
-        <div className="fixed top-4 right-14 bg-background border rounded-lg p-3 shadow-lg flex items-center gap-2 z-50">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Guardando...</span>
+      {/* Top action bar */}
+      <div className="flex items-center justify-between mb-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/")}
+            className="h-7 w-7 text-muted-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold text-muted-foreground">
+            Expediente
+          </span>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          {isSaving && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground/50" />
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleFavorite}
+            disabled={isTogglingFavorite}
+            className={cn(
+              "h-8 w-8 transition-all",
+              isFavorite
+                ? "text-amber-400 hover:text-amber-500"
+                : "text-muted-foreground/50 hover:text-amber-400"
+            )}
+            title={isFavorite ? "Quitar de destacados" : "Marcar como destacado"}
+          >
+            {isTogglingFavorite ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Star className={cn("h-4 w-4", isFavorite && "fill-amber-400")} />
+            )}
+          </Button>
+        </div>
+      </div>
 
       {/* Contenido principal con altura flexible */}
       <div className="flex-1 flex flex-col gap-2 min-h-0">
@@ -245,6 +264,20 @@ export default function EditableRecordPage({
                   )}
                   getLabel={(key) => tracingOptions[key]?.label || key}
                 />
+                <EditableSelect
+                  value={formValues.priority}
+                  options={PRIORITY_OPTIONS}
+                  onSave={(value) => handleFieldChange("priority", value)}
+                  renderDisplay={() => {
+                    const p = PRIORITY_OPTIONS[formValues.priority];
+                    return p ? (
+                      <Badge style={{ backgroundColor: p.color, color: "#1a1a1a" }}>
+                        {p.label}
+                      </Badge>
+                    ) : null;
+                  }}
+                  getLabel={(key) => PRIORITY_OPTIONS[key]?.label || key}
+                />
               </div>
 
               <EditableField
@@ -263,28 +296,6 @@ export default function EditableRecordPage({
                 isDescription
               />
 
-              {/* Botón de favorito */}
-              <CardAction>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleFavorite}
-                  disabled={isTogglingFavorite}
-                  className={cn(
-                    "h-8 w-8 transition-all",
-                    isFavorite
-                      ? "text-emerald-400 hover:text-emerald-500 bg-emerald-400/10"
-                      : "text-muted-foreground hover:text-emerald-400"
-                  )}
-                  title={isFavorite ? "Quitar de destacados" : "Marcar como destacado"}
-                >
-                  {isTogglingFavorite ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FaExclamation className="h-4 w-4" />
-                  )}
-                </Button>
-              </CardAction>
             </CardHeader>
           </Card>
 
@@ -331,6 +342,9 @@ export default function EditableRecordPage({
                 </div>
               </div>
             </div>
+            <div className="shrink-0 px-3 pb-3 pt-2 border-t">
+              <DeleteButton recordId={record.id} recordName={record.name} />
+            </div>
           </Card>
         </div>
 
@@ -349,17 +363,6 @@ export default function EditableRecordPage({
           />
         </div>
 
-        {/* Opciones adicionales - al final */}
-        <div className="shrink-0 pb-2">
-          <Collapsible open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
-            <CollapsibleTrigger className="w-full text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors py-1">
-              {isOptionsOpen ? "Ocultar opciones" : "Más opciones"}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-1">
-              <DeleteButton recordId={record.id} recordName={record.name} />
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
       </div>
     </div>
   );

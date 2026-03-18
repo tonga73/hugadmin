@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller, useFieldArray, Resolver } from "react-hook-form";
+import { useForm, Controller, useFieldArray, Resolver, UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { TRACING_OPTIONS } from "@/app/constants";
@@ -84,7 +84,8 @@ function PartySection({
   fields: { id: string }[];
   onAdd: () => void;
   onRemove: (i: number) => void;
-  register: (name: string) => object;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register: UseFormRegister<any>;
   fieldPrefix: string;
 }) {
   return (

@@ -152,11 +152,16 @@ export function RecordsList({
                         className="flex flex-col items-start justify-start py-1"
                         onClick={() => handleItemClick(actualIndex)}
                       >
-                        <span className="flex items-center gap-1.5 w-full">
-                          <span className="text-sm font-medium">{record.order}</span>
-                          <TracingBadge tracing={record.tracing} />
+                        <span className="flex items-center gap-1.5 w-full min-w-0">
+                          <span className="text-sm font-medium shrink-0">{record.order}</span>
+                          {record.code && (
+                            <span className="text-[10px] font-mono text-muted-foreground/50 truncate">
+                              {record.code}
+                            </span>
+                          )}
+                          <TracingBadge tracing={record.tracing} size="sm" />
                         </span>
-                        <span className="text-xs text-muted-foreground uppercase truncate w-full">
+                        <span className="text-xs text-muted-foreground truncate w-full">
                           {record.name}
                         </span>
                       </a>

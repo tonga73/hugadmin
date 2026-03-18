@@ -2,11 +2,11 @@ import { CircularProgress } from "@/components/shared";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
+import { TRACING_OPTIONS } from "@/app/constants/tracing";
 
 export default async function Home() {
   const [
@@ -50,239 +50,109 @@ export default async function Home() {
   // Expedientes activos (no archivados)
   const activosStat = totalStat - inactivoStat;
 
+  const tracingFlow = [
+    { key: "ACEPTA_CARGO", count: aceptaCargoStat },
+    { key: "ACTO_PERICIAL_REALIZADO", count: actoPericialStat },
+    { key: "PERICIA_REALIZADA", count: periciaRealizadaStat },
+    { key: "SENTENCIA_O_CONVENIO_DE_PARTES", count: sentenciaStat },
+    { key: "HONORARIOS_REGULADOS", count: honorariosReguladosStat },
+    { key: "EN_TRATATIVA_DE_COBRO", count: tratativaStat },
+    { key: "COBRADO", count: cobradoStat },
+  ];
+
   return (
-    <div className="h-full grid grid-cols-3 grid-rows-2 gap-1.5">
-      {/* Sección principal - 2 columnas, 2 filas */}
-      <div className="col-span-2 row-span-2 flex flex-col gap-1.5">
-        {/* Fila superior - Total y Cobrados */}
-        <div className="flex-1 grid grid-cols-2 gap-1.5">
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Total Expedientes</CardTitle>
-              <CardDescription>
-                {activosStat} activos · {inactivoStat} archivados
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-center justify-center">
-              <div className="w-full h-full max-h-64 flex flex-col items-center justify-center">
-                <CircularProgress
-                  size={280}
-                  strokeWidth={20}
-                  labelClassName="text-muted-foreground text-3xl"
-                  progressClassName="stroke-white/50"
-                  progress={100}
-                />
-                <span className="text-xs text-muted-foreground mt-2">
-                  {totalStat} expedientes registrados
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Cobrados</CardTitle>
-              <CardDescription>
-                Expedientes con cobro completado
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-center justify-center">
-              <div className="w-full h-full max-h-64 flex flex-col items-center justify-center">
-                <CircularProgress
-                  size={280}
-                  strokeWidth={20}
-                  labelClassName="text-teal-400 text-3xl"
-                  className="stroke-teal-700/30"
-                  progressClassName="stroke-teal-500"
-                  progress={getPercentage(cobradoStat)}
-                />
-                <span className="text-xs text-muted-foreground mt-2">
-                  {cobradoStat} de {totalStat} expedientes
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Fila inferior - Stats rápidos */}
-        <div className="grid grid-cols-3 gap-1.5">
-          <Card className="flex items-center justify-between gap-4 px-4 py-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium">Pericia Realizada</p>
-              <p className="text-[10px] text-muted-foreground">
-                {periciaRealizadaStat} expedientes
-              </p>
-            </div>
-            <CircularProgress
-              size={80}
-              className="stroke-indigo-700/30"
-              progressClassName="stroke-indigo-500"
-              labelClassName="text-sm"
-              progress={getPercentage(periciaRealizadaStat)}
-            />
-          </Card>
-          <Card className="flex items-center justify-between gap-4 px-4 py-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium">Archivados</p>
-              <p className="text-[10px] text-muted-foreground">
-                {inactivoStat} expedientes
-              </p>
-            </div>
-            <CircularProgress
-              size={80}
-              className="stroke-gray-700/30"
-              progressClassName="stroke-gray-500"
-              labelClassName="text-sm"
-              progress={getPercentage(inactivoStat)}
-            />
-          </Card>
-          <Card className="flex items-center justify-between gap-4 px-4 py-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium">Destacados</p>
-              <p className="text-[10px] text-muted-foreground">
-                {destacadoStat} expedientes
-              </p>
-            </div>
-            <CircularProgress
-              size={80}
-              className="stroke-emerald-700/30"
-              progressClassName="stroke-emerald-400"
-              labelClassName="text-sm"
-              progress={getPercentage(destacadoStat)}
-            />
-          </Card>
-        </div>
+    <div className="h-full flex flex-col gap-1.5">
+      {/* Fila 1 — 4 stat cards numéricas */}
+      <div className="grid grid-cols-4 gap-1.5 shrink-0">
+        <Card>
+          <CardHeader className="pb-2">
+            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
+            <p className="text-3xl font-bold">{totalStat}</p>
+            <p className="text-[10px] text-muted-foreground">expedientes registrados</p>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Activos</p>
+            <p className="text-3xl font-bold">{activosStat}</p>
+            <p className="text-[10px] text-muted-foreground">{inactivoStat} archivados</p>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
+            <p className="text-3xl font-bold">{destacadoStat}</p>
+            <p className="text-[10px] text-muted-foreground">{getPercentage(destacadoStat)}% del total</p>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Cobrados</p>
+            <p className="text-3xl font-bold text-teal-400">{cobradoStat}</p>
+            <p className="text-[10px] text-muted-foreground">{getPercentage(cobradoStat)}% completados</p>
+          </CardHeader>
+        </Card>
       </div>
 
-      {/* Columna derecha - Prioridad */}
-      <div className="space-y-1.5 flex flex-col">
-        <p className="uppercase text-xs font-medium text-muted-foreground px-1.5 tracking-wider">
-          Por Prioridad
-        </p>
-        <div className="flex-1 grid grid-rows-3 gap-1.5">
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">Media</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {mediaStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-yellow-700/30"
-                  progressClassName="stroke-yellow-500"
-                  labelClassName="text-sm"
-                  progress={getPercentage(mediaStat)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">Alta</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {altaStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-orange-700/30"
-                  progressClassName="stroke-orange-500"
-                  labelClassName="text-sm"
-                  progress={getPercentage(altaStat)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">Urgente</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {urgenteStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-red-700/30"
-                  progressClassName="stroke-red-500"
-                  labelClassName="text-sm"
-                  progress={getPercentage(urgenteStat)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Fila 2 — Flujo + Prioridad */}
+      <div className="flex-1 grid grid-cols-3 gap-1.5 min-h-0">
+        {/* Flujo de expedientes */}
+        <Card className="col-span-2 flex flex-col min-h-0">
+          <CardHeader className="pb-2 shrink-0">
+            <CardTitle className="text-sm">Flujo de expedientes</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-auto space-y-3">
+            {tracingFlow.map(({ key, count }) => {
+              const option = TRACING_OPTIONS[key];
+              const pct = getPercentage(count);
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <div
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ background: option.color }}
+                  />
+                  <span className="text-sm flex-1 min-w-0 truncate">{option.label}</span>
+                  <span className="text-sm font-medium w-6 text-right shrink-0">{count}</span>
+                  <div className="w-28 h-1.5 rounded-full bg-muted shrink-0">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${pct}%`, background: option.color }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground w-8 text-right shrink-0">{pct}%</span>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
 
-      {/* Columna derecha - Estado de cobro */}
-      <div className="space-y-1.5 flex flex-col">
-        <p className="uppercase text-xs font-medium text-muted-foreground px-1.5 tracking-wider">
-          Estado de Cobro
-        </p>
-        <div className="flex-1 grid grid-rows-3 gap-1.5">
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">Sentencia/Convenio</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {sentenciaStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
+        {/* Por prioridad */}
+        <Card className="flex flex-col min-h-0">
+          <CardHeader className="pb-2 shrink-0">
+            <CardTitle className="text-sm">Por prioridad</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-around">
+            {[
+              { label: "Media", count: mediaStat, className: "stroke-yellow-700/30", progressClassName: "stroke-yellow-500" },
+              { label: "Alta", count: altaStat, className: "stroke-orange-700/30", progressClassName: "stroke-orange-500" },
+              { label: "Urgente", count: urgenteStat, className: "stroke-red-700/30", progressClassName: "stroke-red-500" },
+            ].map(({ label, count, className, progressClassName }) => (
+              <div key={label} className="flex items-center gap-4">
+                <div className="flex-1">
+                  <p className="text-sm">{label}</p>
+                  <p className="text-[10px] text-muted-foreground">{count} expedientes</p>
+                </div>
                 <CircularProgress
                   size={87}
-                  className="stroke-slate-700/30"
-                  progressClassName="stroke-slate-400"
+                  className={className}
+                  progressClassName={progressClassName}
                   labelClassName="text-sm"
-                  progress={getPercentage(sentenciaStat)}
+                  progress={getPercentage(count)}
                 />
               </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">Honorarios Regulados</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {honorariosReguladosStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-violet-700/30"
-                  progressClassName="stroke-violet-500"
-                  labelClassName="text-sm"
-                  progress={getPercentage(honorariosReguladosStat)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-row items-center gap-4 py-0">
-            <CardContent className="w-full flex flex-row items-center gap-4 py-0">
-              <div className="flex-1">
-                <p className="text-sm">En Tratativa</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {tratativaStat} expedientes
-                </p>
-              </div>
-              <div className="flex-0">
-                <CircularProgress
-                  size={87}
-                  className="stroke-amber-700/30"
-                  progressClassName="stroke-amber-500"
-                  labelClassName="text-sm"
-                  progress={getPercentage(tratativaStat)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

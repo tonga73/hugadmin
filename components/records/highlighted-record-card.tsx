@@ -49,13 +49,18 @@ export const HighlightedRecordCard = forwardRef<
             borderLeft: `4px solid ${PRIORITY_OPTIONS[record.priority].color}`,
           }}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-bold text-sm text-blue-700 dark:text-blue-300">
+          <div className="flex items-center gap-2 mb-1 min-w-0">
+            <span className="font-bold text-sm text-blue-700 dark:text-blue-300 shrink-0">
               {record.order}
             </span>
-            <TracingBadge tracing={record.tracing} />
+            {record.code && (
+              <span className="text-[10px] font-mono text-muted-foreground/60 truncate">
+                {record.code}
+              </span>
+            )}
+            <TracingBadge tracing={record.tracing} size="sm" />
           </div>
-          <span className="text-sm uppercase font-medium">{record.name}</span>
+          <span className="text-sm font-medium">{record.name}</span>
         </button>
       </div>
 
