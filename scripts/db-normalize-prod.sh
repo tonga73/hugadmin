@@ -2,7 +2,7 @@
 set -e
 
 # Carga DATABASE_URL_PROD desde .env y corre el script de normalización de orders
-PROD_URL=$(grep '^DATABASE_URL_PROD=' .env | cut -d '=' -f2-)
+PROD_URL=$(grep '^DATABASE_URL_PROD=' .env | cut -d '=' -f2- | tr -d '"')
 
 if [ -z "$PROD_URL" ]; then
   echo "Error: DATABASE_URL_PROD no encontrada en .env"
