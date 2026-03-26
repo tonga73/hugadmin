@@ -11,7 +11,7 @@ export interface SyncResult {
 
 export type SyncProgress =
   | { type: "listing"; folder?: string; found?: number }
-  | { type: "adding"; current: number; total: number; name: string }
+  | { type: "adding"; current: number; total: number }
   | { type: "removing"; current: number; total: number };
 
 interface DriveFile {
@@ -35,6 +35,8 @@ const SUPPORTED_MIMES = new Set([
   "video/x-msvideo",
 ]);
 
+const BATCH_SIZE = 500;
+
 function getDriveClient() {
   const auth = new google.auth.GoogleAuth({
     credentials: {
@@ -44,6 +46,10 @@ function getDriveClient() {
     scopes: ["https://www.googleapis.com/auth/drive"],
   });
   return google.drive({ version: "v3", auth });
+}
+
+function driveUrl(fileId: string): string {
+  return `https://drive.google.com/uc?id=${fileId}&export=download`;
 }
 
 async function listAllFiles(
@@ -60,7 +66,7 @@ async function listAllFiles(
     const res = await drive.files.list({
       q: `'${folderId}' in parents and trashed = false`,
       fields: "nextPageToken, files(id, name, mimeType, size)",
-      pageSize: 100,
+      pageSize: 1000,
       ...(pageToken ? { pageToken } : {}),
     });
 
@@ -88,16 +94,15 @@ async function listAllFiles(
   return files;
 }
 
-async function makePublic(drive: drive_v3.Drive, fileId: string): Promise<string> {
+export async function publishFile(drive: drive_v3.Drive, fileId: string): Promise<void> {
   try {
     await drive.permissions.create({
       fileId,
       requestBody: { role: "reader", type: "anyone" },
     });
   } catch {
-    // Already public — ignore
+    // Already public or no permission needed — ignore
   }
-  return `https://drive.google.com/uc?id=${fileId}&export=download`;
 }
 
 export async function syncDrive(
@@ -109,53 +114,55 @@ export async function syncDrive(
   const drive = getDriveClient();
   const result: SyncResult = { added: 0, removed: 0, unchanged: 0, errors: [] };
 
-  // 1. Get all files from Drive
+  // 1. List all files from Drive (pageSize: 1000 → ~10x menos llamadas)
   onProgress?.({ type: "listing", found: 0 });
   const driveFiles = await listAllFiles(drive, folderId, "", onProgress);
   const driveIds = new Set(driveFiles.map((f) => f.id));
 
-  // 2. Get all files from DB
+  // 2. Get existing storagePaths from DB
   const dbFiles = await prisma.recordFile.findMany({
     select: { id: true, storagePath: true },
   });
   const dbIds = new Set(dbFiles.map((f) => f.storagePath));
 
-  // 3. Add new files (in Drive but not in DB)
+  // 3. Bulk insert new files — sin makePublic, URL directa del fileId
   const toAdd = driveFiles.filter((f) => !dbIds.has(f.id));
-  for (let i = 0; i < toAdd.length; i++) {
-    const file = toAdd[i];
-    onProgress?.({ type: "adding", current: i + 1, total: toAdd.length, name: file.name });
+  for (let i = 0; i < toAdd.length; i += BATCH_SIZE) {
+    const chunk = toAdd.slice(i, i + BATCH_SIZE);
+    onProgress?.({ type: "adding", current: Math.min(i + BATCH_SIZE, toAdd.length), total: toAdd.length });
     try {
-      const url = await makePublic(drive, file.id);
-      await prisma.recordFile.create({
-        data: {
+      const created = await prisma.recordFile.createMany({
+        data: chunk.map((file) => ({
           recordId: null,
           name: file.name,
-          url,
+          url: driveUrl(file.id),
           storagePath: file.id,
           folderPath: file.folderPath,
           type: file.mimeType,
           size: file.size,
           aiMatch: false,
           aiConfidence: null,
-        },
+        })),
+        skipDuplicates: true,
       });
-      result.added++;
+      result.added += created.count;
     } catch (err) {
-      result.errors.push(`Add ${file.name}: ${(err as Error).message}`);
+      result.errors.push(`Batch ${i}–${i + BATCH_SIZE}: ${(err as Error).message}`);
     }
   }
 
-  // 4. Remove files deleted from Drive (in DB but not in Drive)
+  // 4. Bulk delete files removed from Drive
   const toRemove = dbFiles.filter((f) => !driveIds.has(f.storagePath));
-  for (let i = 0; i < toRemove.length; i++) {
-    onProgress?.({ type: "removing", current: i + 1, total: toRemove.length });
-    const file = toRemove[i];
+  for (let i = 0; i < toRemove.length; i += BATCH_SIZE) {
+    const chunk = toRemove.slice(i, i + BATCH_SIZE);
+    onProgress?.({ type: "removing", current: Math.min(i + BATCH_SIZE, toRemove.length), total: toRemove.length });
     try {
-      await prisma.recordFile.delete({ where: { id: file.id } });
-      result.removed++;
+      const deleted = await prisma.recordFile.deleteMany({
+        where: { id: { in: chunk.map((f) => f.id) } },
+      });
+      result.removed += deleted.count;
     } catch (err) {
-      result.errors.push(`Remove id ${file.id}: ${(err as Error).message}`);
+      result.errors.push(`Delete batch ${i}: ${(err as Error).message}`);
     }
   }
 

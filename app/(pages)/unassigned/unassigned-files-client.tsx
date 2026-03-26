@@ -601,7 +601,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
           if (event.type === "listing") {
             setSyncProgress({ phase: "listing", current: event.found, name: event.folder });
           } else if (event.type === "adding") {
-            setSyncProgress({ phase: "adding", current: event.current, total: event.total, name: event.name });
+            setSyncProgress({ phase: "adding", current: event.current, total: event.total });
           } else if (event.type === "removing") {
             setSyncProgress({ phase: "removing", current: event.current, total: event.total });
           } else if (event.type === "done") {
@@ -723,7 +723,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
               {syncProgress.phase === "listing" &&
                 `Explorando${syncProgress.name ? ` /${syncProgress.name}` : ""}${syncProgress.current ? ` — ${syncProgress.current} encontrados` : "..."}`}
               {syncProgress.phase === "adding" &&
-                `Agregando ${syncProgress.current}/${syncProgress.total} — ${syncProgress.name}`}
+                `Agregando ${syncProgress.current}/${syncProgress.total} archivos...`}
               {syncProgress.phase === "removing" &&
                 `Limpiando ${syncProgress.current}/${syncProgress.total} archivos...`}
             </span>
