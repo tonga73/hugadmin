@@ -7,6 +7,7 @@ import {
   FileVideo,
   File,
   Download,
+  ExternalLink,
   Sparkles,
   Loader2,
   Trash2,
@@ -239,7 +240,14 @@ const FileRow = memo(function FileRow({
       <div className="flex items-center gap-2 flex-1 min-w-0">
         <span className="text-muted-foreground shrink-0">{fileIcon(file.type)}</span>
         <div className="flex-1 min-w-0">
-          <p className="truncate font-medium leading-tight">{file.name}</p>
+          <a
+            href={`https://drive.google.com/file/d/${file.storagePath}/view`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate font-medium leading-tight hover:underline block"
+          >
+            {file.name}
+          </a>
           <p className="text-xs text-muted-foreground/60">{formatBytes(file.size)}</p>
         </div>
         {file.aiMatch && (
@@ -287,7 +295,17 @@ const FileRow = memo(function FileRow({
           IA
         </Button>
 
-        <a href={file.url} target="_blank" rel="noopener noreferrer">
+        <a
+          href={`https://drive.google.com/file/d/${file.storagePath}/view`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Abrir en Drive"
+        >
+          <Button variant="ghost" size="icon" className="h-7 w-7">
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Button>
+        </a>
+        <a href={file.url} target="_blank" rel="noopener noreferrer" title="Descargar">
           <Button variant="ghost" size="icon" className="h-7 w-7">
             <Download className="h-3.5 w-3.5" />
           </Button>
