@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { PRIORITY_OPTIONS } from "@/app/constants/priority";
 import Link from "next/link";
+import { formatOrder } from "@/lib/record-number";
 
 export async function FocusDashboard() {
   const [favorites, totalFavorites, urgente, alta] = await Promise.all([
@@ -79,7 +80,7 @@ export async function FocusDashboard() {
                   className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400 shrink-0" />
-                  <span className="text-xs font-medium text-muted-foreground shrink-0 w-20 truncate">{r.order}</span>
+                  <span className="text-xs font-medium text-muted-foreground shrink-0 w-20 truncate">{formatOrder(r.order)}</span>
                   <span className="text-xs flex-1 truncate">{r.name}</span>
                   <div className="flex items-center gap-1 shrink-0">
                     {priority && r.priority !== "NULA" && (

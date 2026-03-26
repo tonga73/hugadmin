@@ -7,6 +7,7 @@ import {
   FileVideo,
   File,
   Download,
+  ExternalLink,
   Trash2,
   Upload,
   Sparkles,
@@ -178,12 +179,17 @@ function FileGroup({
                     {fileIcon(f.type)}
                   </span>
 
-                  <span className="flex-1 truncate min-w-0 text-[11px]">
+                  <a
+                    href={`https://drive.google.com/file/d/${f.storagePath}/view`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 truncate min-w-0 text-[11px] hover:underline"
+                  >
                     {f.name}
                     <span className="ml-1 text-muted-foreground/50 text-[10px]">
                       {formatBytes(f.size)}
                     </span>
-                  </span>
+                  </a>
 
                   {f.aiMatch && (
                     <Badge
@@ -197,7 +203,17 @@ function FileGroup({
                   )}
 
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <a href={f.url} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`https://drive.google.com/file/d/${f.storagePath}/view`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Abrir en Drive"
+                    >
+                      <Button variant="ghost" size="icon" className="h-4 w-4">
+                        <ExternalLink className="h-2.5 w-2.5" />
+                      </Button>
+                    </a>
+                    <a href={f.url} target="_blank" rel="noopener noreferrer" title="Descargar">
                       <Button variant="ghost" size="icon" className="h-4 w-4">
                         <Download className="h-2.5 w-2.5" />
                       </Button>

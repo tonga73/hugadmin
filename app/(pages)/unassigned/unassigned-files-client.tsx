@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { normalizeOrder } from "@/lib/record-number";
 import {
   Popover,
   PopoverContent,
@@ -187,7 +188,7 @@ function RecordCombobox({
             {records.map((r) => (
               <CommandItem
                 key={r.id}
-                value={`${r.order} ${r.name} ${r.code ?? ""}`}
+                value={`${r.order} ${normalizeOrder(r.order)} ${r.name} ${r.code ?? ""}`}
                 onSelect={() => {
                   onChange(r.id.toString());
                   setOpen(false);
@@ -415,7 +416,7 @@ function FolderAssignButton({
             {records.map((r) => (
               <CommandItem
                 key={r.id}
-                value={`${r.order} ${r.name} ${r.code ?? ""}`}
+                value={`${r.order} ${normalizeOrder(r.order)} ${r.name} ${r.code ?? ""}`}
                 onSelect={() => setSelectedId(r.id.toString())}
                 className="text-xs"
               >
