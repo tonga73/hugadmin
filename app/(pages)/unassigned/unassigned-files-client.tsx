@@ -149,6 +149,14 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// ─── Shared combobox filter ───────────────────────────────────────────────────
+
+function recordFilter(value: string, search: string): number {
+  const terms = search.toLowerCase().trim().split(/\s+/);
+  const haystack = value.toLowerCase();
+  return terms.every((t) => haystack.includes(t)) ? 1 : 0;
+}
+
 // ─── Record combobox ──────────────────────────────────────────────────────────
 
 function RecordCombobox({
@@ -179,7 +187,7 @@ function RecordCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[280px] p-0" align="start">
-        <Command>
+        <Command filter={recordFilter}>
           <CommandInput placeholder="Buscar expediente…" className="h-8 text-xs" />
           <CommandList className="max-h-48">
             <CommandEmpty className="text-xs py-4 text-center text-muted-foreground">
@@ -402,7 +410,7 @@ function FolderAssignButton({
         <p className="text-xs font-medium mb-2">
           Asignar <span className="text-muted-foreground">{node.name}</span> ({total} archivos)
         </p>
-        <Command>
+        <Command filter={recordFilter}>
           <CommandInput
             placeholder="Buscar expediente…"
             className="h-8 text-xs"

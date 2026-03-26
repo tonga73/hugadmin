@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import prisma from "@/lib/prisma";
 import { UnassignedFilesClient } from "./unassigned-files-client";
 
-export default async function UnassignedPage() {
+async function UnassignedFilesData() {
   const [files, records] = await Promise.all([
     prisma.recordFile.findMany({
       where: { recordId: null },
@@ -14,24 +15,46 @@ export default async function UnassignedPage() {
   ]);
 
   return (
+    <UnassignedFilesClient
+      initialFiles={files.map((f) => ({
+        ...f,
+        createdAt: f.createdAt.toISOString(),
+        folderPath: f.folderPath ?? null,
+      }))}
+      records={records}
+    />
+  );
+}
+
+function UnassignedSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 animate-pulse">
+      {/* Search + sync bar */}
+      <div className="flex items-center gap-2">
+        <div className="h-8 flex-1 rounded-lg bg-muted" />
+        <div className="h-8 w-32 rounded-lg bg-muted" />
+      </div>
+      {/* Fake folder rows */}
+      <div className="rounded-xl border p-3 space-y-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-7 rounded-md bg-muted" style={{ width: `${70 + (i % 3) * 10}%` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function UnassignedPage() {
+  return (
     <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
       <div className="mb-4">
         <h1 className="text-lg font-semibold">Archivos sin asignar</h1>
-        <p className="text-sm text-muted-foreground">
-          {files.length === 0
-            ? "No hay archivos pendientes de asignación."
-            : `${files.length} archivo${files.length !== 1 ? "s" : ""} pendiente${files.length !== 1 ? "s" : ""} de asignar a un expediente`}
-        </p>
+        <p className="text-sm text-muted-foreground">Archivos de Drive pendientes de asignación</p>
       </div>
 
-      <UnassignedFilesClient
-        initialFiles={files.map((f) => ({
-          ...f,
-          createdAt: f.createdAt.toISOString(),
-          folderPath: f.folderPath ?? null,
-        }))}
-        records={records}
-      />
+      <Suspense fallback={<UnassignedSkeleton />}>
+        <UnassignedFilesData />
+      </Suspense>
     </div>
   );
 }
