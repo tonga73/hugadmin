@@ -599,7 +599,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
           const event = JSON.parse(line.slice(6));
 
           if (event.type === "listing") {
-            setSyncProgress({ phase: "listing" });
+            setSyncProgress({ phase: "listing", current: event.found, name: event.folder });
           } else if (event.type === "adding") {
             setSyncProgress({ phase: "adding", current: event.current, total: event.total, name: event.name });
           } else if (event.type === "removing") {
@@ -720,7 +720,8 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
           </Button>
           {isSyncing && (
             <span className="text-[10px] text-muted-foreground max-w-[200px] truncate text-right">
-              {syncProgress.phase === "listing" && "Explorando carpeta de Drive..."}
+              {syncProgress.phase === "listing" &&
+                `Explorando${syncProgress.name ? ` /${syncProgress.name}` : ""}${syncProgress.current ? ` — ${syncProgress.current} encontrados` : "..."}`}
               {syncProgress.phase === "adding" &&
                 `Agregando ${syncProgress.current}/${syncProgress.total} — ${syncProgress.name}`}
               {syncProgress.phase === "removing" &&

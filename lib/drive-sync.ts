@@ -10,7 +10,7 @@ export interface SyncResult {
 }
 
 export type SyncProgress =
-  | { type: "listing" }
+  | { type: "listing"; folder?: string; found?: number }
   | { type: "adding"; current: number; total: number; name: string }
   | { type: "removing"; current: number; total: number };
 
@@ -49,7 +49,9 @@ function getDriveClient() {
 async function listAllFiles(
   drive: drive_v3.Drive,
   folderId: string,
-  currentPath = ""
+  currentPath = "",
+  onProgress?: (p: SyncProgress) => void,
+  counter = { found: 0 }
 ): Promise<DriveFile[]> {
   const files: DriveFile[] = [];
   let pageToken: string | undefined;
@@ -65,9 +67,11 @@ async function listAllFiles(
     for (const item of res.data.files ?? []) {
       if (item.mimeType === "application/vnd.google-apps.folder") {
         const subPath = currentPath ? `${currentPath}/${item.name}` : item.name!;
-        const subFiles = await listAllFiles(drive, item.id!, subPath);
+        onProgress?.({ type: "listing", folder: subPath, found: counter.found });
+        const subFiles = await listAllFiles(drive, item.id!, subPath, onProgress, counter);
         files.push(...subFiles);
       } else if (SUPPORTED_MIMES.has(item.mimeType ?? "")) {
+        counter.found++;
         files.push({
           id: item.id!,
           name: item.name!,
@@ -106,8 +110,8 @@ export async function syncDrive(
   const result: SyncResult = { added: 0, removed: 0, unchanged: 0, errors: [] };
 
   // 1. Get all files from Drive
-  onProgress?.({ type: "listing" });
-  const driveFiles = await listAllFiles(drive, folderId);
+  onProgress?.({ type: "listing", found: 0 });
+  const driveFiles = await listAllFiles(drive, folderId, "", onProgress);
   const driveIds = new Set(driveFiles.map((f) => f.id));
 
   // 2. Get all files from DB
