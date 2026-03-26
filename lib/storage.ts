@@ -1,5 +1,5 @@
 // lib/storage.ts — Google Drive storage helpers (server-side)
-import { google } from "googleapis";
+import { google, drive_v3 } from "googleapis";
 import { Readable } from "stream";
 
 function getDriveClient() {
@@ -13,22 +13,88 @@ function getDriveClient() {
   return google.drive({ version: "v3", auth });
 }
 
+// In-memory cache: subfolder name → Drive folder ID (lives for the duration of the process)
+const folderCache = new Map<string, string>();
+
+/**
+ * Find an existing subfolder by name inside parentId, or create it if it doesn't exist.
+ * Results are cached in memory to avoid extra API calls on subsequent uploads.
+ */
+async function findOrCreateFolder(
+  drive: drive_v3.Drive,
+  name: string,
+  parentId: string
+): Promise<string> {
+  const cacheKey = `${parentId}/${name}`;
+  if (folderCache.has(cacheKey)) return folderCache.get(cacheKey)!;
+
+  // Search for an existing folder with this name inside the parent
+  const res = await drive.files.list({
+    q: `'${parentId}' in parents and name = '${name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: "files(id)",
+    pageSize: 1,
+  });
+
+  let folderId = res.data.files?.[0]?.id ?? null;
+
+  if (!folderId) {
+    const created = await drive.files.create({
+      requestBody: {
+        name,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [parentId],
+      },
+      fields: "id",
+    });
+    folderId = created.data.id!;
+  }
+
+  folderCache.set(cacheKey, folderId);
+  return folderId;
+}
+
+// Subfolder names per category
+const CATEGORY_FOLDERS: Record<string, string> = {
+  APARTADO: "Apartados",
+  EXPEDIENTE: "Expediente Unificado",
+};
+
 /**
  * Upload a file buffer to Google Drive.
+ * - For APARTADO / EXPEDIENTE categories: goes into a named subfolder, filename includes record info.
+ * - For DRIVE / other: goes into the root folder with the provided filename.
  * Returns { url, storagePath } where storagePath = Drive file ID.
  */
 export async function uploadFile(
   buffer: Buffer,
   filename: string,
-  mimeType: string
+  mimeType: string,
+  options?: { category?: string; record?: { order: string; name: string } }
 ): Promise<{ url: string; storagePath: string }> {
   const drive = getDriveClient();
-  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  const rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+  let parentId = rootFolderId;
+  let finalName = filename;
+
+  const subfolderName = options?.category ? CATEGORY_FOLDERS[options.category] : null;
+
+  if (subfolderName && rootFolderId) {
+    // Resolve (or create) the subfolder
+    parentId = await findOrCreateFolder(drive, subfolderName, rootFolderId);
+
+    // Prefix filename with record info: "12345_2020 - Nombre del Expediente - archivo.pdf"
+    if (options?.record) {
+      const { order, name } = options.record;
+      const safeName = name.slice(0, 40).replace(/[/\\?%*:|"<>]/g, "-");
+      finalName = `${order} - ${safeName} - ${filename}`;
+    }
+  }
 
   const response = await drive.files.create({
     requestBody: {
-      name: filename,
-      ...(folderId ? { parents: [folderId] } : {}),
+      name: finalName,
+      ...(parentId ? { parents: [parentId] } : {}),
     },
     media: {
       mimeType,
@@ -39,7 +105,7 @@ export async function uploadFile(
 
   const fileId = response.data.id!;
 
-  // Make file publicly readable so the URL works without auth
+  // Make file publicly readable
   await drive.permissions.create({
     fileId,
     requestBody: { role: "reader", type: "anyone" },
@@ -52,7 +118,6 @@ export async function uploadFile(
 
 /**
  * Download a file from Google Drive by its file ID.
- * Returns a Buffer with the file contents.
  */
 export async function downloadFile(fileId: string): Promise<Buffer> {
   const drive = getDriveClient();

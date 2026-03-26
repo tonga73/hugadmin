@@ -49,10 +49,18 @@ export async function POST(
     return NextResponse.json({ error: "No se recibió archivo" }, { status: 400 });
   }
 
+  const record = await prisma.record.findUnique({
+    where: { id: recordId },
+    select: { order: true, name: true },
+  });
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const filename = `${Date.now()}-${file.name}`;
 
-  const { url, storagePath } = await uploadFile(buffer, filename, file.type);
+  const { url, storagePath } = await uploadFile(buffer, filename, file.type, {
+    category,
+    record: record ?? undefined,
+  });
 
   let aiMatch = false;
   let aiConfidence: number | null = null;
