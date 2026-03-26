@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { BarChart2, Layers, Star, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
@@ -74,8 +74,20 @@ function normalizeView(v: string): DashboardView {
   return "OVERVIEW";
 }
 
+function buildUrl(config: Config, pathname: string): string {
+  // Only encode on dashboard root, not on record pages
+  if (pathname !== "/") return pathname;
+  const params = new URLSearchParams();
+  params.set("view", config.dashboardView);
+  if (config.tracingFilter.length > 0) params.set("tracing", config.tracingFilter.join(","));
+  if (config.favoritesOnly) params.set("fav", "1");
+  if (config.minPriority) params.set("priority", config.minPriority);
+  return "/?" + params.toString();
+}
+
 export function ViewSwitcher() {
   const router = useRouter();
+  const pathname = usePathname();
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [loaded, setLoaded] = useState(false);
   const [, startTransition] = useTransition();
@@ -101,12 +113,16 @@ export function ViewSwitcher() {
   const patch = async (update: Partial<Config>) => {
     const next = { ...config, ...update };
     setConfig(next);
-    await fetch("/api/users/me/config", {
+    // Save to DB (background — don't await to keep UI snappy)
+    fetch("/api/users/me/config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(update),
     });
-    startTransition(() => router.refresh());
+    // Navigate to same page with URL params — layout is preserved, only page re-renders
+    if (pathname === "/") {
+      startTransition(() => router.push(buildUrl(next, pathname), { scroll: false } as any));
+    }
   };
 
   const toggleTracing = (key: string) => {
