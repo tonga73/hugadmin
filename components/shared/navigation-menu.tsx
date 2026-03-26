@@ -14,7 +14,7 @@ import { UserMenu } from "./user-menu";
 import { ViewSwitcher } from "./view-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogIn } from "lucide-react";
+import { LogIn, Home } from "lucide-react";
 
 export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const isMobile = useIsMobile();
@@ -26,6 +26,13 @@ export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
         <NavigationMenuList>
           <NavigationMenuItem>
             <SidebarTrigger />
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Button variant="ghost" size="icon" asChild className="h-7 w-7">
+              <Link href="/">
+                <Home className="h-4 w-4" />
+              </Link>
+            </Button>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenuUI>
