@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import EditableRecordPage from "./editable-record-page";
 import { TRACING_OPTIONS } from "@/app/constants";
+import { getSessionUser } from "@/lib/session";
+import { getUserViewConfig } from "@/lib/user-config";
 
 export default async function RecordPage({
   params,
@@ -9,26 +11,23 @@ export default async function RecordPage({
 }) {
   const { id } = await params;
 
-  const record = await prisma.record.findUniqueOrThrow({
-    where: {
-      id: Number(id),
-    },
-    include: {
-      Note: true,
-      files: {
-        orderBy: { createdAt: "desc" },
+  const [record, sessionUser] = await Promise.all([
+    prisma.record.findUniqueOrThrow({
+      where: { id: Number(id) },
+      include: {
+        Note: true,
+        files: { orderBy: { createdAt: "desc" } },
+        Office: { include: { Court: { include: { District: true } } } },
       },
-      Office: {
-        include: {
-          Court: {
-            include: {
-              District: true,
-            },
-          },
-        },
-      },
-    },
-  });
+    }),
+    getSessionUser(),
+  ]);
+
+  const config = sessionUser?.email ? await getUserViewConfig(sessionUser.email) : null;
+  const allowedCategories =
+    config?.fileCategories && config.fileCategories.length > 0
+      ? (config.fileCategories as string[])
+      : undefined;
 
   if (!record) {
     return (
@@ -39,6 +38,10 @@ export default async function RecordPage({
   }
 
   return (
-    <EditableRecordPage record={record} tracingOptions={TRACING_OPTIONS} />
+    <EditableRecordPage
+      record={record}
+      tracingOptions={TRACING_OPTIONS}
+      allowedFileCategories={allowedCategories}
+    />
   );
 }

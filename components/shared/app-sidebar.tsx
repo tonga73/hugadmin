@@ -9,9 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
 import { Separator } from "../ui/separator";
-import { PlusIcon, FolderOpen } from "lucide-react";
+import { PlusIcon, FolderOpen, Settings } from "lucide-react";
 import { RecordsList } from "../records";
 import { Logo } from "./logo";
 
@@ -69,6 +68,22 @@ export async function AppSidebar() {
               lastId={lastId}
               hasMore={hasMore}
             />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Footer */}
+        <SidebarGroup className="mt-auto py-2">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/settings">
+                    <Settings className="h-4 w-4" />
+                    <span>Configuración</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

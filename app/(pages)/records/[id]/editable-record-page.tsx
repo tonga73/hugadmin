@@ -39,6 +39,7 @@ const recordSchema = z.object({
 type RecordFormValues = z.infer<typeof recordSchema>;
 
 interface EditableRecordPageProps {
+  allowedFileCategories?: string[];
   record: {
     id: number;
     code?: string | null;
@@ -90,6 +91,7 @@ interface EditableRecordPageProps {
 export default function EditableRecordPage({
   record,
   tracingOptions,
+  allowedFileCategories,
 }: EditableRecordPageProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -323,6 +325,7 @@ export default function EditableRecordPage({
                   ...f,
                   createdAt: f.createdAt.toISOString(),
                 }))}
+                allowedCategories={allowedFileCategories as any}
               />
             </div>
           </Card>

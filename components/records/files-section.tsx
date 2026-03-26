@@ -50,6 +50,7 @@ interface RecordFile {
 interface FilesSectionProps {
   recordId: number;
   initialFiles: RecordFile[];
+  allowedCategories?: FileCategory[];
 }
 
 function fileIcon(mimeType: string) {
@@ -241,8 +242,10 @@ function FileGroup({
   );
 }
 
-export function FilesSection({ recordId, initialFiles }: FilesSectionProps) {
+export function FilesSection({ recordId, initialFiles, allowedCategories }: FilesSectionProps) {
   const [files, setFiles] = useState<RecordFile[]>(initialFiles);
+  const isAllowed = (cat: FileCategory) =>
+    !allowedCategories || allowedCategories.length === 0 || allowedCategories.includes(cat);
   const [uploadingCategory, setUploadingCategory] = useState<FileCategory | null>(null);
 
   const uploadFiles = useCallback(
@@ -296,41 +299,47 @@ export function FilesSection({ recordId, initialFiles }: FilesSectionProps) {
 
   return (
     <div className="space-y-3">
-      <FileGroup
-        label="Drive"
-        icon={<HardDrive className="h-3 w-3" />}
-        files={driveFiles}
-        category="DRIVE"
-        canUpload={false}
-        isUploading={uploadingCategory === "DRIVE"}
-        defaultOpen={driveFiles.length > 0}
-        onUpload={uploadFiles}
-        onDelete={handleDelete}
-      />
+      {isAllowed("DRIVE") && (
+        <FileGroup
+          label="Drive"
+          icon={<HardDrive className="h-3 w-3" />}
+          files={driveFiles}
+          category="DRIVE"
+          canUpload={false}
+          isUploading={uploadingCategory === "DRIVE"}
+          defaultOpen={driveFiles.length > 0}
+          onUpload={uploadFiles}
+          onDelete={handleDelete}
+        />
+      )}
 
-      <FileGroup
-        label="Apartados"
-        icon={<FolderOpen className="h-3 w-3" />}
-        files={apartadoFiles}
-        category="APARTADO"
-        canUpload
-        isUploading={uploadingCategory === "APARTADO"}
-        defaultOpen={apartadoFiles.length > 0}
-        onUpload={uploadFiles}
-        onDelete={handleDelete}
-      />
+      {isAllowed("APARTADO") && (
+        <FileGroup
+          label="Apartados"
+          icon={<FolderOpen className="h-3 w-3" />}
+          files={apartadoFiles}
+          category="APARTADO"
+          canUpload
+          isUploading={uploadingCategory === "APARTADO"}
+          defaultOpen={apartadoFiles.length > 0}
+          onUpload={uploadFiles}
+          onDelete={handleDelete}
+        />
+      )}
 
-      <FileGroup
-        label="Expediente"
-        icon={<BookOpen className="h-3 w-3" />}
-        files={expedienteFiles}
-        category="EXPEDIENTE"
-        canUpload
-        isUploading={uploadingCategory === "EXPEDIENTE"}
-        defaultOpen={expedienteFiles.length > 0}
-        onUpload={uploadFiles}
-        onDelete={handleDelete}
-      />
+      {isAllowed("EXPEDIENTE") && (
+        <FileGroup
+          label="Expediente"
+          icon={<BookOpen className="h-3 w-3" />}
+          files={expedienteFiles}
+          category="EXPEDIENTE"
+          canUpload
+          isUploading={uploadingCategory === "EXPEDIENTE"}
+          defaultOpen={expedienteFiles.length > 0}
+          onUpload={uploadFiles}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }
