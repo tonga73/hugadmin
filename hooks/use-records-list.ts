@@ -113,6 +113,7 @@ export function useRecordsList({
   const clearPinnedSearch = useCallback(() => {
     setPinnedQuery("");
     setCommandQuery("");
+    setHighlightedRecord(null);
   }, []);
 
   // Destacar record si no está en la lista
@@ -164,14 +165,17 @@ export function useRecordsList({
   // Seleccionar record desde Command
   const handleCommandSelect = useCallback(
     (record: Record) => {
-      ensureRecordInList(record);
+      // Agregar el record a la lista si no está — aparece naturalmente en filteredRecords
+      setRecords((prev) =>
+        recordExists(prev, record.id) ? prev : [record, ...prev]
+      );
       if (commandQuery.trim()) {
         setPinnedQuery(commandQuery);
       }
       setCommandOpen(false);
-      router.push(`/records/${record.id}?highlight=${record.id}`);
+      router.push(`/records/${record.id}`);
     },
-    [commandQuery, ensureRecordInList, router]
+    [commandQuery, router]
   );
 
   // Cargar más resultados del Command
@@ -262,6 +266,12 @@ export function useRecordsList({
     };
   }, [loading, refreshRecords]);
 
+  // Reset cursor cuando cambia el filtro activo
+  useEffect(() => {
+    setCursor(null);
+    setMore(true);
+  }, [pinnedQuery]);
+
   // Infinite scroll
   useEffect(() => {
     const viewport = scrollRef.current?.querySelector<HTMLElement>(
@@ -277,7 +287,11 @@ export function useRecordsList({
             records: newRecords,
             lastId: newCursor,
             hasMore,
-          } = await getRecords({ cursor: cursor ?? undefined, take: 10 });
+          } = await getRecords({
+            cursor: cursor ?? undefined,
+            take: 10,
+            query: pinnedQuery || undefined,
+          });
 
           setRecords((prev) => mergeUniqueRecords(prev, parseRecordsDates(newRecords)));
           setCursor(newCursor);
@@ -290,7 +304,7 @@ export function useRecordsList({
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [cursor, loading, more]);
+  }, [cursor, loading, more, pinnedQuery]);
 
   // Actualizar selectedIndex según pathname
   useEffect(() => {

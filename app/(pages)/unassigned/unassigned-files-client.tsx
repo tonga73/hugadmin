@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   FileText,
   FileImage,
@@ -568,9 +568,15 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
   const [selectedRecord, setSelectedRecord] = useState<Record<number, string>>({});
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const tree = useMemo(() => buildTree(files), [files]);
-  const filteredTree = useMemo(() => filterTree(tree, search), [tree, search]);
+  const filteredTree = useMemo(() => filterTree(tree, debouncedSearch), [tree, debouncedSearch]);
 
   const handleSelectRecord = useCallback((id: number, val: string) => {
     setSelectedRecord((prev) => ({ ...prev, [id]: val }));
@@ -733,7 +739,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
       <p className="text-xs text-muted-foreground">
         {files.length === 0
           ? "Todos los archivos están asignados"
-          : search
+          : debouncedSearch
           ? `${countFiles(filteredTree)} resultado${countFiles(filteredTree) !== 1 ? "s" : ""} de ${files.length} archivos`
           : `${files.length} archivo${files.length !== 1 ? "s" : ""} sin asignar`}
       </p>
