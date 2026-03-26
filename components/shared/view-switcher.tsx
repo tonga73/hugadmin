@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BarChart2, Layers, Star, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -78,6 +78,7 @@ export function ViewSwitcher() {
   const router = useRouter();
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [loaded, setLoaded] = useState(false);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     fetch("/api/users/me/config")
@@ -105,7 +106,7 @@ export function ViewSwitcher() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(update),
     });
-    router.refresh();
+    startTransition(() => router.refresh());
   };
 
   const toggleTracing = (key: string) => {
