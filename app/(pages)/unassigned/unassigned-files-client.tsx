@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
 import {
   FileText,
   FileImage,
@@ -212,7 +212,7 @@ function RecordCombobox({
 
 // ─── File row ─────────────────────────────────────────────────────────────────
 
-function FileRow({
+const FileRow = memo(function FileRow({
   file,
   records,
   selectedRecord,
@@ -325,7 +325,7 @@ function FileRow({
       </div>
     </li>
   );
-}
+});
 
 // ─── Folder assign button ─────────────────────────────────────────────────────
 
@@ -567,13 +567,25 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
   const [assigning, setAssigning] = useState<number | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<Record<number, string>>({});
 
-  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(t);
-  }, [search]);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    clearTimeout(searchTimerRef.current);
+    const val = e.target.value;
+    searchTimerRef.current = setTimeout(() => setDebouncedSearch(val), 300);
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    if (searchInputRef.current) searchInputRef.current.value = "";
+    clearTimeout(searchTimerRef.current);
+    setDebouncedSearch("");
+  }, []);
+
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") clearSearch();
+  }, [clearSearch]);
 
   const tree = useMemo(() => buildTree(files), [files]);
   const filteredTree = useMemo(() => filterTree(tree, debouncedSearch), [tree, debouncedSearch]);
@@ -694,19 +706,23 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 pointer-events-none" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Buscar archivos o carpetas…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8 pl-8 pr-8 text-sm rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            onChange={handleSearchChange}
+            onKeyDown={handleSearchKeyDown}
+            className="w-full h-8 pl-8 pr-14 text-sm rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-ring"
           />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+          {debouncedSearch && (
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground/40 font-mono">esc</span>
+              <button
+                onClick={clearSearch}
+                className="text-muted-foreground/60 hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
           )}
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
@@ -748,6 +764,10 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
         <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 py-16">
           <p className="text-sm text-muted-foreground">No hay archivos sin asignar</p>
         </div>
+      ) : debouncedSearch && countFiles(filteredTree) === 0 ? (
+        <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 py-16">
+          <p className="text-sm text-muted-foreground">Sin resultados para &ldquo;{debouncedSearch}&rdquo;</p>
+        </div>
       ) : (
         <div className="rounded-xl border p-2">
           <FolderNode
@@ -762,7 +782,7 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
             onFolderAssigned={handleFolderAssigned}
             assigning={assigning}
             analyzing={analyzing}
-            searchActive={!!search}
+            searchActive={!!debouncedSearch}
           />
         </div>
       )}
