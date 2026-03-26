@@ -7,8 +7,10 @@ export async function POST() {
     const result = await syncDrive();
     return NextResponse.json(result);
   } catch (err) {
+    const error = err as any;
+    console.error("Sync error:", error?.message, error?.code, error?.status, error?.errors);
     return NextResponse.json(
-      { error: (err as Error).message },
+      { error: error?.message, code: error?.code, status: error?.status },
       { status: 500 }
     );
   }
