@@ -3,6 +3,7 @@
 import { Record } from "@/app/generated/prisma/client";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { useRecordsList } from "@/hooks/use-records-list";
+import { formatOrder } from "@/lib/record-number";
 import { CommandSearch } from "./command-search";
 import { HighlightedRecordCard } from "./highlighted-record-card";
 import { TracingBadge } from "./tracing-badge";
@@ -153,7 +154,7 @@ export function RecordsList({
                         onClick={() => handleItemClick(actualIndex)}
                       >
                         <span className="flex items-center gap-1.5 w-full min-w-0">
-                          <span className="text-sm font-medium shrink-0">{record.order}</span>
+                          <span className="text-sm font-medium shrink-0">{formatOrder(record.order)}</span>
                           {record.code && (
                             <span className="text-[10px] font-mono text-muted-foreground/50 truncate">
                               {record.code}

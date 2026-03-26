@@ -3,6 +3,7 @@
 import { Search, X } from "lucide-react";
 import { Record } from "@/app/generated/prisma/client";
 import { TracingBadge } from "./tracing-badge";
+import { formatOrder } from "@/lib/record-number";
 import { CommandDialog, CommandInput } from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefObject, useRef, useEffect } from "react";
@@ -243,7 +244,7 @@ const CommandResultItem = forwardRef<HTMLButtonElement, CommandResultItemProps>(
         <div className="w-full overflow-hidden">
           {/* Header: Orden + Badge */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-semibold shrink-0">{record.order}</span>
+            <span className="text-sm font-semibold shrink-0">{formatOrder(record.order)}</span>
             <TracingBadge tracing={record.tracing} />
           </div>
           {/* Nombre: máximo 2 líneas */}

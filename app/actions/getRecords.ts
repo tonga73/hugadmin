@@ -4,6 +4,9 @@ import prisma from "@/lib/prisma";
 import { Tracing } from "@/app/generated/prisma/enums";
 import { TRACING_OPTIONS } from "@/app/constants";
 import { unstable_cache } from "next/cache";
+import { getSessionUser } from "@/lib/session";
+import { getUserViewConfig, getPrioritiesAboveMin } from "@/lib/user-config";
+import { normalizeOrder } from "@/lib/record-number";
 
 // Función interna sin caché
 async function fetchRecords({
@@ -11,18 +14,40 @@ async function fetchRecords({
   take = 10,
   query,
   exactMatch = false,
+  userFilters,
 }: {
   cursor?: number;
   take?: number;
   query?: string;
   exactMatch?: boolean;
+  userFilters?: {
+    tracingFilter: string[];
+    favoritesOnly: boolean;
+    minPriority: string | null;
+  };
 }) {
-  // Construir filtro de búsqueda
   let where: any = {};
+
+  // Aplicar filtros del usuario
+  if (userFilters) {
+    if (userFilters.tracingFilter.length > 0) {
+      where.tracing = { in: userFilters.tracingFilter };
+    }
+    if (userFilters.favoritesOnly) {
+      where.favorite = true;
+    }
+    if (userFilters.minPriority) {
+      const priorities = getPrioritiesAboveMin(userFilters.minPriority);
+      if (priorities.length > 0) {
+        where.priority = { in: priorities };
+      }
+    }
+  }
+
+  // Construir filtro de búsqueda (se combina con AND con los filtros de usuario)
   if (query && query.trim()) {
     const terms = query.trim().split(/\s+/).filter(Boolean);
 
-    // Encontrar enum keys que coincidan con el término (exacto o partial)
     const getTracingEnumKeys = (searchTerm: string): string[] => {
       const normalized = searchTerm.toUpperCase();
       return Object.entries(Tracing)
@@ -34,49 +59,35 @@ async function fetchRecords({
         .map(([key]) => key);
     };
 
-    // Encontrar enum keys por label matching
     const getTracingByLabel = (searchTerm: string): string[] => {
       const normalized = searchTerm.toLowerCase();
       return Object.entries(TRACING_OPTIONS)
         .filter(([_, opt]) => {
           if (exactMatch && opt.label.toLowerCase() === normalized) return true;
-          if (!exactMatch && opt.label.toLowerCase().includes(normalized))
-            return true;
+          if (!exactMatch && opt.label.toLowerCase().includes(normalized)) return true;
           return false;
         })
         .map(([key]) => key);
     };
 
     const orConditions: any[] = [];
-
-    // Búsqueda en order y name (case-insensitive)
     terms.forEach((t) => {
+      const nt = normalizeOrder(t);
       orConditions.push({
-        order: exactMatch
-          ? { equals: t, mode: "insensitive" }
-          : { contains: t, mode: "insensitive" },
+        order: exactMatch ? { equals: nt, mode: "insensitive" } : { contains: nt, mode: "insensitive" },
       });
       orConditions.push({
-        name: exactMatch
-          ? { equals: t, mode: "insensitive" }
-          : { contains: t, mode: "insensitive" },
+        name: exactMatch ? { equals: t, mode: "insensitive" } : { contains: t, mode: "insensitive" },
       });
     });
 
-    // Búsqueda en tracing por enum key o label
     terms.forEach((t) => {
-      const enumKeys = getTracingEnumKeys(t);
-      const labelKeys = getTracingByLabel(t);
-      const allTracingKeys = [...new Set([...enumKeys, ...labelKeys])];
-
+      const allTracingKeys = [...new Set([...getTracingEnumKeys(t), ...getTracingByLabel(t)])];
       allTracingKeys.forEach((key) => {
-        orConditions.push({
-          tracing: { equals: key as any },
-        });
+        orConditions.push({ tracing: { equals: key as any } });
       });
     });
 
-    // Búsqueda en arrays (defendant, prosecutor, insurance)
     terms.forEach((t) => {
       orConditions.push({ defendant: { has: t } });
       orConditions.push({ prosecutor: { has: t } });
@@ -84,7 +95,9 @@ async function fetchRecords({
     });
 
     if (orConditions.length > 0) {
-      where = { OR: orConditions };
+      // Merge with existing user filters using AND
+      const searchFilter = { OR: orConditions };
+      where = Object.keys(where).length > 0 ? { AND: [where, searchFilter] } : searchFilter;
     }
   }
 
@@ -98,7 +111,6 @@ async function fetchRecords({
   const lastId = records.at(-1)?.id ?? null;
   const hasMore = records.length === take;
 
-  // Serializar fechas explícitamente
   const serializedRecords = records.map((r) => ({
     ...r,
     createdAt: r.createdAt.toISOString(),
@@ -108,25 +120,40 @@ async function fetchRecords({
   return { records: serializedRecords, lastId, hasMore };
 }
 
-// Versión cacheada para listados iniciales (sin búsqueda)
+// Cache compartido (sin filtros de usuario)
 const getCachedRecords = unstable_cache(
-  async (cursor?: number, take?: number) => {
-    return fetchRecords({ cursor, take });
-  },
+  async (cursor?: number, take?: number) => fetchRecords({ cursor, take }),
   ["records-list"],
-  { revalidate: 30, tags: ["records"] } // Cache por 30 segundos
+  { revalidate: 30, tags: ["records"] }
 );
 
-// Versión cacheada para búsquedas
 const getCachedSearchResults = unstable_cache(
-  async (query: string, take: number, exactMatch: boolean) => {
-    return fetchRecords({ query, take, exactMatch });
-  },
+  async (query: string, take: number, exactMatch: boolean) =>
+    fetchRecords({ query, take, exactMatch }),
   ["records-search"],
-  { revalidate: 60, tags: ["records"] } // Cache por 60 segundos
+  { revalidate: 60, tags: ["records"] }
 );
 
-// Función pública que decide si usar caché o no
+// Resolve user filters from session
+async function resolveUserFilters() {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.email) return null;
+
+  const config = await getUserViewConfig(sessionUser.email);
+  if (!config) return null;
+
+  const hasFilters =
+    config.tracingFilter.length > 0 || config.favoritesOnly || config.minPriority !== null;
+
+  if (!hasFilters) return null;
+
+  return {
+    tracingFilter: config.tracingFilter as string[],
+    favoritesOnly: config.favoritesOnly,
+    minPriority: config.minPriority as string | null,
+  };
+}
+
 export async function getRecords({
   cursor,
   take = 10,
@@ -138,17 +165,15 @@ export async function getRecords({
   query?: string;
   exactMatch?: boolean;
 }) {
-  // Si hay cursor (paginación), no cachear para tener datos frescos
-  if (cursor) {
-    return fetchRecords({ cursor, take, query, exactMatch });
+  const userFilters = await resolveUserFilters();
+
+  // With user filters: skip cache (user-specific results)
+  if (userFilters) {
+    return fetchRecords({ cursor, take, query, exactMatch, userFilters });
   }
 
-  // Si hay query, usar caché de búsqueda
-  if (query && query.trim()) {
-    return getCachedSearchResults(query.trim(), take, exactMatch);
-  }
-
-  // Sin query ni cursor, usar caché de listado
+  // Without filters: use shared cache
+  if (cursor) return fetchRecords({ cursor, take, query, exactMatch });
+  if (query?.trim()) return getCachedSearchResults(query.trim(), take, exactMatch);
   return getCachedRecords(undefined, take);
 }
-

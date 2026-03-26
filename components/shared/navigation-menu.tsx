@@ -11,30 +11,45 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./mode-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { UserMenu } from "./user-menu";
+import { ViewSwitcher } from "./view-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogIn } from "lucide-react";
+import { LogIn, Home } from "lucide-react";
 
-export function NavigationMenu() {
+export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const isMobile = useIsMobile();
   const { loading, user } = useAuth();
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full items-center gap-2">
       <NavigationMenuUI viewport={isMobile}>
-        <NavigationMenuList className="flex-wrap">
+        <NavigationMenuList>
           <NavigationMenuItem>
             <SidebarTrigger />
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Button variant="ghost" size="icon" asChild className="h-7 w-7">
+              <Link href="/">
+                <Home className="h-4 w-4" />
+              </Link>
+            </Button>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenuUI>
 
-      <div className="flex items-center gap-2">
+      {/* Center: view switcher (only when logged in) */}
+      {!loading && user && (
+        <div className="flex-1">
+          <ViewSwitcher />
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 ml-auto">
         <ModeToggle />
         {loading ? (
           <Skeleton className="h-8 w-8 rounded-full" />
         ) : user ? (
-          <UserMenu />
+          <UserMenu isAdmin={isAdmin} />
         ) : (
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login" className="gap-2">

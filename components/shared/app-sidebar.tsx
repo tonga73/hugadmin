@@ -9,11 +9,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
 import { Separator } from "../ui/separator";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, FolderOpen } from "lucide-react";
 import { RecordsList } from "../records";
 import { Logo } from "./logo";
+import { getSessionUser } from "@/lib/session";
+import { getUserViewConfig } from "@/lib/user-config";
 
 const sidebarItems = [
   {
@@ -21,10 +22,21 @@ const sidebarItems = [
     url: "/records/create",
     icon: PlusIcon,
   },
+  {
+    title: "Archivos sin asignar",
+    url: "/unassigned",
+    icon: FolderOpen,
+  },
 ];
 
 export async function AppSidebar() {
-  const { records, lastId, hasMore } = await getRecords({ take: 10 });
+  const [{ records, lastId, hasMore }, sessionUser] = await Promise.all([
+    getRecords({ take: 10 }),
+    getSessionUser(),
+  ]);
+
+  const config = sessionUser?.email ? await getUserViewConfig(sessionUser.email) : null;
+  void config; // used for cache warming — sidebar no longer renders config UI
 
   const recordsWithDates = records.map((r) => ({
     ...r,
@@ -66,6 +78,7 @@ export async function AppSidebar() {
             />
           </SidebarGroupContent>
         </SidebarGroup>
+
       </SidebarContent>
     </Sidebar>
   );

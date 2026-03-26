@@ -4,6 +4,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
 import { Prisma } from "@/app/generated/prisma/client";
+import { normalizeOrder } from "@/lib/record-number";
 
 // Schema de validación para PATCH
 const updateRecordSchema = z.object({
@@ -75,7 +76,7 @@ export async function PATCH(
     // Solo agregar campos que vienen en la request
     if (validatedData.code !== undefined) updateData.code = validatedData.code;
     if (validatedData.order !== undefined)
-      updateData.order = validatedData.order;
+      updateData.order = normalizeOrder(validatedData.order);
     if (validatedData.name !== undefined) updateData.name = validatedData.name;
     if (validatedData.insurance !== undefined)
       updateData.insurance = validatedData.insurance;

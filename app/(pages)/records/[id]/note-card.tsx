@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,58 +130,43 @@ export function NoteCard({
   if (isEditing) {
     return (
       <>
-        <Card className={cn(
-          "gap-0 ring-2 ring-primary/50 flex flex-col",
+        <div className={cn(
+          "rounded-lg border ring-2 ring-primary/50 bg-card flex flex-col gap-0",
           fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
         )}>
-          <CardHeader className="py-1.5 px-2.5">
+          <div className="px-2.5 pt-2">
             <Input
               ref={inputRef}
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Título (opcional)"
-              className="h-6 text-xs font-medium bg-transparent border-0 border-b border-dashed focus-visible:ring-0 rounded-none px-0"
+              className="h-5 text-[10px] font-semibold bg-transparent border-0 border-b border-dashed focus-visible:ring-0 rounded-none px-0 text-muted-foreground"
             />
-          </CardHeader>
-          <CardContent className="py-1.5 px-2.5 flex flex-col gap-1.5">
+          </div>
+          <div className="px-2.5 pt-1.5 pb-2 flex flex-col gap-1.5">
             <Textarea
               ref={textareaRef}
               value={editedText}
               onChange={(e) => setEditedText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Contenido..."
-              className="min-h-[50px] max-h-[70px] resize-none text-xs"
+              className="min-h-[60px] max-h-[160px] resize-none text-xs leading-snug"
               autoFocus={!isNew}
             />
             <div className="flex items-center justify-between gap-1">
-              <span className="text-[8px] text-muted-foreground">⌘↵</span>
+              <span className="text-[8px] text-muted-foreground/40">⌘↵ guardar</span>
               <div className="flex gap-0.5">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="h-5 w-5"
-                >
+                <Button size="icon" variant="ghost" onClick={handleCancel} disabled={isSaving} className="h-5 w-5">
                   <X className="h-2.5 w-2.5" />
                 </Button>
-                <Button
-                  size="icon"
-                  onClick={handleSave}
-                  disabled={isSaving || !editedText.trim()}
-                  className="h-5 w-5"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                  ) : (
-                    <Check className="h-2.5 w-2.5" />
-                  )}
+                <Button size="icon" onClick={handleSave} disabled={isSaving || !editedText.trim()} className="h-5 w-5">
+                  {isSaving ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Check className="h-2.5 w-2.5" />}
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Confirmación de guardar */}
         <ConfirmDialog
@@ -201,23 +185,31 @@ export function NoteCard({
 
   return (
     <>
-      <Card
+      <div
         className={cn(
-          "gap-0 cursor-pointer hover:bg-accent/50 transition-colors group flex flex-col",
+          "rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors group px-2.5 py-2",
           fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
         )}
         onClick={() => setIsEditing(true)}
       >
-        <CardHeader className="py-1.5 px-2.5">
-          <div className="flex items-start justify-between gap-1">
-            <CardTitle className="text-muted-foreground text-xs flex-1 truncate">
-              {note.name || "Sin título"}
-            </CardTitle>
+        <div className="flex items-start justify-between gap-1 mb-0.5">
+          <span className="text-[10px] font-semibold text-muted-foreground flex-1 truncate">
+            {note.name || "Sin título"}
+          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            {note.createdAt && (
+              <span className="text-[9px] text-muted-foreground/40">
+                {new Date(note.createdAt).toLocaleDateString("es-AR", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+              </span>
+            )}
             {note.id && onDelete && (
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={handleDeleteClick}
                 disabled={isDeleting}
               >
@@ -229,11 +221,9 @@ export function NoteCard({
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="py-1.5 px-2.5 pt-0">
-          <p className="text-xs line-clamp-2">{note.text}</p>
-        </CardContent>
-      </Card>
+        </div>
+        <p className="text-xs text-foreground/80 leading-snug whitespace-pre-wrap">{note.text}</p>
+      </div>
 
       {/* Confirmación de eliminar */}
       <ConfirmDialog
