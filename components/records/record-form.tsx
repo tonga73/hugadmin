@@ -268,7 +268,7 @@ export function RecordForm({ districts }: RecordFormProps) {
               <FieldLabel required>Número de expediente</FieldLabel>
               <Input
                 {...register("order")}
-                placeholder="ej: 12345/2024"
+                placeholder="ej: 12345/2024 o 12.345/2024"
                 className={cn(
                   "text-xl font-bold border-muted bg-muted/30 focus-visible:bg-background h-10",
                   errors.order && "border-destructive/50 focus-visible:ring-destructive/30"

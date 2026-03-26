@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
+import { normalizeOrder } from "@/lib/record-number";
 
 // Schema de validación para POST
 const createRecordSchema = z.object({
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
     const newRecord = await prisma.record.create({
       data: {
         ...validatedData,
+        order: normalizeOrder(validatedData.order),
         createdAt: now,
         updatedAt: now,
       },

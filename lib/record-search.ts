@@ -1,5 +1,6 @@
 import { Record } from "@/app/generated/prisma/client";
 import { TRACING_OPTIONS } from "@/app/constants";
+import { normalizeOrder } from "@/lib/record-number";
 
 /**
  * Escapa caracteres especiales de regex
@@ -28,7 +29,7 @@ export const buildRecordHaystack = (record: Record): string => {
     : String(record.insurance || "");
 
   return (
-    String(record.order) +
+    normalizeOrder(String(record.order)) +
     " " +
     (record.name || "") +
     " " +
@@ -55,7 +56,7 @@ export const filterRecords = (
 
   const terms = normalized
     .split(/\s+/)
-    .map((t) => t.trim())
+    .map((t) => normalizeOrder(t.trim()))
     .filter(Boolean);
 
   return records.filter((record) => {

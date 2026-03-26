@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { DeleteButton } from "@/components/records/delete-button";
 import { FilesSection } from "@/components/records/files-section";
 import { cn } from "@/lib/utils";
+import { formatOrder } from "@/lib/record-number";
 
 // Schema de validación para campos editables
 const recordSchema = z.object({
@@ -105,7 +106,7 @@ export default function EditableRecordPage({
     resolver: zodResolver(recordSchema),
     defaultValues: {
       code: record.code || "",
-      order: record.order,
+      order: formatOrder(record.order),
       name: record.name,
       insurance: record.insurance || [],
       defendant: record.defendant || [],

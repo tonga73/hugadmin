@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { Record } from "@/app/generated/prisma/client";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TracingBadge } from "./tracing-badge";
+import { formatOrder } from "@/lib/record-number";
 
 interface HighlightedRecordCardProps {
   record: Record;
@@ -51,7 +52,7 @@ export const HighlightedRecordCard = forwardRef<
         >
           <div className="flex items-center gap-2 mb-1 min-w-0">
             <span className="font-bold text-sm text-blue-700 dark:text-blue-300 shrink-0">
-              {record.order}
+              {formatOrder(record.order)}
             </span>
             {record.code && (
               <span className="text-[10px] font-mono text-muted-foreground/60 truncate">

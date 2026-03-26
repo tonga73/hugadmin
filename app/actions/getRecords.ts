@@ -6,6 +6,7 @@ import { TRACING_OPTIONS } from "@/app/constants";
 import { unstable_cache } from "next/cache";
 import { getSessionUser } from "@/lib/session";
 import { getUserViewConfig, getPrioritiesAboveMin } from "@/lib/user-config";
+import { normalizeOrder } from "@/lib/record-number";
 
 // Función interna sin caché
 async function fetchRecords({
@@ -71,8 +72,9 @@ async function fetchRecords({
 
     const orConditions: any[] = [];
     terms.forEach((t) => {
+      const nt = normalizeOrder(t);
       orConditions.push({
-        order: exactMatch ? { equals: t, mode: "insensitive" } : { contains: t, mode: "insensitive" },
+        order: exactMatch ? { equals: nt, mode: "insensitive" } : { contains: nt, mode: "insensitive" },
       });
       orConditions.push({
         name: exactMatch ? { equals: t, mode: "insensitive" } : { contains: t, mode: "insensitive" },
