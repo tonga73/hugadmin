@@ -66,7 +66,7 @@ model Record {
 }
 
 model RecordFile {
-  id           Int      @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   recordId     Int?
   name         String
   url          String
@@ -74,10 +74,11 @@ model RecordFile {
   folderPath   String?
   type         String
   size         Int
-  aiMatch      Boolean  @default(false)
+  aiMatch      Boolean      @default(false)
   aiConfidence Float?
-  createdAt    DateTime @default(now())
-  record       Record?  @relation(fields: [recordId], references: [id])
+  category     FileCategory @default(DRIVE)
+  createdAt    DateTime     @default(now())
+  record       Record?      @relation(fields: [recordId], references: [id])
 }
 
 model RecordsAndUser {
@@ -98,6 +99,12 @@ model User {
   role           Role             @default(USER)
   image          String?
   RecordsAndUser RecordsAndUser[]
+}
+
+enum FileCategory {
+  DRIVE
+  APARTADO
+  EXPEDIENTE
 }
 
 enum Priority {

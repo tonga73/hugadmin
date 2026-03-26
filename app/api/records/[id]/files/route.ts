@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { uploadFile } from "@/lib/storage";
 import { extractText, matchFileToRecord } from "@/lib/ai-matcher";
+import { FileCategory } from "@/app/generated/prisma/enums";
 
 // GET /api/records/[id]/files — list files for a record
 export async function GET(
@@ -39,6 +40,10 @@ export async function POST(
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const analyze = formData.get("analyze") === "true";
+  const categoryRaw = (formData.get("category") as string) || "DRIVE";
+  const category = Object.values(FileCategory).includes(categoryRaw as FileCategory)
+    ? (categoryRaw as FileCategory)
+    : FileCategory.DRIVE;
 
   if (!file) {
     return NextResponse.json({ error: "No se recibió archivo" }, { status: 400 });
@@ -72,6 +77,7 @@ export async function POST(
       size: file.size,
       aiMatch,
       aiConfidence,
+      category,
     },
   });
 

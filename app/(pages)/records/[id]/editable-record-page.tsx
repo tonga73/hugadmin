@@ -68,6 +68,7 @@ interface EditableRecordPageProps {
       size: number;
       aiMatch: boolean;
       aiConfidence: number | null;
+      category: "DRIVE" | "APARTADO" | "EXPEDIENTE";
       createdAt: Date;
     }>;
     Office?: {
@@ -211,7 +212,7 @@ export default function EditableRecordPage({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
+    <div className="flex-1 flex flex-col min-h-0">
 
       {/* Top action bar */}
       <div className="flex items-center justify-between mb-3 shrink-0">
@@ -254,18 +255,20 @@ export default function EditableRecordPage({
         </div>
       </div>
 
-      {/* Contenido principal con altura flexible */}
-      <div className="flex-1 flex flex-col gap-2 min-h-0">
-        {/* Grid de cards - altura fija */}
-        <div className="grid grid-cols-3 gap-1.5 shrink-0">
-          {/* Card principal */}
-          <Card className="col-span-2">
-            <CardHeader className="pb-2">
-              <div className="flex gap-3">
+      {/* Main content — two columns, fills remaining height */}
+      <div className="flex-1 min-h-0 flex gap-2">
+
+        {/* Left column: header + files */}
+        <div className="flex-1 flex flex-col min-h-0 gap-2">
+
+          {/* Header card */}
+          <Card className="shrink-0">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 <EditableField
                   value={formValues.code || ""}
                   onSave={(value) => handleFieldChange("code", value)}
-                  className="font-bold text-muted-foreground text-xl"
+                  className="font-bold text-muted-foreground text-base"
                   placeholder="Código"
                 />
                 <EditableSelect
@@ -296,7 +299,7 @@ export default function EditableRecordPage({
               <EditableField
                 value={formValues.order}
                 onSave={(value) => handleFieldChange("order", value)}
-                className="font-bold text-2xl"
+                className="font-bold"
                 style={{ fontWeight: "bolder", fontSize: "2rem" }}
                 placeholder="Orden"
               />
@@ -308,85 +311,88 @@ export default function EditableRecordPage({
                 placeholder="Nombre del expediente"
                 isDescription
               />
-
             </CardHeader>
           </Card>
 
-          {/* Card de detalles */}
-          <Card className="flex flex-col min-h-0 overflow-hidden">
-            <CardHeader className="pb-1 shrink-0">
+          {/* Files — takes remaining height, scrollable */}
+          <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto p-3">
+              <FilesSection
+                recordId={record.id}
+                initialFiles={record.files.map((f) => ({
+                  ...f,
+                  createdAt: f.createdAt.toISOString(),
+                }))}
+              />
+            </div>
+          </Card>
+        </div>
+
+        {/* Right column */}
+        <div className="w-[260px] shrink-0 flex flex-col min-h-0 gap-2">
+
+          {/* Bloque expediente: juzgado + partes */}
+          <Card className="shrink-0 px-3 py-2.5 space-y-3">
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5">
+                Juzgado
+              </p>
               <OfficeSelector
                 currentOffice={currentOffice}
                 onSave={handleOfficeSave}
               />
-            </CardHeader>
-            <div className="flex-1 overflow-y-auto min-h-0 px-3 pb-3 space-y-3">
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                Partes
+              </p>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5">
-                  Partes
-                </p>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Defensor</p>
-                    <EditableList
-                      items={formValues.defendant}
-                      onSave={(items) => handleFieldChange("defendant", items)}
-                      className="border rounded-xl p-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Actor</p>
-                    <EditableList
-                      items={formValues.prosecutor}
-                      onSave={(items) => handleFieldChange("prosecutor", items)}
-                      className="border rounded-xl p-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Aseguradora</p>
-                    <EditableList
-                      items={formValues.insurance || []}
-                      onSave={(items) => handleFieldChange("insurance", items)}
-                      className="border rounded-xl p-1.5 text-sm"
-                    />
-                  </div>
-                </div>
+                <p className="text-[10px] text-muted-foreground mb-0.5">Defensor</p>
+                <EditableList
+                  items={formValues.defendant}
+                  onSave={(items) => handleFieldChange("defendant", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground mb-0.5">Actor</p>
+                <EditableList
+                  items={formValues.prosecutor}
+                  onSave={(items) => handleFieldChange("prosecutor", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground mb-0.5">Aseguradora</p>
+                <EditableList
+                  items={formValues.insurance || []}
+                  onSave={(items) => handleFieldChange("insurance", items)}
+                  className="border rounded-xl p-1.5 text-sm"
+                />
               </div>
             </div>
-            <div className="shrink-0 px-3 pb-3 pt-2 border-t">
-              <DeleteButton recordId={record.id} recordName={record.name} />
-            </div>
           </Card>
-        </div>
 
-        {/* Sección de notas - altura flexible */}
-        <div className="shrink-0">
-          <NotesSection
-            recordId={record.id}
-            initialNotes={RecordNote.map((note) => ({
-              id: note.id,
-              name: note.name,
-              text: note.text,
-              recordId: record.id,
-              createdAt: note.createdAt,
-              updatedAt: note.updatedAt,
-            }))}
-          />
-        </div>
+          {/* Bloque notas: header fijo + lista scrollable */}
+          <Card className="flex-1 min-h-0 flex flex-col overflow-hidden p-0">
+            <NotesSection
+              recordId={record.id}
+              initialNotes={RecordNote.map((note) => ({
+                id: note.id,
+                name: note.name,
+                text: note.text,
+                recordId: record.id,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+              }))}
+            />
+          </Card>
 
-        {/* Sección de archivos adjuntos */}
-        <div className="shrink-0">
-          <FilesSection
-            recordId={record.id}
-            initialFiles={record.files.map((f) => ({
-              ...f,
-              createdAt: f.createdAt.toISOString(),
-            }))}
-          />
+          {/* Delete */}
+          <div className="shrink-0">
+            <DeleteButton recordId={record.id} recordName={record.name} />
+          </div>
         </div>
-
       </div>
     </div>
   );
