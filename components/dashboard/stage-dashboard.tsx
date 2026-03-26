@@ -28,7 +28,7 @@ export async function StageDashboard({ tracingFilter }: Props) {
   ]);
 
   return (
-    <div className="h-full flex flex-col gap-1.5">
+    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
       {/* Stage counts */}
       <div className={`grid gap-1.5 shrink-0`} style={{ gridTemplateColumns: `repeat(${Math.min(stages.length, 4)}, 1fr)` }}>
         {stageCounts.map(({ tracing, count }) => {

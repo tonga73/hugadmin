@@ -1,6 +1,7 @@
 // app/api/auth/session/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,24 @@ export async function POST(request: NextRequest) {
         { error: "Token o usuario faltante" },
         { status: 400 }
       );
+    }
+
+    // Upsert user in DB so getUserViewConfig always finds them
+    if (user.email) {
+      await prisma.user.upsert({
+        where: { email: user.email },
+        update: {
+          name: user.displayName ?? undefined,
+          googleId: user.uid,
+          image: user.photoURL ?? undefined,
+        },
+        create: {
+          email: user.email,
+          name: user.displayName ?? null,
+          googleId: user.uid,
+          image: user.photoURL ?? null,
+        },
+      });
     }
 
     // ✅ Guardar token Y datos del usuario juntos

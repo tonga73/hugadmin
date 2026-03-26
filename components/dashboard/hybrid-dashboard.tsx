@@ -36,7 +36,7 @@ export async function HybridDashboard({ tracingFilter, favoritesOnly, minPriorit
     globalTotal > 0 ? Math.round((value / globalTotal) * 100) : 0;
 
   return (
-    <div className="h-full flex flex-col gap-1.5">
+    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
       {/* Filtered stats */}
       <div className="grid grid-cols-3 gap-1.5 shrink-0">
         <Card>

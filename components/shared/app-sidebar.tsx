@@ -10,9 +10,11 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Separator } from "../ui/separator";
-import { PlusIcon, FolderOpen, Settings } from "lucide-react";
+import { PlusIcon, FolderOpen } from "lucide-react";
 import { RecordsList } from "../records";
 import { Logo } from "./logo";
+import { getSessionUser } from "@/lib/session";
+import { getUserViewConfig } from "@/lib/user-config";
 
 const sidebarItems = [
   {
@@ -28,7 +30,13 @@ const sidebarItems = [
 ];
 
 export async function AppSidebar() {
-  const { records, lastId, hasMore } = await getRecords({ take: 10 });
+  const [{ records, lastId, hasMore }, sessionUser] = await Promise.all([
+    getRecords({ take: 10 }),
+    getSessionUser(),
+  ]);
+
+  const config = sessionUser?.email ? await getUserViewConfig(sessionUser.email) : null;
+  void config; // used for cache warming — sidebar no longer renders config UI
 
   const recordsWithDates = records.map((r) => ({
     ...r,
@@ -71,21 +79,6 @@ export async function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Footer */}
-        <SidebarGroup className="mt-auto py-2">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/settings">
-                    <Settings className="h-4 w-4" />
-                    <span>Configuración</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );

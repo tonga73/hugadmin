@@ -28,7 +28,7 @@ export async function FocusDashboard() {
   ]);
 
   return (
-    <div className="h-full flex flex-col gap-1.5">
+    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-1.5 shrink-0">
         <Card>

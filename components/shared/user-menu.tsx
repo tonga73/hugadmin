@@ -11,9 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Loader2 } from "lucide-react";
+import { LogOut, User, ShieldCheck } from "lucide-react";
 
-export const UserMenu: React.FC = () => {
+export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
@@ -71,6 +71,15 @@ export const UserMenu: React.FC = () => {
           <User className="mr-2 h-4 w-4" />
           <span>Perfil</span>
         </DropdownMenuItem>
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/admin")}>
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              <span>Panel de admin</span>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-red-600">
           <LogOut className="mr-2 h-4 w-4" />

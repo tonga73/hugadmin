@@ -26,6 +26,11 @@ export async function getUserViewConfigById(userId: number): Promise<UserViewCon
   return prisma.userViewConfig.create({ data: { userId } });
 }
 
+export async function getUserRole(email: string): Promise<string | null> {
+  const user = await prisma.user.findUnique({ where: { email }, select: { role: true } });
+  return user?.role ?? null;
+}
+
 // Priority order for minPriority filtering
 export const PRIORITY_ORDER = ["NULA", "BAJA", "MEDIA", "ALTA", "URGENTE", "INACTIVO"] as const;
 
