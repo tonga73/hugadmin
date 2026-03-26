@@ -13,7 +13,10 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:push": "prisma db push",
+    "db:push:prod": "bash scripts/db-push-prod.sh",
+    "db:normalize:prod": "bash scripts/db-normalize-prod.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.79.0",
