@@ -556,7 +556,13 @@ function FolderNode({
 
 export function UnassignedFilesClient({ initialFiles, records }: Props) {
   const [files, setFiles] = useState<RecordFile[]>(initialFiles);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<{
+    phase: "idle" | "listing" | "adding" | "removing";
+    current?: number;
+    total?: number;
+    name?: string;
+  }>({ phase: "idle" });
+  const isSyncing = syncProgress.phase !== "idle";
   const [analyzing, setAnalyzing] = useState<number | null>(null);
   const [assigning, setAssigning] = useState<number | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<Record<number, string>>({});
@@ -571,28 +577,53 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
   }, []);
 
   const handleSync = async () => {
-    setIsSyncing(true);
+    setSyncProgress({ phase: "listing" });
     try {
       const res = await fetch("/api/sync", { method: "POST" });
-      if (!res.ok) throw new Error();
-      const result = await res.json();
+      if (!res.body) throw new Error("Sin respuesta del servidor");
 
-      toast.success(
-        `Sync completado — ${result.added} nuevos, ${result.removed} eliminados, ${result.unchanged} sin cambios`
-      );
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-      if (result.added > 0 || result.removed > 0) {
-        const filesRes = await fetch("/api/files/unassigned");
-        setFiles(await filesRes.json());
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const event = JSON.parse(line.slice(6));
+
+          if (event.type === "listing") {
+            setSyncProgress({ phase: "listing" });
+          } else if (event.type === "adding") {
+            setSyncProgress({ phase: "adding", current: event.current, total: event.total, name: event.name });
+          } else if (event.type === "removing") {
+            setSyncProgress({ phase: "removing", current: event.current, total: event.total });
+          } else if (event.type === "done") {
+            toast.success(
+              `Sync completado — ${event.added} nuevos, ${event.removed} eliminados, ${event.unchanged} sin cambios`
+            );
+            if (event.added > 0 || event.removed > 0) {
+              const filesRes = await fetch("/api/files/unassigned");
+              setFiles(await filesRes.json());
+            }
+            if (event.errors?.length > 0) {
+              toast.error(`${event.errors.length} errores durante el sync`);
+            }
+          } else if (event.type === "error") {
+            throw new Error(event.error);
+          }
+        }
       }
-
-      if (result.errors?.length > 0) {
-        toast.error(`${result.errors.length} errores durante el sync`);
-      }
-    } catch {
-      toast.error("Error al sincronizar con Drive");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al sincronizar con Drive");
     } finally {
-      setIsSyncing(false);
+      setSyncProgress({ phase: "idle" });
     }
   };
 
@@ -672,20 +703,31 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
             </button>
           )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 shrink-0"
-          onClick={handleSync}
-          disabled={isSyncing}
-        >
-          {isSyncing ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5" />
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleSync}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            {isSyncing ? "Sincronizando..." : "Sync con Drive"}
+          </Button>
+          {isSyncing && (
+            <span className="text-[10px] text-muted-foreground max-w-[200px] truncate text-right">
+              {syncProgress.phase === "listing" && "Explorando carpeta de Drive..."}
+              {syncProgress.phase === "adding" &&
+                `Agregando ${syncProgress.current}/${syncProgress.total} — ${syncProgress.name}`}
+              {syncProgress.phase === "removing" &&
+                `Limpiando ${syncProgress.current}/${syncProgress.total} archivos...`}
+            </span>
           )}
-          {isSyncing ? "Sincronizando..." : "Sync con Drive"}
-        </Button>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground">
         {files.length === 0

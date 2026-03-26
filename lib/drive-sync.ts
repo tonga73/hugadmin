@@ -9,6 +9,11 @@ export interface SyncResult {
   errors: string[];
 }
 
+export type SyncProgress =
+  | { type: "listing" }
+  | { type: "adding"; current: number; total: number; name: string }
+  | { type: "removing"; current: number; total: number };
+
 interface DriveFile {
   id: string;
   name: string;
@@ -91,7 +96,9 @@ async function makePublic(drive: drive_v3.Drive, fileId: string): Promise<string
   return `https://drive.google.com/uc?id=${fileId}&export=download`;
 }
 
-export async function syncDrive(): Promise<SyncResult> {
+export async function syncDrive(
+  onProgress?: (p: SyncProgress) => void
+): Promise<SyncResult> {
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
   if (!folderId) throw new Error("GOOGLE_DRIVE_FOLDER_ID no configurado");
 
@@ -99,6 +106,7 @@ export async function syncDrive(): Promise<SyncResult> {
   const result: SyncResult = { added: 0, removed: 0, unchanged: 0, errors: [] };
 
   // 1. Get all files from Drive
+  onProgress?.({ type: "listing" });
   const driveFiles = await listAllFiles(drive, folderId);
   const driveIds = new Set(driveFiles.map((f) => f.id));
 
@@ -110,7 +118,9 @@ export async function syncDrive(): Promise<SyncResult> {
 
   // 3. Add new files (in Drive but not in DB)
   const toAdd = driveFiles.filter((f) => !dbIds.has(f.id));
-  for (const file of toAdd) {
+  for (let i = 0; i < toAdd.length; i++) {
+    const file = toAdd[i];
+    onProgress?.({ type: "adding", current: i + 1, total: toAdd.length, name: file.name });
     try {
       const url = await makePublic(drive, file.id);
       await prisma.recordFile.create({
@@ -134,7 +144,9 @@ export async function syncDrive(): Promise<SyncResult> {
 
   // 4. Remove files deleted from Drive (in DB but not in Drive)
   const toRemove = dbFiles.filter((f) => !driveIds.has(f.storagePath));
-  for (const file of toRemove) {
+  for (let i = 0; i < toRemove.length; i++) {
+    onProgress?.({ type: "removing", current: i + 1, total: toRemove.length });
+    const file = toRemove[i];
     try {
       await prisma.recordFile.delete({ where: { id: file.id } });
       result.removed++;
