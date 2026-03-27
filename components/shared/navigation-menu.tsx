@@ -2,7 +2,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSearchParams } from "next/navigation";
 import {
   NavigationMenu as NavigationMenuUI,
   NavigationMenuItem,
@@ -14,16 +13,14 @@ import { SidebarTrigger } from "../ui/sidebar";
 import { UserMenu } from "./user-menu";
 import { ViewSwitcher } from "./view-switcher";
 import { useAuth } from "@/contexts/auth-context";
+import { useView } from "@/contexts/view-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogIn, Home, PlusIcon, FolderOpen } from "lucide-react";
 
-export function NavigationMenu({ isAdmin = false, defaultIsFocus = false }: { isAdmin?: boolean; defaultIsFocus?: boolean }) {
+export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const isMobile = useIsMobile();
   const { loading, user } = useAuth();
-  const searchParams = useSearchParams();
-  const urlView = searchParams.get("view")?.toUpperCase();
-  // Use URL param when present; fall back to server-determined default to avoid flash on navigation
-  const isFocus = urlView !== undefined ? urlView === "FOCUS" : defaultIsFocus;
+  const { isFocus } = useView();
 
   return (
     <div className="flex w-full items-center gap-2">

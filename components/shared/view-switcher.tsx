@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useView } from "@/contexts/view-context";
 
 type DashboardView = "OVERVIEW" | "FOCUS";
 type FileCategory = "DRIVE" | "APARTADO" | "EXPEDIENTE";
@@ -94,6 +95,7 @@ export function ViewSwitcher() {
   const [loaded, setLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { setOpen } = useSidebar();
+  const { setIsFocus } = useView();
 
   useEffect(() => {
     fetch("/api/users/me/config")
@@ -114,6 +116,9 @@ export function ViewSwitcher() {
             : normalizeView(data.dashboardView ?? "OVERVIEW");
           if (effectiveView === "FOCUS") {
             setOpen(false);
+            setIsFocus(true);
+          } else {
+            setIsFocus(false);
           }
           if (normalizeView(data.dashboardView ?? "OVERVIEW") === "FOCUS" && !params.has("view")) {
             params.set("view", "FOCUS");
@@ -166,8 +171,8 @@ export function ViewSwitcher() {
     const next = { ...config, dashboardView: view };
     setConfig(next);
     saveToDb({ dashboardView: view });
-    if (view === "FOCUS") setOpen(false);
-    else if (config.dashboardView === "FOCUS") setOpen(true);
+    if (view === "FOCUS") { setOpen(false); setIsFocus(true); }
+    else if (config.dashboardView === "FOCUS") { setOpen(true); setIsFocus(false); }
     if (pathname === "/") {
       startTransition(() =>
         router.push(buildUrl("/", { view }), { scroll: false } as any)

@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { UnassignedFilesClient } from "./unassigned-files-client";
 
@@ -40,9 +42,14 @@ function UnassignedSkeleton() {
 export default function UnassignedPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-      <div className="mb-4">
-        <h1 className="text-lg font-semibold">Archivos sin asignar</h1>
-        <p className="text-sm text-muted-foreground">Archivos de Drive pendientes de asignación</p>
+      <div className="mb-4 flex items-center gap-2">
+        <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <div>
+          <h1 className="text-lg font-semibold">Archivos sin asignar</h1>
+          <p className="text-sm text-muted-foreground">Archivos de Drive pendientes de asignación</p>
+        </div>
       </div>
 
       <Suspense fallback={<UnassignedSkeleton />}>

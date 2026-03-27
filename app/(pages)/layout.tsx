@@ -1,5 +1,6 @@
 import { AppSidebar, NavigationMenu } from "@/components/shared";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ViewProvider } from "@/contexts/view-context";
 import { Toaster } from "sonner";
 import { getSessionUser } from "@/lib/session";
 import { getUserRole, getUserViewConfig } from "@/lib/user-config";
@@ -21,14 +22,16 @@ export default async function PrivateLayout({
   const sidebarDefaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   return (
-    <SidebarProvider defaultOpen={sidebarDefaultOpen}>
-      <AppSidebar />
+    <ViewProvider defaultIsFocus={defaultIsFocus}>
+      <SidebarProvider defaultOpen={sidebarDefaultOpen}>
+        <AppSidebar />
 
-      <main className="flex-1 h-screen flex flex-col overflow-hidden p-3 space-y-3">
-        <NavigationMenu isAdmin={isAdmin} defaultIsFocus={defaultIsFocus} />
-        {children}
-        <Toaster position="bottom-right" richColors closeButton />
-      </main>
-    </SidebarProvider>
+        <main className="flex-1 h-screen flex flex-col overflow-hidden p-3 space-y-3">
+          <NavigationMenu isAdmin={isAdmin} />
+          {children}
+          <Toaster position="bottom-right" richColors closeButton />
+        </main>
+      </SidebarProvider>
+    </ViewProvider>
   );
 }
