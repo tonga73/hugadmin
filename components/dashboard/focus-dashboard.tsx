@@ -42,17 +42,33 @@ export async function FocusDashboard({
     getSessionUser(),
   ]);
 
-  const config = sessionUser?.email ? await getUserViewConfig(sessionUser.email) : null;
-  const allowedFileCategories =
-    config?.fileCategories && (config.fileCategories as string[]).length > 0
-      ? (config.fileCategories as string[])
-      : undefined;
-
   const records = initialData.records.map((r) => ({
     ...r,
     createdAt: new Date(r.createdAt),
     updatedAt: new Date(r.updatedAt),
   }));
+
+  const recordIds = records.map((r) => r.id);
+  const [assigneesRows, config] = await Promise.all([
+    recordIds.length > 0
+      ? prisma.recordsAndUser.findMany({
+          where: { recordId: { in: recordIds } },
+          include: { User: { select: { id: true, name: true, email: true, image: true } } },
+        })
+      : Promise.resolve([]),
+    sessionUser?.email ? getUserViewConfig(sessionUser.email) : Promise.resolve(null),
+  ]);
+
+  const assigneesMap: Record<number, { id: number; name: string | null; email: string; image: string | null }[]> = {};
+  for (const row of assigneesRows) {
+    if (!assigneesMap[row.recordId]) assigneesMap[row.recordId] = [];
+    assigneesMap[row.recordId].push(row.User);
+  }
+
+  const allowedFileCategories =
+    config?.fileCategories && (config.fileCategories as string[]).length > 0
+      ? (config.fileCategories as string[])
+      : undefined;
 
   return (
     <FocusContent
@@ -63,6 +79,7 @@ export async function FocusDashboard({
       initialMine={initialMine}
       initialFavoritesOnly={favoritesOnly}
       allowedFileCategories={allowedFileCategories}
+      initialAssigneesMap={assigneesMap}
     />
   );
 }

@@ -32,6 +32,8 @@ interface Stats {
   favoritos: number;
 }
 
+type AssigneesMap = { [recordId: number]: { id: number; name: string | null; email: string; image: string | null }[] };
+
 interface FocusContentProps {
   initialRecords: Record[];
   lastId: number | null;
@@ -40,6 +42,7 @@ interface FocusContentProps {
   initialMine: boolean;
   initialFavoritesOnly: boolean;
   allowedFileCategories?: string[];
+  initialAssigneesMap?: AssigneesMap;
 }
 
 function RecordRowSkeleton() {
@@ -61,6 +64,7 @@ export function FocusContent({
   initialMine,
   initialFavoritesOnly,
   allowedFileCategories,
+  initialAssigneesMap = {},
 }: FocusContentProps) {
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -254,11 +258,11 @@ export function FocusContent({
                 const priority = PRIORITY_OPTIONS[record.priority];
                 const isSelected = selectedRecordId === record.id;
                 return (
-                  <button
+                  <div
                     key={record.id}
                     onClick={() => setSelectedRecordId(record.id)}
                     className={cn(
-                      "w-full text-left flex items-center gap-3 px-4 py-3 border-l-[3px] transition-colors",
+                      "w-full text-left flex items-center gap-3 px-4 py-3 border-l-[3px] transition-colors cursor-pointer",
                       isSelected ? "bg-accent/80" : "hover:bg-accent/40"
                     )}
                     style={{ borderLeftColor: priority?.color ?? "transparent" }}
@@ -287,7 +291,11 @@ export function FocusContent({
                     )}
 
                     {/* Assignees */}
-                    <RecordUsersPopover recordId={record.id} size="sm" />
+                    <RecordUsersPopover
+                      recordId={record.id}
+                      size="sm"
+                      initialAssignees={initialAssigneesMap[record.id]}
+                    />
 
                     {/* Favorite star */}
                     <Star
@@ -303,7 +311,7 @@ export function FocusContent({
                     <span className="text-[11px] text-muted-foreground shrink-0 w-16 text-right">
                       {relativeTime(new Date(record.updatedAt))}
                     </span>
-                  </button>
+                  </div>
                 );
               })
             )}
