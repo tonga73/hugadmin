@@ -30,9 +30,18 @@ export async function POST(
     select: { order: true, name: true },
   });
 
-  const { url, storagePath } = await createDriveDoc(parsed.data.name, {
-    record: record ?? undefined,
-  });
+  let url: string;
+  let storagePath: string;
+
+  try {
+    ({ url, storagePath } = await createDriveDoc(parsed.data.name, {
+      record: record ?? undefined,
+    }));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[files/create] Drive error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   const recordFile = await prisma.recordFile.create({
     data: {

@@ -150,10 +150,16 @@ export async function createDriveDoc(
 
   const fileId = response.data.id!;
 
-  await drive.permissions.create({
-    fileId,
-    requestBody: { role: "writer", type: "anyone" },
-  });
+  try {
+    await drive.permissions.create({
+      fileId,
+      requestBody: { role: "writer", type: "anyone" },
+    });
+  } catch (err) {
+    // Domain policy may restrict public sharing — the doc is still created and accessible
+    // to the service account; log and continue.
+    console.warn("[createDriveDoc] Could not set public permission:", err instanceof Error ? err.message : err);
+  }
 
   return {
     url: `https://docs.google.com/document/d/${fileId}/edit`,
