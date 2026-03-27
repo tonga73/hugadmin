@@ -42,13 +42,12 @@ function UnassignedSkeleton() {
 export default function UnassignedPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-      <div className="mb-4 flex items-center gap-2">
-        <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          <h1 className="text-lg font-semibold">Archivos sin asignar</h1>
-          <p className="text-sm text-muted-foreground">Archivos de Drive pendientes de asignación</p>
+      <div className="flex items-center justify-between mb-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="text-sm font-semibold text-foreground">Archivos sin asignar</h1>
         </div>
       </div>
 

@@ -1,50 +1,39 @@
-"use client";
-
-import { useAuth } from "@/contexts/auth-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { getSessionUser } from "@/lib/session";
+import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { ProfileForm } from "./profile-form";
 
-function getInitials(name: string | null) {
-  if (!name) return "U";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+export default async function ProfilePage() {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.email) redirect("/login");
 
-export default function ProfilePage() {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  if (!user) return null;
+  const user = await prisma.user.findUnique({
+    where: { email: sessionUser.email },
+    select: { name: true, image: true, email: true },
+  });
+  if (!user) redirect("/login");
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-md mx-auto py-6 px-4 space-y-4">
+    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => router.push("/")}>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-lg font-semibold">Perfil</h1>
+          </Link>
+          <h1 className="text-sm font-semibold text-foreground">Perfil</h1>
         </div>
-
-        <Card className="p-4 flex items-center gap-4">
-          <Avatar className="h-14 w-14">
-            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
-            <AvatarFallback className="text-lg">{getInitials(user.displayName)}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="font-semibold truncate">{user.displayName ?? "Sin nombre"}</p>
-            <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-          </div>
-        </Card>
-
       </div>
+
+      <ProfileForm
+        initialName={user.name}
+        initialImage={user.image}
+        email={user.email}
+      />
     </div>
   );
 }
