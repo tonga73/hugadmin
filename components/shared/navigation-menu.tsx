@@ -17,11 +17,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogIn, Home, PlusIcon, FolderOpen } from "lucide-react";
 
-export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
+export function NavigationMenu({ isAdmin = false, defaultIsFocus = false }: { isAdmin?: boolean; defaultIsFocus?: boolean }) {
   const isMobile = useIsMobile();
   const { loading, user } = useAuth();
   const searchParams = useSearchParams();
-  const isFocus = searchParams.get("view")?.toUpperCase() === "FOCUS";
+  const urlView = searchParams.get("view")?.toUpperCase();
+  // Use URL param when present; fall back to server-determined default to avoid flash on navigation
+  const isFocus = urlView !== undefined ? urlView === "FOCUS" : defaultIsFocus;
 
   return (
     <div className="flex w-full items-center gap-2">
@@ -34,7 +36,7 @@ export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
           )}
           <NavigationMenuItem>
             <Button variant="ghost" size="icon" asChild className="h-7 w-7">
-              <Link href="/">
+              <Link href={isFocus ? "/?view=FOCUS" : "/"}>
                 <Home className="h-4 w-4" />
               </Link>
             </Button>

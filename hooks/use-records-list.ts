@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Record } from "@/app/generated/prisma/client";
 import { getRecords } from "@/app/actions/getRecords";
@@ -53,6 +53,7 @@ export function useRecordsList({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
 
   // Estado principal de records
   const [records, setRecords] = useState<Record[]>(initialRecords);
@@ -193,8 +194,10 @@ export function useRecordsList({
       else params.delete("lf");
     }
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false } as any);
-  }, [searchParams, pathname, router]);
+    startTransition(() => {
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false } as any);
+    });
+  }, [searchParams, pathname, router, startTransition]);
 
   // Actualizar filtro de tracing — actualiza estado + URL + guarda en DB
   const updateTracingFilter = useCallback((newFilter: string[]) => {
