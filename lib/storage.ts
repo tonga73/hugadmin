@@ -117,6 +117,51 @@ export async function uploadFile(
 }
 
 /**
+ * Create a native Google Doc in Drive (no file upload).
+ * Places it in the APARTADO subfolder and prefixes the name with record info.
+ * Returns { url, storagePath } where storagePath = Drive file ID.
+ */
+export async function createDriveDoc(
+  docName: string,
+  options?: { record?: { order: string; name: string } }
+): Promise<{ url: string; storagePath: string }> {
+  const drive = getDriveClient();
+  const rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+  const parentId = rootFolderId
+    ? await findOrCreateFolder(drive, CATEGORY_FOLDERS.APARTADO, rootFolderId)
+    : undefined;
+
+  let finalName = docName;
+  if (options?.record) {
+    const { order, name } = options.record;
+    const safeName = name.slice(0, 40).replace(/[/\\?%*:|"<>]/g, "-");
+    finalName = `${order} - ${safeName} - ${docName}`;
+  }
+
+  const response = await drive.files.create({
+    requestBody: {
+      name: finalName,
+      mimeType: "application/vnd.google-apps.document",
+      ...(parentId ? { parents: [parentId] } : {}),
+    },
+    fields: "id",
+  });
+
+  const fileId = response.data.id!;
+
+  await drive.permissions.create({
+    fileId,
+    requestBody: { role: "writer", type: "anyone" },
+  });
+
+  return {
+    url: `https://docs.google.com/document/d/${fileId}/edit`,
+    storagePath: fileId,
+  };
+}
+
+/**
  * Download a file from Google Drive by its file ID.
  */
 export async function downloadFile(fileId: string): Promise<Buffer> {

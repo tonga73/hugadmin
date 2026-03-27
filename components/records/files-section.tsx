@@ -16,9 +16,11 @@ import {
   FolderOpen,
   BookOpen,
   ChevronRight,
+  FilePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +32,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 type FileCategory = "DRIVE" | "APARTADO" | "EXPEDIENTE";
@@ -55,11 +64,19 @@ interface FilesSectionProps {
 }
 
 function fileIcon(mimeType: string) {
+  if (mimeType === "application/vnd.google-apps.document")
+    return <FileText className="h-3.5 w-3.5" />;
   if (mimeType.startsWith("image/")) return <FileImage className="h-3.5 w-3.5" />;
   if (mimeType.startsWith("video/")) return <FileVideo className="h-3.5 w-3.5" />;
   if (mimeType === "application/pdf" || mimeType.includes("word"))
     return <FileText className="h-3.5 w-3.5" />;
   return <File className="h-3.5 w-3.5" />;
+}
+
+function fileUrl(f: RecordFile) {
+  if (f.type === "application/vnd.google-apps.document")
+    return `https://docs.google.com/document/d/${f.storagePath}/edit`;
+  return `https://drive.google.com/file/d/${f.storagePath}/view`;
 }
 
 function formatBytes(bytes: number) {
@@ -76,8 +93,11 @@ interface FileGroupProps {
   canUpload: boolean;
   isUploading: boolean;
   defaultOpen?: boolean;
+  canCreate?: boolean;
+  isCreating?: boolean;
   onUpload: (files: FileList, category: FileCategory) => Promise<void>;
   onDelete: (fileId: number) => Promise<void>;
+  onCreateDoc?: (name: string) => Promise<void>;
 }
 
 function FileGroup({
@@ -88,12 +108,17 @@ function FileGroup({
   canUpload,
   isUploading,
   defaultOpen = true,
+  canCreate,
+  isCreating,
   onUpload,
   onDelete,
+  onCreateDoc,
 }: FileGroupProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [docName, setDocName] = useState("");
 
   return (
     <div className="space-y-1">
@@ -116,35 +141,89 @@ function FileGroup({
             </span>
           )}
         </button>
-        {canUpload && isOpen && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-5 text-[10px] gap-0.5 px-1.5"
-              onClick={() => inputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Loader2 className="h-2.5 w-2.5 animate-spin" />
-              ) : (
-                <Upload className="h-2.5 w-2.5" />
-              )}
-              Subir
-            </Button>
-            <input
-              ref={inputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files) onUpload(e.target.files, category);
-                e.target.value = "";
-              }}
-            />
-          </>
+        {isOpen && (
+          <div className="flex items-center gap-1">
+            {canCreate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 text-[10px] gap-0.5 px-1.5"
+                onClick={() => { setDocName(""); setCreateOpen(true); }}
+                disabled={isCreating}
+              >
+                {isCreating ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                ) : (
+                  <FilePlus className="h-2.5 w-2.5" />
+                )}
+                Nuevo
+              </Button>
+            )}
+            {canUpload && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 text-[10px] gap-0.5 px-1.5"
+                  onClick={() => inputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-2.5 w-2.5" />
+                  )}
+                  Subir
+                </Button>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) onUpload(e.target.files, category);
+                    e.target.value = "";
+                  }}
+                />
+              </>
+            )}
+          </div>
         )}
       </div>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-sm" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>Nuevo documento</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder="Apartado"
+            value={docName}
+            onChange={(e) => setDocName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && docName.trim() && onCreateDoc) {
+                onCreateDoc(docName.trim()).then(() => setCreateOpen(false));
+              }
+            }}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCreateOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={!docName.trim() || isCreating}
+              onClick={() => {
+                if (onCreateDoc && docName.trim()) {
+                  onCreateDoc(docName.trim()).then(() => setCreateOpen(false));
+                }
+              }}
+            >
+              {isCreating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Crear"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Collapsible content */}
       {isOpen && (
@@ -180,15 +259,17 @@ function FileGroup({
                   </span>
 
                   <a
-                    href={`https://drive.google.com/file/d/${f.storagePath}/view`}
+                    href={fileUrl(f)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 truncate min-w-0 text-[11px] hover:underline"
                   >
                     {f.name}
-                    <span className="ml-1 text-muted-foreground/50 text-[10px]">
-                      {formatBytes(f.size)}
-                    </span>
+                    {f.size > 0 && (
+                      <span className="ml-1 text-muted-foreground/50 text-[10px]">
+                        {formatBytes(f.size)}
+                      </span>
+                    )}
                   </a>
 
                   {f.aiMatch && (
@@ -204,20 +285,22 @@ function FileGroup({
 
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <a
-                      href={`https://drive.google.com/file/d/${f.storagePath}/view`}
+                      href={fileUrl(f)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      title="Abrir en Drive"
+                      title="Abrir"
                     >
                       <Button variant="ghost" size="icon" className="h-4 w-4">
                         <ExternalLink className="h-2.5 w-2.5" />
                       </Button>
                     </a>
-                    <a href={f.url} target="_blank" rel="noopener noreferrer" title="Descargar">
-                      <Button variant="ghost" size="icon" className="h-4 w-4">
-                        <Download className="h-2.5 w-2.5" />
-                      </Button>
-                    </a>
+                    {f.type !== "application/vnd.google-apps.document" && (
+                      <a href={f.url} target="_blank" rel="noopener noreferrer" title="Descargar">
+                        <Button variant="ghost" size="icon" className="h-4 w-4">
+                          <Download className="h-2.5 w-2.5" />
+                        </Button>
+                      </a>
+                    )}
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -263,6 +346,30 @@ export function FilesSection({ recordId, initialFiles, allowedCategories }: File
   const isAllowed = (cat: FileCategory) =>
     !allowedCategories || allowedCategories.length === 0 || allowedCategories.includes(cat);
   const [uploadingCategory, setUploadingCategory] = useState<FileCategory | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateDoc = useCallback(
+    async (name: string) => {
+      setIsCreating(true);
+      try {
+        const res = await fetch(`/api/records/${recordId}/files/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (!res.ok) throw new Error("Error al crear el documento");
+        const file = (await res.json()) as RecordFile;
+        setFiles((prev) => [file, ...prev]);
+        window.open(file.url, "_blank");
+        toast.success("Documento creado");
+      } catch {
+        toast.error("Error al crear el documento");
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [recordId]
+  );
 
   const uploadFiles = useCallback(
     async (fileList: FileList, category: FileCategory) => {
@@ -338,8 +445,11 @@ export function FilesSection({ recordId, initialFiles, allowedCategories }: File
           canUpload
           isUploading={uploadingCategory === "APARTADO"}
           defaultOpen={apartadoFiles.length > 0}
+          canCreate
+          isCreating={isCreating}
           onUpload={uploadFiles}
           onDelete={handleDelete}
+          onCreateDoc={handleCreateDoc}
         />
       )}
 
