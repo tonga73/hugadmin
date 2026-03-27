@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const rows = await prisma.recordsAndUser.findMany({
+    where: { recordId: Number(id) },
+    include: { User: { select: { id: true, name: true, email: true, image: true } } },
+  });
+  return NextResponse.json(rows.map((r) => r.User));
+}
+
 const assignSchema = z.object({
   userIds: z.array(z.number().int().positive()),
 });

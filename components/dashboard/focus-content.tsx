@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Record } from "@/app/generated/prisma/client";
 import { useRecordsList } from "@/hooks/use-records-list";
 import { RecordDetailSheet } from "./record-detail-sheet";
+import { RecordUsersPopover } from "@/components/records/record-users-popover";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TracingBadge } from "@/components/records/tracing-badge";
@@ -284,6 +285,9 @@ export function FocusContent({
                         {priority.label}
                       </Badge>
                     )}
+
+                    {/* Assignees */}
+                    <RecordUsersPopover recordId={record.id} size="sm" />
 
                     {/* Favorite star */}
                     <Star
