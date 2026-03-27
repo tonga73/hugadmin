@@ -37,5 +37,7 @@ export const PRIORITY_ORDER = ["NULA", "BAJA", "MEDIA", "ALTA", "URGENTE", "INAC
 export function getPrioritiesAboveMin(minPriority: string): string[] {
   const idx = PRIORITY_ORDER.indexOf(minPriority as (typeof PRIORITY_ORDER)[number]);
   if (idx === -1) return [];
-  return PRIORITY_ORDER.slice(idx) as unknown as string[];
+  return PRIORITY_ORDER.slice(idx).filter(
+    (p) => p !== "INACTIVO" && p !== "NULA"
+  ) as unknown as string[];
 }

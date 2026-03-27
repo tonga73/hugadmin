@@ -44,6 +44,9 @@ export async function PATCH(req: NextRequest) {
   if (Object.values(DashboardView).includes(body.dashboardView)) {
     data.dashboardView = body.dashboardView;
   }
+  if (typeof body.assignedToMeOnly === "boolean") {
+    data.assignedToMeOnly = body.assignedToMeOnly;
+  }
 
   const config = await prisma.userViewConfig.upsert({
     where: { userId: user.id },

@@ -63,6 +63,14 @@ model Record {
   Office         Office?          @relation(fields: [officeId], references: [id])
   RecordsAndUser RecordsAndUser[]
   files          RecordFile[]
+
+  @@index([tracing])
+  @@index([priority])
+  @@index([favorite])
+  @@index([archive])
+  @@index([updatedAt])
+  @@index([tracing, priority, updatedAt])
+  @@index([favorite, priority, updatedAt])
 }
 
 model RecordFile {
@@ -103,14 +111,15 @@ model User {
 }
 
 model UserViewConfig {
-  id             Int            @id @default(autoincrement())
-  userId         Int            @unique
-  tracingFilter  Tracing[]
-  favoritesOnly  Boolean        @default(false)
-  minPriority    Priority?
-  fileCategories FileCategory[]
-  dashboardView  DashboardView  @default(OVERVIEW)
-  user           User           @relation(fields: [userId], references: [id])
+  id               Int            @id @default(autoincrement())
+  userId           Int            @unique
+  tracingFilter    Tracing[]
+  favoritesOnly    Boolean        @default(false)
+  minPriority      Priority?
+  fileCategories   FileCategory[]
+  dashboardView    DashboardView  @default(OVERVIEW)
+  assignedToMeOnly Boolean        @default(false)
+  user             User           @relation(fields: [userId], references: [id])
 }
 
 enum DashboardView {

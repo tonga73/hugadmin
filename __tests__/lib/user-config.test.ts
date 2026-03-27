@@ -6,32 +6,29 @@ vi.mock("@/lib/prisma", () => ({ default: {} }));
 import { getPrioritiesAboveMin, PRIORITY_ORDER } from "@/lib/user-config";
 
 describe("getPrioritiesAboveMin", () => {
-  it("returns all priorities from NULA onwards", () => {
+  it("returns all priorities from NULA onwards (excludes NULA and INACTIVO)", () => {
     expect(getPrioritiesAboveMin("NULA")).toEqual([
-      "NULA",
       "BAJA",
       "MEDIA",
       "ALTA",
       "URGENTE",
-      "INACTIVO",
     ]);
   });
 
-  it("returns priorities from MEDIA onwards", () => {
+  it("returns priorities from MEDIA onwards (excludes INACTIVO)", () => {
     expect(getPrioritiesAboveMin("MEDIA")).toEqual([
       "MEDIA",
       "ALTA",
       "URGENTE",
-      "INACTIVO",
     ]);
   });
 
-  it("returns only INACTIVO when given INACTIVO", () => {
-    expect(getPrioritiesAboveMin("INACTIVO")).toEqual(["INACTIVO"]);
+  it("returns empty array when given INACTIVO (excluded)", () => {
+    expect(getPrioritiesAboveMin("INACTIVO")).toEqual([]);
   });
 
-  it("returns only URGENTE and INACTIVO when given URGENTE", () => {
-    expect(getPrioritiesAboveMin("URGENTE")).toEqual(["URGENTE", "INACTIVO"]);
+  it("returns only URGENTE when given URGENTE (INACTIVO excluded)", () => {
+    expect(getPrioritiesAboveMin("URGENTE")).toEqual(["URGENTE"]);
   });
 
   it("returns empty array for unknown priority", () => {

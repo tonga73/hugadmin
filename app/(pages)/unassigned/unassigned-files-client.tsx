@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
+import { getRecords } from "@/app/actions/getRecords";
 import {
   FileText,
   FileImage,
@@ -76,7 +77,6 @@ interface TreeNode {
 
 interface Props {
   initialFiles: RecordFile[];
-  records: RecordOption[];
 }
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -159,56 +159,67 @@ function recordFilter(value: string, search: string): number {
 
 // ─── Record combobox ──────────────────────────────────────────────────────────
 
+function useRecordSearch(open: boolean) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<RecordOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !query.trim()) { setResults([]); return; }
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const data = await getRecords({ query: query.trim(), take: 20 });
+        setResults(data.records.map((r: any) => ({ id: r.id, order: r.order, name: r.name, code: r.code ?? null })));
+      } finally { setLoading(false); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query, open]);
+
+  return { query, setQuery, results, loading };
+}
+
 function RecordCombobox({
-  records,
   value,
   onChange,
 }: {
-  records: RecordOption[];
   value: string;
   onChange: (val: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState("");
+  const { query, setQuery, results, loading } = useRecordSearch(open);
 
-  const selected = records.find((r) => r.id.toString() === value);
+  const handleSelect = (r: RecordOption) => {
+    setSelectedLabel(`${r.order} — ${r.name.slice(0, 20)}`);
+    onChange(r.id.toString());
+    setOpen(false);
+    setQuery("");
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) setQuery(""); }}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs w-[190px] justify-between font-normal"
-        >
-          <span className="truncate">
-            {selected ? `${selected.order} — ${selected.name.slice(0, 20)}` : "Asignar a…"}
-          </span>
+        <Button variant="outline" size="sm" className="h-7 text-xs w-[190px] justify-between font-normal">
+          <span className="truncate">{selectedLabel || "Asignar a…"}</span>
           <ChevronsUpDown className="h-3 w-3 shrink-0 text-muted-foreground ml-1" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[280px] p-0" align="start">
-        <Command filter={recordFilter}>
-          <CommandInput placeholder="Buscar expediente…" className="h-8 text-xs" />
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Buscar expediente…" className="h-8 text-xs" value={query} onValueChange={setQuery} />
           <CommandList className="max-h-48">
-            <CommandEmpty className="text-xs py-4 text-center text-muted-foreground">
-              No se encontró ningún expediente
-            </CommandEmpty>
-            {records.map((r) => (
-              <CommandItem
-                key={r.id}
-                value={`${r.order} ${normalizeOrder(r.order)} ${r.name} ${r.code ?? ""}`}
-                onSelect={() => {
-                  onChange(r.id.toString());
-                  setOpen(false);
-                }}
-                className="text-xs"
-              >
-                <Check
-                  className={cn(
-                    "mr-1.5 h-3 w-3 shrink-0",
-                    value === r.id.toString() ? "opacity-100" : "opacity-0"
-                  )}
-                />
+            {loading ? (
+              <div className="py-4 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" /> Buscando…
+              </div>
+            ) : !query.trim() ? (
+              <div className="py-4 text-center text-xs text-muted-foreground">Escribe para buscar</div>
+            ) : results.length === 0 ? (
+              <CommandEmpty className="text-xs py-4 text-center text-muted-foreground">Sin resultados</CommandEmpty>
+            ) : results.map((r) => (
+              <CommandItem key={r.id} onSelect={() => handleSelect(r)} className="text-xs">
+                <Check className={cn("mr-1.5 h-3 w-3 shrink-0", value === r.id.toString() ? "opacity-100" : "opacity-0")} />
                 <span className="font-medium mr-1.5">{r.order}</span>
                 <span className="truncate text-muted-foreground">{r.name}</span>
               </CommandItem>
@@ -224,7 +235,6 @@ function RecordCombobox({
 
 const FileRow = memo(function FileRow({
   file,
-  records,
   selectedRecord,
   onSelectRecord,
   onAssign,
@@ -234,7 +244,6 @@ const FileRow = memo(function FileRow({
   analyzing,
 }: {
   file: RecordFile;
-  records: RecordOption[];
   selectedRecord: string;
   onSelectRecord: (val: string) => void;
   onAssign: () => void;
@@ -273,7 +282,6 @@ const FileRow = memo(function FileRow({
       {/* Assign */}
       <div className="flex items-center gap-1.5 shrink-0">
         <RecordCombobox
-          records={records}
           value={selectedRecord}
           onChange={onSelectRecord}
         />
@@ -358,17 +366,15 @@ const FileRow = memo(function FileRow({
 
 function FolderAssignButton({
   node,
-  records,
   onAssigned,
 }: {
   node: TreeNode;
-  records: RecordOption[];
   onAssigned: (fileIds: number[]) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [selectedId, setSelectedId] = useState<string>("");
+  const { query: search, setQuery: setSearch, results, loading: searchLoading } = useRecordSearch(open);
   const total = countFiles(node);
 
   const handleAssign = async () => {
@@ -410,7 +416,7 @@ function FolderAssignButton({
         <p className="text-xs font-medium mb-2">
           Asignar <span className="text-muted-foreground">{node.name}</span> ({total} archivos)
         </p>
-        <Command filter={recordFilter}>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Buscar expediente…"
             className="h-8 text-xs"
@@ -418,22 +424,17 @@ function FolderAssignButton({
             onValueChange={setSearch}
           />
           <CommandList className="max-h-44">
-            <CommandEmpty className="text-xs py-3 text-center text-muted-foreground">
-              No se encontró ningún expediente
-            </CommandEmpty>
-            {records.map((r) => (
-              <CommandItem
-                key={r.id}
-                value={`${r.order} ${normalizeOrder(r.order)} ${r.name} ${r.code ?? ""}`}
-                onSelect={() => setSelectedId(r.id.toString())}
-                className="text-xs"
-              >
-                <Check
-                  className={cn(
-                    "mr-1.5 h-3 w-3 shrink-0",
-                    selectedId === r.id.toString() ? "opacity-100" : "opacity-0"
-                  )}
-                />
+            {searchLoading ? (
+              <div className="py-3 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" /> Buscando…
+              </div>
+            ) : !search.trim() ? (
+              <div className="py-3 text-center text-xs text-muted-foreground">Escribe para buscar</div>
+            ) : results.length === 0 ? (
+              <CommandEmpty className="text-xs py-3 text-center text-muted-foreground">Sin resultados</CommandEmpty>
+            ) : results.map((r) => (
+              <CommandItem key={r.id} onSelect={() => setSelectedId(r.id.toString())} className="text-xs">
+                <Check className={cn("mr-1.5 h-3 w-3 shrink-0", selectedId === r.id.toString() ? "opacity-100" : "opacity-0")} />
                 <span className="font-medium mr-1.5">{r.order}</span>
                 <span className="truncate text-muted-foreground">{r.name}</span>
               </CommandItem>
@@ -458,7 +459,6 @@ function FolderAssignButton({
 function FolderNode({
   node,
   depth,
-  records,
   selectedRecord,
   onSelectRecord,
   onAssign,
@@ -471,7 +471,6 @@ function FolderNode({
 }: {
   node: TreeNode;
   depth: number;
-  records: RecordOption[];
   selectedRecord: Record<number, string>;
   onSelectRecord: (id: number, val: string) => void;
   onAssign: (fileId: number) => void;
@@ -525,7 +524,6 @@ function FolderNode({
           <div className="pr-2 shrink-0">
             <FolderAssignButton
               node={node}
-              records={records}
               onAssigned={onFolderAssigned}
             />
           </div>
@@ -541,7 +539,6 @@ function FolderNode({
               key={child.fullPath}
               node={child}
               depth={depth + 1}
-              records={records}
               selectedRecord={selectedRecord}
               onSelectRecord={onSelectRecord}
               onAssign={onAssign}
@@ -561,7 +558,6 @@ function FolderNode({
                 <FileRow
                   key={f.id}
                   file={f}
-                  records={records}
                   selectedRecord={selectedRecord[f.id] ?? ""}
                   onSelectRecord={(val) => onSelectRecord(f.id, val)}
                   onAssign={() => onAssign(f.id)}
@@ -581,7 +577,7 @@ function FolderNode({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function UnassignedFilesClient({ initialFiles, records }: Props) {
+export function UnassignedFilesClient({ initialFiles }: Props) {
   const [files, setFiles] = useState<RecordFile[]>(initialFiles);
   const [syncProgress, setSyncProgress] = useState<{
     phase: "idle" | "listing" | "adding" | "removing";
@@ -800,7 +796,6 @@ export function UnassignedFilesClient({ initialFiles, records }: Props) {
           <FolderNode
             node={filteredTree}
             depth={0}
-            records={records}
             selectedRecord={selectedRecord}
             onSelectRecord={handleSelectRecord}
             onAssign={handleAssign}

@@ -3,16 +3,10 @@ import prisma from "@/lib/prisma";
 import { UnassignedFilesClient } from "./unassigned-files-client";
 
 async function UnassignedFilesData() {
-  const [files, records] = await Promise.all([
-    prisma.recordFile.findMany({
-      where: { recordId: null },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.record.findMany({
-      select: { id: true, order: true, name: true, code: true },
-      orderBy: { order: "asc" },
-    }),
-  ]);
+  const files = await prisma.recordFile.findMany({
+    where: { recordId: null },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <UnassignedFilesClient
@@ -21,7 +15,6 @@ async function UnassignedFilesData() {
         createdAt: f.createdAt.toISOString(),
         folderPath: f.folderPath ?? null,
       }))}
-      records={records}
     />
   );
 }

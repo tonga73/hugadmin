@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 export interface SyncResult {
   added: number;
   removed: number;
+  updated: number;
   unchanged: number;
   errors: string[];
 }
@@ -112,7 +113,7 @@ export async function syncDrive(
   if (!folderId) throw new Error("GOOGLE_DRIVE_FOLDER_ID no configurado");
 
   const drive = getDriveClient();
-  const result: SyncResult = { added: 0, removed: 0, unchanged: 0, errors: [] };
+  const result: SyncResult = { added: 0, removed: 0, updated: 0, unchanged: 0, errors: [] };
 
   // 1. List all files from Drive (pageSize: 1000 → ~10x menos llamadas)
   onProgress?.({ type: "listing", found: 0 });
@@ -121,9 +122,10 @@ export async function syncDrive(
 
   // 2. Get existing storagePaths from DB
   const dbFiles = await prisma.recordFile.findMany({
-    select: { id: true, storagePath: true },
+    select: { id: true, storagePath: true, name: true, size: true },
   });
   const dbIds = new Set(dbFiles.map((f) => f.storagePath));
+  const dbFilesMap = new Map(dbFiles.map((f) => [f.storagePath, f]));
 
   // 3. Bulk insert new files — sin makePublic, URL directa del fileId
   const toAdd = driveFiles.filter((f) => !dbIds.has(f.id));
@@ -166,7 +168,24 @@ export async function syncDrive(
     }
   }
 
-  result.unchanged = driveFiles.length - toAdd.length;
+  // 5. Update files whose name or size changed
+  const toUpdate = driveFiles.filter((f) => {
+    const existing = dbFilesMap.get(f.id);
+    return existing && (existing.name !== f.name || existing.size !== f.size);
+  });
+  for (const file of toUpdate) {
+    try {
+      await prisma.recordFile.updateMany({
+        where: { storagePath: file.id },
+        data: { name: file.name, size: file.size },
+      });
+      result.updated++;
+    } catch (err) {
+      result.errors.push(`Update ${file.id}: ${(err as Error).message}`);
+    }
+  }
+
+  result.unchanged = driveFiles.length - toAdd.length - toUpdate.length;
 
   return result;
 }

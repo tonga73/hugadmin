@@ -4,38 +4,38 @@ import prisma from "@/lib/prisma";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
 
 export async function OverviewDashboard() {
-  const [
-    totalStat, destacadoStat, inactivoStat,
-    mediaStat, altaStat, urgenteStat,
-    aceptaCargoStat, actoPericialStat, periciaRealizadaStat,
-    sentenciaStat, honorariosReguladosStat, tratativaStat, cobradoStat,
-  ] = await Promise.all([
+  const [total, byPriority, byTracing, [destacadoStat, inactivoStat]] = await Promise.all([
     prisma.record.count(),
-    prisma.record.count({ where: { favorite: true } }),
-    prisma.record.count({ where: { archive: true } }),
-    prisma.record.count({ where: { priority: "MEDIA" } }),
-    prisma.record.count({ where: { priority: "ALTA" } }),
-    prisma.record.count({ where: { priority: "URGENTE" } }),
-    prisma.record.count({ where: { tracing: "ACEPTA_CARGO" } }),
-    prisma.record.count({ where: { tracing: "ACTO_PERICIAL_REALIZADO" } }),
-    prisma.record.count({ where: { tracing: "PERICIA_REALIZADA" } }),
-    prisma.record.count({ where: { tracing: "SENTENCIA_O_CONVENIO_DE_PARTES" } }),
-    prisma.record.count({ where: { tracing: "HONORARIOS_REGULADOS" } }),
-    prisma.record.count({ where: { tracing: "EN_TRATATIVA_DE_COBRO" } }),
-    prisma.record.count({ where: { tracing: "COBRADO" } }),
+    prisma.record.groupBy({ by: ["priority"], _count: { _all: true } }),
+    prisma.record.groupBy({ by: ["tracing"], _count: { _all: true } }),
+    Promise.all([
+      prisma.record.count({ where: { favorite: true } }),
+      prisma.record.count({ where: { archive: true } }),
+    ]),
   ]);
+
+  const totalStat = total;
+  const getPriorityCount = (p: string) =>
+    byPriority.find((r) => r.priority === p)?._count._all ?? 0;
+  const getTracingCount = (t: string) =>
+    byTracing.find((r) => r.tracing === t)?._count._all ?? 0;
+
+  const mediaStat = getPriorityCount("MEDIA");
+  const altaStat = getPriorityCount("ALTA");
+  const urgenteStat = getPriorityCount("URGENTE");
+  const cobradoStat = getTracingCount("COBRADO");
 
   const activosStat = totalStat - inactivoStat;
   const getPercentage = (value: number) =>
     totalStat > 0 ? Math.round((value / totalStat) * 100) : 0;
 
   const tracingFlow = [
-    { key: "ACEPTA_CARGO", count: aceptaCargoStat },
-    { key: "ACTO_PERICIAL_REALIZADO", count: actoPericialStat },
-    { key: "PERICIA_REALIZADA", count: periciaRealizadaStat },
-    { key: "SENTENCIA_O_CONVENIO_DE_PARTES", count: sentenciaStat },
-    { key: "HONORARIOS_REGULADOS", count: honorariosReguladosStat },
-    { key: "EN_TRATATIVA_DE_COBRO", count: tratativaStat },
+    { key: "ACEPTA_CARGO", count: getTracingCount("ACEPTA_CARGO") },
+    { key: "ACTO_PERICIAL_REALIZADO", count: getTracingCount("ACTO_PERICIAL_REALIZADO") },
+    { key: "PERICIA_REALIZADA", count: getTracingCount("PERICIA_REALIZADA") },
+    { key: "SENTENCIA_O_CONVENIO_DE_PARTES", count: getTracingCount("SENTENCIA_O_CONVENIO_DE_PARTES") },
+    { key: "HONORARIOS_REGULADOS", count: getTracingCount("HONORARIOS_REGULADOS") },
+    { key: "EN_TRATATIVA_DE_COBRO", count: getTracingCount("EN_TRATATIVA_DE_COBRO") },
     { key: "COBRADO", count: cobradoStat },
   ];
 

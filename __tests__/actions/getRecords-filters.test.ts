@@ -59,29 +59,30 @@ describe("getRecords filter logic — minPriority", () => {
     expect(whereCondition).toEqual({});
   });
 
-  it("ALTA minPriority filters to ALTA, URGENTE, INACTIVO", () => {
+  it("ALTA minPriority filters to ALTA, URGENTE (INACTIVO excluded)", () => {
     const minPriority = "ALTA";
     const priorities = getPrioritiesAboveMin(minPriority);
     const whereCondition =
       priorities.length > 0 ? { priority: { in: priorities } } : {};
     expect(whereCondition).toEqual({
-      priority: { in: ["ALTA", "URGENTE", "INACTIVO"] },
+      priority: { in: ["ALTA", "URGENTE"] },
     });
   });
 
-  it("BAJA minPriority includes all except NULA", () => {
+  it("BAJA minPriority includes all except NULA and INACTIVO", () => {
     const minPriority = "BAJA";
     const priorities = getPrioritiesAboveMin(minPriority);
-    expect(priorities).toEqual(["BAJA", "MEDIA", "ALTA", "URGENTE", "INACTIVO"]);
+    expect(priorities).toEqual(["BAJA", "MEDIA", "ALTA", "URGENTE"]);
     expect(priorities).not.toContain("NULA");
+    expect(priorities).not.toContain("INACTIVO");
   });
 
-  it("URGENTE minPriority only includes URGENTE and INACTIVO", () => {
+  it("URGENTE minPriority only includes URGENTE (INACTIVO excluded)", () => {
     const minPriority = "URGENTE";
     const priorities = getPrioritiesAboveMin(minPriority);
-    expect(priorities).toHaveLength(2);
+    expect(priorities).toHaveLength(1);
     expect(priorities).toContain("URGENTE");
-    expect(priorities).toContain("INACTIVO");
+    expect(priorities).not.toContain("INACTIVO");
   });
 });
 
@@ -109,7 +110,7 @@ describe("getRecords filter logic — combined filters", () => {
     expect(where).toEqual({
       tracing: { in: ["ACEPTA_CARGO"] },
       favorite: true,
-      priority: { in: ["ALTA", "URGENTE", "INACTIVO"] },
+      priority: { in: ["ALTA", "URGENTE"] },
     });
   });
 

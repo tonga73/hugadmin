@@ -5,11 +5,16 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, ArrowLeft, Star } from "lucide-react";
+import { Loader2, ArrowLeft, Star, X, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
 } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TracingBadge } from "@/components/records";
@@ -39,8 +44,17 @@ const recordSchema = z.object({
 
 type RecordFormValues = z.infer<typeof recordSchema>;
 
+interface Assignee {
+  id: number;
+  name: string | null;
+  email: string;
+  image: string | null;
+}
+
 interface EditableRecordPageProps {
   allowedFileCategories?: string[];
+  assignees?: Assignee[];
+  onBack?: () => void;
   record: {
     id: number;
     code?: string | null;
@@ -93,12 +107,48 @@ export default function EditableRecordPage({
   record,
   tracingOptions,
   allowedFileCategories,
+  assignees: initialAssignees = [],
+  onBack,
 }: EditableRecordPageProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isFavorite, setIsFavorite] = useState(record.favorite);
   const [currentOffice, setCurrentOffice] = useState(record.Office);
+  const [assignees, setAssignees] = useState<Assignee[]>(initialAssignees);
+  const [allUsers, setAllUsers] = useState<Assignee[]>([]);
+
+  const loadUsers = useCallback(() => {
+    if (allUsers.length === 0) {
+      fetch("/api/users")
+        .then((r) => r.json())
+        .then(setAllUsers)
+        .catch(() => {});
+    }
+  }, [allUsers.length]);
+
+  const assignUser = useCallback(async (user: Assignee) => {
+    if (assignees.some((a) => a.id === user.id)) return;
+    setAssignees((prev) => [...prev, user]);
+    try {
+      await fetch(`/api/records/${record.id}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds: [user.id] }),
+      });
+    } catch {
+      setAssignees((prev) => prev.filter((a) => a.id !== user.id));
+    }
+  }, [assignees, record.id]);
+
+  const unassignUser = useCallback(async (userId: number) => {
+    setAssignees((prev) => prev.filter((a) => a.id !== userId));
+    try {
+      await fetch(`/api/records/${record.id}/users/${userId}`, { method: "DELETE" });
+    } catch {
+      // ignore — will re-sync on next load
+    }
+  }, [record.id]);
 
   const { Note: RecordNote } = record;
 
@@ -223,7 +273,7 @@ export default function EditableRecordPage({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/")}
+            onClick={() => onBack ? onBack() : router.push("/")}
             className="h-7 w-7 text-muted-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -232,10 +282,82 @@ export default function EditableRecordPage({
             Expediente
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {isSaving && (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground/50" />
           )}
+
+          {/* Asignados popover */}
+          <Popover onOpenChange={(open) => open && loadUsers()}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 transition-all relative",
+                  assignees.length > 0
+                    ? "text-blue-400 hover:text-blue-500"
+                    : "text-muted-foreground/50 hover:text-foreground"
+                )}
+                title="Usuarios asignados"
+              >
+                <Users className="h-4 w-4" />
+                {assignees.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-blue-400 text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                    {assignees.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-56 p-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 px-1 mb-1.5">
+                Asignados
+              </p>
+
+              {assignees.length > 0 && (
+                <div className="mb-2 space-y-0.5">
+                  {assignees.map((a) => (
+                    <div key={a.id} className="flex items-center justify-between gap-2 px-1 py-0.5 rounded hover:bg-muted group">
+                      <span className="text-xs truncate">{a.name ?? a.email}</span>
+                      <button
+                        onClick={() => unassignUser(a.id)}
+                        className="text-muted-foreground/30 hover:text-destructive transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {allUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-1 py-1">Cargando...</p>
+              ) : (
+                (() => {
+                  const available = allUsers.filter((u) => !assignees.some((a) => a.id === u.id));
+                  return available.length > 0 ? (
+                    <div className={cn("space-y-0.5", assignees.length > 0 && "border-t pt-2 mt-1")}>
+                      <p className="text-[10px] text-muted-foreground/50 px-1 mb-1">Agregar</p>
+                      {available.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => assignUser(u)}
+                          className="w-full text-left px-1 py-0.5 rounded text-xs hover:bg-muted transition-colors truncate"
+                        >
+                          {u.name ?? u.email}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null;
+                })()
+              )}
+
+              {allUsers.length > 0 && assignees.length === allUsers.length && (
+                <p className="text-xs text-muted-foreground px-1 py-1">Todos los usuarios asignados</p>
+              )}
+            </PopoverContent>
+          </Popover>
+
           <Button
             variant="ghost"
             size="icon"

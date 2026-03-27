@@ -12,20 +12,25 @@ interface Props {
 export async function StageDashboard({ tracingFilter }: Props) {
   const stages = tracingFilter.length > 0 ? tracingFilter : Object.keys(TRACING_OPTIONS);
 
-  const [stageCounts, recentRecords, totalInStages] = await Promise.all([
-    Promise.all(
-      stages.map((tracing) =>
-        prisma.record.count({ where: { tracing: tracing as any } }).then((count) => ({ tracing, count }))
-      )
-    ),
+  const [stageGroupBy, recentRecords] = await Promise.all([
+    prisma.record.groupBy({
+      by: ["tracing"],
+      where: { tracing: { in: stages as any[] } },
+      _count: { _all: true },
+    }),
     prisma.record.findMany({
       where: { tracing: { in: stages as any[] } },
       orderBy: [{ priority: "desc" }, { updatedAt: "desc" }],
       take: 10,
       select: { id: true, order: true, name: true, tracing: true, priority: true, favorite: true },
     }),
-    prisma.record.count({ where: { tracing: { in: stages as any[] } } }),
   ]);
+
+  const stageCountMap = Object.fromEntries(
+    stageGroupBy.map((r) => [r.tracing, r._count._all])
+  );
+  const stageCounts = stages.map((tracing) => ({ tracing, count: stageCountMap[tracing] ?? 0 }));
+  const totalInStages = stageGroupBy.reduce((sum, r) => sum + r._count._all, 0);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-1.5">

@@ -2,6 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSearchParams } from "next/navigation";
 import {
   NavigationMenu as NavigationMenuUI,
   NavigationMenuItem,
@@ -14,19 +15,23 @@ import { UserMenu } from "./user-menu";
 import { ViewSwitcher } from "./view-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogIn, Home } from "lucide-react";
+import { LogIn, Home, PlusIcon, FolderOpen } from "lucide-react";
 
 export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const isMobile = useIsMobile();
   const { loading, user } = useAuth();
+  const searchParams = useSearchParams();
+  const isFocus = searchParams.get("view")?.toUpperCase() === "FOCUS";
 
   return (
     <div className="flex w-full items-center gap-2">
       <NavigationMenuUI viewport={isMobile}>
         <NavigationMenuList>
-          <NavigationMenuItem>
-            <SidebarTrigger />
-          </NavigationMenuItem>
+          {!isFocus && (
+            <NavigationMenuItem>
+              <SidebarTrigger />
+            </NavigationMenuItem>
+          )}
           <NavigationMenuItem>
             <Button variant="ghost" size="icon" asChild className="h-7 w-7">
               <Link href="/">
@@ -34,6 +39,24 @@ export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
               </Link>
             </Button>
           </NavigationMenuItem>
+          {isFocus && (
+            <>
+              <NavigationMenuItem>
+                <Button variant="ghost" size="icon" asChild className="h-7 w-7" title="Crear expediente">
+                  <Link href="/records/create">
+                    <PlusIcon className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Button variant="ghost" size="icon" asChild className="h-7 w-7" title="Archivos sin asignar">
+                  <Link href="/unassigned">
+                    <FolderOpen className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </NavigationMenuItem>
+            </>
+          )}
         </NavigationMenuList>
       </NavigationMenuUI>
 

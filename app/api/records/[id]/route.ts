@@ -35,6 +35,7 @@ export async function GET(
       where: { id: Number(id) },
       include: {
         Note: true,
+        files: { orderBy: { createdAt: "desc" } },
         Office: {
           include: {
             Court: {
@@ -42,6 +43,11 @@ export async function GET(
                 District: true,
               },
             },
+          },
+        },
+        RecordsAndUser: {
+          include: {
+            User: { select: { id: true, name: true, email: true, image: true } },
           },
         },
       },

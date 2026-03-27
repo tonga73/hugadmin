@@ -15,11 +15,13 @@ async function fetchRecords({
   query,
   exactMatch = false,
   userFilters,
+  assignedToUserId,
 }: {
   cursor?: number;
   take?: number;
   query?: string;
   exactMatch?: boolean;
+  assignedToUserId?: number;
   userFilters?: {
     tracingFilter: string[];
     favoritesOnly: boolean;
@@ -27,6 +29,11 @@ async function fetchRecords({
   };
 }) {
   let where: any = {};
+
+  // Filtro por usuario asignado
+  if (assignedToUserId) {
+    where.RecordsAndUser = { some: { userId: assignedToUserId } };
+  }
 
   // Aplicar filtros del usuario
   if (userFilters) {
@@ -143,7 +150,7 @@ async function resolveUserFilters() {
   if (!config) return null;
 
   const hasFilters =
-    config.tracingFilter.length > 0 || config.favoritesOnly || config.minPriority !== null;
+    config.tracingFilter.length > 0 || config.favoritesOnly || config.minPriority !== null || config.assignedToMeOnly;
 
   if (!hasFilters) return null;
 
@@ -151,7 +158,19 @@ async function resolveUserFilters() {
     tracingFilter: config.tracingFilter as string[],
     favoritesOnly: config.favoritesOnly,
     minPriority: config.minPriority as string | null,
+    assignedToMeOnly: config.assignedToMeOnly,
   };
+}
+
+// Resolve the current user's DB id (needed for "mine" filter)
+async function resolveCurrentUserId(): Promise<number | undefined> {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.email) return undefined;
+  const user = await prisma.user.findUnique({
+    where: { email: sessionUser.email },
+    select: { id: true },
+  });
+  return user?.id ?? undefined;
 }
 
 export async function getRecords({
@@ -159,17 +178,64 @@ export async function getRecords({
   take = 10,
   query,
   exactMatch = false,
+  assignedToUserId,
+  explicitFilters,
 }: {
   cursor?: number;
   take?: number;
   query?: string;
   exactMatch?: boolean;
+  assignedToUserId?: number;
+  explicitFilters?: {
+    tracingFilter: string[];
+    minPriority: string | null;
+    mine: boolean;
+    favoritesOnly: boolean;
+  };
 }) {
-  const userFilters = await resolveUserFilters();
+  // Explicit filters (URL-driven): bypass DB config read
+  if (explicitFilters !== undefined) {
+    const hasFilters =
+      explicitFilters.tracingFilter.length > 0 ||
+      explicitFilters.minPriority !== null ||
+      explicitFilters.mine ||
+      explicitFilters.favoritesOnly;
 
-  // With user filters: skip cache (user-specific results)
-  if (userFilters) {
-    return fetchRecords({ cursor, take, query, exactMatch, userFilters });
+    let resolvedAssignedToUserId = assignedToUserId;
+    if (explicitFilters.mine && !resolvedAssignedToUserId) {
+      resolvedAssignedToUserId = await resolveCurrentUserId();
+    }
+
+    if (hasFilters || resolvedAssignedToUserId) {
+      return fetchRecords({
+        cursor,
+        take,
+        query,
+        exactMatch,
+        userFilters: hasFilters
+          ? {
+              tracingFilter: explicitFilters.tracingFilter,
+              favoritesOnly: explicitFilters.favoritesOnly,
+              minPriority: explicitFilters.minPriority,
+            }
+          : undefined,
+        assignedToUserId: resolvedAssignedToUserId,
+      });
+    }
+    // No filters: use shared cache
+    if (cursor) return fetchRecords({ cursor, take, query, exactMatch });
+    if (query?.trim()) return getCachedSearchResults(query.trim(), take, exactMatch);
+    return getCachedRecords(undefined, take);
+  }
+
+  // DB-driven filters (used by AppSidebar SSR and polling refresh)
+  const userFilters = await resolveUserFilters();
+  let resolvedAssignedToUserId = assignedToUserId;
+  if (userFilters?.assignedToMeOnly && !resolvedAssignedToUserId) {
+    resolvedAssignedToUserId = await resolveCurrentUserId();
+  }
+  if (userFilters || resolvedAssignedToUserId) {
+    return fetchRecords({ cursor, take, query, exactMatch, userFilters: userFilters ?? undefined, assignedToUserId: resolvedAssignedToUserId });
   }
 
   // Without filters: use shared cache

@@ -18,6 +18,11 @@ export default async function RecordPage({
         Note: true,
         files: { orderBy: { createdAt: "desc" } },
         Office: { include: { Court: { include: { District: true } } } },
+        RecordsAndUser: {
+          include: {
+            User: { select: { id: true, name: true, email: true, image: true } },
+          },
+        },
       },
     }),
     getSessionUser(),
@@ -37,11 +42,14 @@ export default async function RecordPage({
     );
   }
 
+  const assignees = record.RecordsAndUser.map((r) => r.User);
+
   return (
     <EditableRecordPage
       record={record}
       tracingOptions={TRACING_OPTIONS}
       allowedFileCategories={allowedCategories}
+      assignees={assignees}
     />
   );
 }

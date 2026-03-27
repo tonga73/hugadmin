@@ -36,7 +36,6 @@ export async function AppSidebar() {
   ]);
 
   const config = sessionUser?.email ? await getUserViewConfig(sessionUser.email) : null;
-  void config; // used for cache warming — sidebar no longer renders config UI
 
   const recordsWithDates = records.map((r) => ({
     ...r,
@@ -75,6 +74,10 @@ export async function AppSidebar() {
               initialRecords={recordsWithDates}
               lastId={lastId}
               hasMore={hasMore}
+              initialTracingFilter={(config?.tracingFilter as string[]) ?? []}
+              initialMinPriority={(config?.minPriority as string | null) ?? null}
+              initialMine={config?.assignedToMeOnly ?? false}
+              initialFavoritesOnly={config?.favoritesOnly ?? false}
             />
           </SidebarGroupContent>
         </SidebarGroup>
