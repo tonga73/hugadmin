@@ -211,17 +211,17 @@ export function useRecordsList({
   }, [updateFilterUrl]);
 
   const toggleTracingKey = useCallback((key: string) => {
-    setTracingFilter((prev) => {
-      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
-      updateFilterUrl({ tracingFilter: next });
-      fetch("/api/users/me/config", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tracingFilter: next }),
-      });
-      return next;
+    const next = tracingFilter.includes(key)
+      ? tracingFilter.filter((k) => k !== key)
+      : [...tracingFilter, key];
+    setTracingFilter(next);
+    updateFilterUrl({ tracingFilter: next });
+    fetch("/api/users/me/config", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tracingFilter: next }),
     });
-  }, [updateFilterUrl]);
+  }, [tracingFilter, updateFilterUrl]);
 
   // Actualizar prioridad mínima — actualiza estado + URL + guarda en DB
   const updateMinPriority = useCallback((priority: string | null) => {
@@ -231,6 +231,26 @@ export function useRecordsList({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ minPriority: priority }),
+    });
+  }, [updateFilterUrl]);
+
+  // Actualizar mine — actualiza URL + guarda en DB
+  const updateMine = useCallback((value: boolean) => {
+    updateFilterUrl({ mine: value });
+    fetch("/api/users/me/config", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignedToMeOnly: value }),
+    });
+  }, [updateFilterUrl]);
+
+  // Actualizar favoritesOnly — actualiza URL + guarda en DB
+  const updateFavoritesOnly = useCallback((value: boolean) => {
+    updateFilterUrl({ favoritesOnly: value });
+    fetch("/api/users/me/config", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ favoritesOnly: value }),
     });
   }, [updateFilterUrl]);
 
@@ -711,6 +731,8 @@ export function useRecordsList({
     updateTracingFilter,
     toggleTracingKey,
     updateMinPriority,
+    updateMine,
+    updateFavoritesOnly,
     // Router
     router,
     pathname,

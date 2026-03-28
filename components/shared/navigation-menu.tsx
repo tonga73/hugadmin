@@ -59,12 +59,10 @@ export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
         </NavigationMenuList>
       </NavigationMenuUI>
 
-      {/* Center: view switcher (only when logged in) */}
-      {!loading && user && (
-        <div className="flex-1">
-          <ViewSwitcher />
-        </div>
-      )}
+      {/* View switcher (only when logged in) */}
+      {!loading && user && <ViewSwitcher />}
+
+      <div className="flex-1" />
 
       <div className="flex items-center gap-2 ml-auto">
         <ModeToggle />

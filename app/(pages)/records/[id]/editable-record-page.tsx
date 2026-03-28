@@ -48,7 +48,6 @@ interface Assignee {
 }
 
 interface EditableRecordPageProps {
-  allowedFileCategories?: string[];
   assignees?: Assignee[];
   onBack?: () => void;
   record: {
@@ -102,7 +101,6 @@ interface EditableRecordPageProps {
 export default function EditableRecordPage({
   record,
   tracingOptions,
-  allowedFileCategories,
   assignees: initialAssignees = [],
   onBack,
 }: EditableRecordPageProps) {
@@ -345,7 +343,6 @@ export default function EditableRecordPage({
                   ...f,
                   createdAt: f.createdAt.toISOString(),
                 }))}
-                allowedCategories={allowedFileCategories as any}
               />
             </div>
           </Card>

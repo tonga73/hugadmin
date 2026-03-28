@@ -32,38 +32,12 @@ describe("FilesSection", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all three sections when no allowedCategories", () => {
+  it("renders all three sections", () => {
     render(
       <FilesSection recordId={1} initialFiles={[]} />
     );
     expect(screen.getByText("Drive")).toBeInTheDocument();
     expect(screen.getByText("Apartados")).toBeInTheDocument();
-    expect(screen.getByText("Expediente")).toBeInTheDocument();
-  });
-
-  it("renders only allowed categories", () => {
-    render(
-      <FilesSection
-        recordId={1}
-        initialFiles={[]}
-        allowedCategories={["APARTADO"]}
-      />
-    );
-    expect(screen.queryByText("Drive")).not.toBeInTheDocument();
-    expect(screen.getByText("Apartados")).toBeInTheDocument();
-    expect(screen.queryByText("Expediente")).not.toBeInTheDocument();
-  });
-
-  it("renders DRIVE and EXPEDIENTE sections when specified", () => {
-    render(
-      <FilesSection
-        recordId={1}
-        initialFiles={[]}
-        allowedCategories={["DRIVE", "EXPEDIENTE"]}
-      />
-    );
-    expect(screen.getByText("Drive")).toBeInTheDocument();
-    expect(screen.queryByText("Apartados")).not.toBeInTheDocument();
     expect(screen.getByText("Expediente")).toBeInTheDocument();
   });
 
@@ -169,13 +143,9 @@ describe("FilesSection", () => {
     expect(screen.queryByText(/nota\.pdf/)).not.toBeInTheDocument();
   });
 
-  it("renders with empty allowedCategories as 'show all'", () => {
+  it("always renders all three sections regardless of files", () => {
     render(
-      <FilesSection
-        recordId={1}
-        initialFiles={[]}
-        allowedCategories={[]}
-      />
+      <FilesSection recordId={1} initialFiles={[]} />
     );
     expect(screen.getByText("Drive")).toBeInTheDocument();
     expect(screen.getByText("Apartados")).toBeInTheDocument();

@@ -187,21 +187,27 @@ export async function syncDrive(
     }
   }
 
-  // 5. Update files whose name or size changed
+  // 5. Update files whose name or size changed (parallel by chunks)
   const toUpdate = driveFiles.filter((f) => {
     const existing = dbFilesMap.get(f.id);
     return existing && (existing.name !== f.name || existing.size !== f.size);
   });
-  for (const file of toUpdate) {
-    try {
-      await prisma.recordFile.updateMany({
-        where: { storagePath: file.id },
-        data: { name: file.name, size: file.size },
-      });
-      result.updated++;
-    } catch (err) {
-      result.errors.push(`Update ${file.id}: ${(err as Error).message}`);
-    }
+  for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+    const chunk = toUpdate.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      chunk.map((file) =>
+        prisma.recordFile.updateMany({
+          where: { storagePath: file.id },
+          data: { name: file.name, size: file.size },
+        })
+      )
+    );
+    result.updated += results.filter((r) => r.status === "fulfilled").length;
+    results
+      .filter((r) => r.status === "rejected")
+      .forEach((r, idx) =>
+        result.errors.push(`Update ${chunk[idx].id}: ${(r as PromiseRejectedResult).reason}`)
+      );
   }
 
   result.unchanged = driveFiles.length - toAdd.length - toUpdate.length;

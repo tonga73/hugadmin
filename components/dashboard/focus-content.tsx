@@ -41,7 +41,6 @@ interface FocusContentProps {
   stats: Stats;
   initialMine: boolean;
   initialFavoritesOnly: boolean;
-  allowedFileCategories?: string[];
   initialAssigneesMap?: AssigneesMap;
 }
 
@@ -63,7 +62,6 @@ export function FocusContent({
   stats,
   initialMine,
   initialFavoritesOnly,
-  allowedFileCategories,
   initialAssigneesMap = {},
 }: FocusContentProps) {
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
@@ -80,6 +78,8 @@ export function FocusContent({
     toggleTracingKey,
     updateTracingFilter,
     updateMinPriority,
+    updateMine,
+    updateFavoritesOnly,
     scrollRef,
     sentinelRef,
   } = useRecordsList({
@@ -140,30 +140,17 @@ export function FocusContent({
             filtersOpen ? "bg-muted/40" : "hover:bg-muted/30"
           )}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Expedientes</span>
+          <span className="text-sm font-medium">Expedientes</span>
+          <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+              <SlidersHorizontal className="h-3 w-3" />
+              Filtros
+            </span>
             {activeFilterCount > 0 && (
               <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full px-1.5 leading-4">
                 {activeFilterCount}
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            {(mine || favoritesOnly) && (
-              <div className="flex items-center gap-1">
-                {mine && <Badge variant="secondary" className="text-[10px] h-5">Solo míos</Badge>}
-                {favoritesOnly && (
-                  <Badge variant="secondary" className="text-[10px] h-5">
-                    <Star className="h-2.5 w-2.5 mr-0.5 fill-amber-400 text-amber-400" />
-                    Destacados
-                  </Badge>
-                )}
-              </div>
-            )}
-            <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-              <SlidersHorizontal className="h-3 w-3" />
-              Filtros
-            </span>
             <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", filtersOpen && "rotate-180")} />
           </div>
         </button>
@@ -193,12 +180,12 @@ export function FocusContent({
                       onClick={() => toggleTracingKey(key)}
                       className={cn(
                         "px-1.5 py-0.5 rounded-full text-[10px] font-medium border transition-all",
-                        active ? "opacity-100" : "opacity-55 hover:opacity-75"
+                        active ? "opacity-100" : "opacity-80 hover:opacity-100"
                       )}
                       style={
                         active
                           ? { backgroundColor: opt.color, color: opt.textColor, borderColor: opt.color }
-                          : { borderColor: opt.color, color: opt.textColor }
+                          : { borderColor: opt.color, color: opt.color }
                       }
                     >
                       {opt.label}
@@ -243,6 +230,32 @@ export function FocusContent({
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Mis expedientes / Destacados */}
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Asignación</p>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  onClick={() => updateMine(!mine)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-full text-[10px] font-medium border border-muted-foreground/40 transition-all",
+                    mine ? "opacity-100 bg-muted-foreground/20" : "opacity-55 hover:opacity-75"
+                  )}
+                >
+                  Mis expedientes
+                </button>
+                <button
+                  onClick={() => updateFavoritesOnly(!favoritesOnly)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-full text-[10px] font-medium border border-amber-400/60 text-amber-500 transition-all flex items-center gap-0.5",
+                    favoritesOnly ? "opacity-100 bg-amber-400/15" : "opacity-55 hover:opacity-75"
+                  )}
+                >
+                  <Star className={cn("h-2.5 w-2.5", favoritesOnly && "fill-amber-400")} />
+                  Destacados
+                </button>
               </div>
             </div>
           </div>
@@ -340,7 +353,6 @@ export function FocusContent({
       {/* Record detail sheet */}
       <RecordDetailSheet
         recordId={selectedRecordId}
-        allowedFileCategories={allowedFileCategories}
         onClose={() => setSelectedRecordId(null)}
       />
     </div>

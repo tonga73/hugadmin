@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getSessionUser } from "@/lib/session";
-import { getUserViewConfig, getPrioritiesAboveMin } from "@/lib/user-config";
+import { getPrioritiesAboveMin } from "@/lib/user-config";
 import { getRecords } from "@/app/actions/getRecords";
 import { FocusContent } from "./focus-content";
 
@@ -29,7 +28,7 @@ export async function FocusDashboard({
     if (priorities.length > 0) statsWhere.priority = { in: priorities };
   }
 
-  const [initialData, total, urgente, alta, favoritos, sessionUser] = await Promise.all([
+  const [initialData, total, urgente, alta, favoritos] = await Promise.all([
     getRecords({
       take: 20,
       explicitFilters: { tracingFilter, minPriority, mine: initialMine, favoritesOnly },
@@ -39,7 +38,6 @@ export async function FocusDashboard({
     prisma.record.count({ where: { ...statsWhere, priority: "URGENTE" } }),
     prisma.record.count({ where: { ...statsWhere, priority: "ALTA" } }),
     prisma.record.count({ where: { ...statsWhere, favorite: true } }),
-    getSessionUser(),
   ]);
 
   const records = initialData.records.map((r) => ({
@@ -49,26 +47,18 @@ export async function FocusDashboard({
   }));
 
   const recordIds = records.map((r) => r.id);
-  const [assigneesRows, config] = await Promise.all([
-    recordIds.length > 0
-      ? prisma.recordsAndUser.findMany({
-          where: { recordId: { in: recordIds } },
-          include: { User: { select: { id: true, name: true, email: true, image: true } } },
-        })
-      : Promise.resolve([]),
-    sessionUser?.email ? getUserViewConfig(sessionUser.email) : Promise.resolve(null),
-  ]);
+  const assigneesRows = recordIds.length > 0
+    ? await prisma.recordsAndUser.findMany({
+        where: { recordId: { in: recordIds } },
+        include: { User: { select: { id: true, name: true, email: true, image: true } } },
+      })
+    : [];
 
   const assigneesMap: Record<number, { id: number; name: string | null; email: string; image: string | null }[]> = {};
   for (const row of assigneesRows) {
     if (!assigneesMap[row.recordId]) assigneesMap[row.recordId] = [];
     assigneesMap[row.recordId].push(row.User);
   }
-
-  const allowedFileCategories =
-    config?.fileCategories && (config.fileCategories as string[]).length > 0
-      ? (config.fileCategories as string[])
-      : undefined;
 
   return (
     <FocusContent
@@ -78,7 +68,6 @@ export async function FocusDashboard({
       stats={{ total, urgente, alta, favoritos }}
       initialMine={initialMine}
       initialFavoritesOnly={favoritesOnly}
-      allowedFileCategories={allowedFileCategories}
       initialAssigneesMap={assigneesMap}
     />
   );

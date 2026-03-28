@@ -2,15 +2,26 @@ import { CircularProgress } from "@/components/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
+import { OverviewFilters } from "./overview-filters";
 
-export async function OverviewDashboard() {
+interface OverviewDashboardProps {
+  assignedToUserId?: number;
+  favoritesOnly?: boolean;
+  initialMine?: boolean;
+}
+
+export async function OverviewDashboard({ assignedToUserId, favoritesOnly, initialMine = false }: OverviewDashboardProps) {
+  const baseWhere: any = {};
+  if (assignedToUserId) baseWhere.RecordsAndUser = { some: { userId: assignedToUserId } };
+  if (favoritesOnly) baseWhere.favorite = true;
+
   const [total, byPriority, byTracing, [destacadoStat, inactivoStat]] = await Promise.all([
-    prisma.record.count(),
-    prisma.record.groupBy({ by: ["priority"], _count: { _all: true } }),
-    prisma.record.groupBy({ by: ["tracing"], _count: { _all: true } }),
+    prisma.record.count({ where: baseWhere }),
+    prisma.record.groupBy({ by: ["priority"], _count: { _all: true }, where: baseWhere }),
+    prisma.record.groupBy({ by: ["tracing"], _count: { _all: true }, where: baseWhere }),
     Promise.all([
-      prisma.record.count({ where: { favorite: true } }),
-      prisma.record.count({ where: { archive: true } }),
+      prisma.record.count({ where: { ...baseWhere, favorite: true } }),
+      prisma.record.count({ where: { ...baseWhere, archive: true } }),
     ]),
   ]);
 
@@ -41,6 +52,10 @@ export async function OverviewDashboard() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+      <div className="flex items-center justify-between shrink-0">
+        <span className="text-sm font-medium">Expedientes</span>
+        <OverviewFilters mine={initialMine} favoritesOnly={favoritesOnly ?? false} />
+      </div>
       <div className="grid grid-cols-4 gap-1.5 shrink-0">
         <Card>
           <CardHeader className="pb-2">

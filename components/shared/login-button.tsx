@@ -27,7 +27,7 @@ export const LoginButton: React.FC = () => {
   };
 
   return (
-    <Button variant="ghost" size="lg" onClick={handleLogin} disabled={loading}>
+    <Button variant="outline" size="lg" onClick={handleLogin} disabled={loading} className="border-2 gap-2.5 px-6 hover:bg-muted/60">
       {loading ? (
         <>
           <FaSpinner className="animate-spin" />

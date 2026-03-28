@@ -35,11 +35,21 @@ export default async function Home({ searchParams }: Props) {
   const params = await searchParams;
   const urlView = params.view?.toUpperCase() ?? null;
 
-  // OVERVIEW with explicit URL param needs no DB call
+  // OVERVIEW with explicit URL param
   if (urlView === "OVERVIEW") {
+    let assignedToUserId: number | undefined;
+    const urlMine = params.lm === "1";
+    if (urlMine) {
+      const sessionUser = await getSessionUser();
+      if (sessionUser?.email) assignedToUserId = await resolveAssignedToUserId(sessionUser.email);
+    }
     return (
       <Suspense fallback={<DashboardSkeleton />}>
-        <OverviewDashboard />
+        <OverviewDashboard
+          assignedToUserId={assignedToUserId}
+          favoritesOnly={params.lf === "1"}
+          initialMine={urlMine}
+        />
       </Suspense>
     );
   }
@@ -88,9 +98,18 @@ export default async function Home({ searchParams }: Props) {
     );
   }
 
+  const mineFilter = params.lm !== undefined ? (params.lm === "1") : (config?.assignedToMeOnly ?? false);
+  const favFilter = params.lf !== undefined ? (params.lf === "1") : (config?.favoritesOnly ?? false);
+  let overviewAssignedToUserId: number | undefined;
+  if (mineFilter && sessionUser?.email) overviewAssignedToUserId = await resolveAssignedToUserId(sessionUser.email);
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <OverviewDashboard />
+      <OverviewDashboard
+        assignedToUserId={overviewAssignedToUserId}
+        favoritesOnly={favFilter}
+        initialMine={mineFilter}
+      />
     </Suspense>
   );
 }

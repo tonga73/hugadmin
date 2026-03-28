@@ -12,11 +12,10 @@ import { Loader2 } from "lucide-react";
 
 interface RecordDetailSheetProps {
   recordId: number | null;
-  allowedFileCategories?: string[];
   onClose: () => void;
 }
 
-export function RecordDetailSheet({ recordId, allowedFileCategories, onClose }: RecordDetailSheetProps) {
+export function RecordDetailSheet({ recordId, onClose }: RecordDetailSheetProps) {
   const [record, setRecord] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -60,7 +59,6 @@ export function RecordDetailSheet({ recordId, allowedFileCategories, onClose }: 
           <EditableRecordPage
             record={record}
             tracingOptions={TRACING_OPTIONS}
-            allowedFileCategories={allowedFileCategories}
             assignees={(record.RecordsAndUser ?? []).map((r: any) => r.User)}
             onBack={onClose}
           />

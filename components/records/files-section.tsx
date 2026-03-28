@@ -60,7 +60,6 @@ interface RecordFile {
 interface FilesSectionProps {
   recordId: number;
   initialFiles: RecordFile[];
-  allowedCategories?: FileCategory[];
 }
 
 function fileIcon(mimeType: string) {
@@ -129,14 +128,14 @@ function FileGroup({
           className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors"
         >
           <ChevronRight
-            className={`h-3 w-3 transition-transform duration-150 ${isOpen ? "rotate-90" : ""}`}
+            className={`h-3.5 w-3.5 transition-transform duration-150 ${isOpen ? "rotate-90" : ""}`}
           />
           {icon}
-          <span className="text-[10px] font-semibold uppercase tracking-wider">
+          <span className="text-xs font-semibold uppercase tracking-wider">
             {label}
           </span>
           {files.length > 0 && (
-            <span className="text-[9px] bg-muted px-1 rounded-full">
+            <span className="text-[10px] bg-muted px-1.5 rounded-full">
               {files.length}
             </span>
           )}
@@ -147,7 +146,7 @@ function FileGroup({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 text-[10px] gap-0.5 px-1.5"
+                className="h-6 text-xs gap-0.5 px-1.5"
                 onClick={() => { setDocName(""); setCreateOpen(true); }}
                 disabled={isCreating}
               >
@@ -164,7 +163,7 @@ function FileGroup({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-5 text-[10px] gap-0.5 px-1.5"
+                  className="h-6 text-xs gap-0.5 px-1.5"
                   onClick={() => inputRef.current?.click()}
                   disabled={isUploading}
                 >
@@ -244,7 +243,7 @@ function FileGroup({
           }`}
         >
           {files.length === 0 ? (
-            <p className="text-[10px] text-muted-foreground/50 text-center py-2">
+            <p className="text-xs text-muted-foreground/50 text-center py-3">
               {canUpload ? "Arrastrá o usá Subir" : "Sin archivos"}
             </p>
           ) : (
@@ -252,7 +251,7 @@ function FileGroup({
               {files.map((f) => (
                 <li
                   key={f.id}
-                  className="flex items-center gap-1.5 text-xs py-1 px-1.5 rounded-md hover:bg-muted/50 group"
+                  className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-md hover:bg-muted/50 group"
                 >
                   <span className="text-muted-foreground shrink-0">
                     {fileIcon(f.type)}
@@ -262,11 +261,11 @@ function FileGroup({
                     href={fileUrl(f)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 truncate min-w-0 text-[11px] hover:underline"
+                    className="flex-1 truncate min-w-0 text-xs hover:underline"
                   >
                     {f.name}
                     {f.size > 0 && (
-                      <span className="ml-1 text-muted-foreground/50 text-[10px]">
+                      <span className="ml-1 text-muted-foreground/50 text-[11px]">
                         {formatBytes(f.size)}
                       </span>
                     )}
@@ -341,10 +340,8 @@ function FileGroup({
   );
 }
 
-export function FilesSection({ recordId, initialFiles, allowedCategories }: FilesSectionProps) {
+export function FilesSection({ recordId, initialFiles }: FilesSectionProps) {
   const [files, setFiles] = useState<RecordFile[]>(initialFiles);
-  const isAllowed = (cat: FileCategory) =>
-    !allowedCategories || allowedCategories.length === 0 || allowedCategories.includes(cat);
   const [uploadingCategory, setUploadingCategory] = useState<FileCategory | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -422,50 +419,42 @@ export function FilesSection({ recordId, initialFiles, allowedCategories }: File
 
   return (
     <div className="space-y-3">
-      {isAllowed("DRIVE") && (
-        <FileGroup
-          label="Drive"
-          icon={<HardDrive className="h-3 w-3" />}
-          files={driveFiles}
-          category="DRIVE"
-          canUpload={false}
-          isUploading={uploadingCategory === "DRIVE"}
-          defaultOpen={driveFiles.length > 0}
-          onUpload={uploadFiles}
-          onDelete={handleDelete}
-        />
-      )}
-
-      {isAllowed("APARTADO") && (
-        <FileGroup
-          label="Apartados"
-          icon={<FolderOpen className="h-3 w-3" />}
-          files={apartadoFiles}
-          category="APARTADO"
-          canUpload
-          isUploading={uploadingCategory === "APARTADO"}
-          defaultOpen={apartadoFiles.length > 0}
-          canCreate
-          isCreating={isCreating}
-          onUpload={uploadFiles}
-          onDelete={handleDelete}
-          onCreateDoc={handleCreateDoc}
-        />
-      )}
-
-      {isAllowed("EXPEDIENTE") && (
-        <FileGroup
-          label="Expediente"
-          icon={<BookOpen className="h-3 w-3" />}
-          files={expedienteFiles}
-          category="EXPEDIENTE"
-          canUpload
-          isUploading={uploadingCategory === "EXPEDIENTE"}
-          defaultOpen={expedienteFiles.length > 0}
-          onUpload={uploadFiles}
-          onDelete={handleDelete}
-        />
-      )}
+      <FileGroup
+        label="Drive"
+        icon={<HardDrive className="h-3.5 w-3.5" />}
+        files={driveFiles}
+        category="DRIVE"
+        canUpload={false}
+        isUploading={uploadingCategory === "DRIVE"}
+        defaultOpen={driveFiles.length > 0}
+        onUpload={uploadFiles}
+        onDelete={handleDelete}
+      />
+      <FileGroup
+        label="Apartados"
+        icon={<FolderOpen className="h-3.5 w-3.5" />}
+        files={apartadoFiles}
+        category="APARTADO"
+        canUpload
+        isUploading={uploadingCategory === "APARTADO"}
+        defaultOpen={apartadoFiles.length > 0}
+        canCreate
+        isCreating={isCreating}
+        onUpload={uploadFiles}
+        onDelete={handleDelete}
+        onCreateDoc={handleCreateDoc}
+      />
+      <FileGroup
+        label="Expediente"
+        icon={<BookOpen className="h-3.5 w-3.5" />}
+        files={expedienteFiles}
+        category="EXPEDIENTE"
+        canUpload
+        isUploading={uploadingCategory === "EXPEDIENTE"}
+        defaultOpen={expedienteFiles.length > 0}
+        onUpload={uploadFiles}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
