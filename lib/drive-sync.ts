@@ -34,7 +34,17 @@ const SUPPORTED_MIMES = new Set([
   "video/mp4",
   "video/quicktime",
   "video/x-msvideo",
+  // Native Google Workspace formats
+  "application/vnd.google-apps.document",
+  "application/vnd.google-apps.spreadsheet",
+  "application/vnd.google-apps.presentation",
 ]);
+
+const GOOGLE_NATIVE_URLS: Record<string, (id: string) => string> = {
+  "application/vnd.google-apps.document":     (id) => `https://docs.google.com/document/d/${id}/edit`,
+  "application/vnd.google-apps.spreadsheet":  (id) => `https://docs.google.com/spreadsheets/d/${id}/edit`,
+  "application/vnd.google-apps.presentation": (id) => `https://docs.google.com/presentation/d/${id}/edit`,
+};
 
 const BATCH_SIZE = 500;
 
@@ -49,8 +59,16 @@ function getDriveClient() {
   return google.drive({ version: "v3", auth });
 }
 
-function driveUrl(fileId: string): string {
+function driveUrl(fileId: string, mimeType: string): string {
+  const nativeUrl = GOOGLE_NATIVE_URLS[mimeType];
+  if (nativeUrl) return nativeUrl(fileId);
   return `https://drive.google.com/uc?id=${fileId}&export=download`;
+}
+
+function categoryFromPath(folderPath: string): "DRIVE" | "APARTADO" | "EXPEDIENTE" {
+  if (folderPath.includes("Apartados")) return "APARTADO";
+  if (folderPath.includes("Expediente Unificado")) return "EXPEDIENTE";
+  return "DRIVE";
 }
 
 async function listAllFiles(
@@ -137,11 +155,12 @@ export async function syncDrive(
         data: chunk.map((file) => ({
           recordId: null,
           name: file.name,
-          url: driveUrl(file.id),
+          url: driveUrl(file.id, file.mimeType),
           storagePath: file.id,
           folderPath: file.folderPath,
           type: file.mimeType,
           size: file.size,
+          category: categoryFromPath(file.folderPath),
           aiMatch: false,
           aiConfidence: null,
         })),
