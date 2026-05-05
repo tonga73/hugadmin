@@ -122,6 +122,12 @@ model UserViewConfig {
   user             User           @relation(fields: [userId], references: [id])
 }
 
+model Config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 enum DashboardView {
   OVERVIEW
   STAGE

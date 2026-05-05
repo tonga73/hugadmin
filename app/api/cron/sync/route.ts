@@ -1,4 +1,4 @@
-import { syncDrive } from "@/lib/drive-sync";
+import { syncDrive, renewDriveWebhookIfNeeded } from "@/lib/drive-sync";
 
 // Cron job endpoint — called by Railway Cron every 6 hours
 // Schedule: 0 */6 * * *
@@ -10,6 +10,9 @@ export async function GET(req: Request) {
   }
 
   try {
+    // Renew the Drive webhook channel if it's expiring within 2 days
+    await renewDriveWebhookIfNeeded();
+
     const result = await syncDrive();
     return Response.json({ ok: true, ...result });
   } catch (err) {

@@ -1,17 +1,7 @@
 // lib/storage.ts — Google Drive storage helpers (server-side)
-import { google, drive_v3 } from "googleapis";
+import { drive_v3 } from "googleapis";
 import { Readable } from "stream";
-
-function getDriveClient() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    },
-    scopes: ["https://www.googleapis.com/auth/drive"],
-  });
-  return google.drive({ version: "v3", auth });
-}
+import { getDriveClient } from "@/lib/drive-client";
 
 // In-memory cache: subfolder name → Drive folder ID (lives for the duration of the process)
 const folderCache = new Map<string, string>();
