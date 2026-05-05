@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { BarChart2, Star, Loader2 } from "lucide-react";
+import { BarChart2, LayoutList, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useView } from "@/contexts/view-context";
@@ -23,7 +23,7 @@ const VIEWS: {
   label: string;
 }[] = [
   { value: "OVERVIEW", icon: BarChart2, label: "Overview" },
-  { value: "FOCUS", icon: Star, label: "Focus" },
+  { value: "FOCUS", icon: LayoutList, label: "Focus" },
 ];
 
 function normalizeView(v: string): DashboardView {

@@ -34,7 +34,7 @@ export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; m
             </NavigationMenuItem>
           )}
           <NavigationMenuItem>
-            <Button variant="ghost" size="icon" asChild className="h-7 w-7">
+            <Button id="tour-home-button" variant="ghost" size="icon" asChild className="h-7 w-7">
               <Link href={isFocus ? "/?view=FOCUS" : "/"}>
                 <Home className="h-4 w-4" />
               </Link>
@@ -43,14 +43,14 @@ export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; m
           {isFocus && (
             <>
               <NavigationMenuItem>
-                <Button variant="ghost" size="icon" asChild className="h-7 w-7" title="Crear expediente">
+                <Button id="tour-focus-create" variant="ghost" size="icon" asChild className="h-7 w-7" title="Crear expediente">
                   <Link href="/records/create">
                     <PlusIcon className="h-4 w-4" />
                   </Link>
                 </Button>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Button variant="ghost" size="icon" asChild className="h-7 w-7" title="Archivos sin asignar">
+                <Button id="tour-focus-unassigned" variant="ghost" size="icon" asChild className="h-7 w-7" title="Archivos sin asignar">
                   <Link href="/unassigned">
                     <FolderOpen className="h-4 w-4" />
                   </Link>

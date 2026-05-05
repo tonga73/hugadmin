@@ -44,7 +44,7 @@ export async function AppSidebar() {
           <Logo />
         </SidebarGroup>
 
-        <SidebarGroup className="gap-3 py-0">
+        <SidebarGroup className="gap-3 py-0 flex-1 min-h-0 overflow-hidden">
           <SidebarGroupContent>
             <SidebarGroupLabel>Expedientes</SidebarGroupLabel>
             <Separator />
@@ -56,7 +56,11 @@ export async function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <a
                       href={item.url}
-                      id={item.url === "/records/create" ? "tour-create-record" : undefined}
+                      id={
+                        item.url === "/records/create" ? "tour-create-record" :
+                        item.url === "/unassigned" ? "tour-unassigned" :
+                        undefined
+                      }
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -66,7 +70,7 @@ export async function AppSidebar() {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-          <SidebarGroupContent id="tour-records-list">
+          <SidebarGroupContent id="tour-records-list" className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <RecordsList
               initialRecords={recordsWithDates}
               lastId={lastId}

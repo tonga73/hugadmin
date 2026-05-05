@@ -14,6 +14,7 @@ import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { formatOrder } from "@/lib/record-number";
 import { cn } from "@/lib/utils";
+import { CommandSearch } from "@/components/records/command-search";
 function relativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
@@ -75,6 +76,20 @@ export function FocusContent({
     favoritesOnly,
     tracingFilter,
     minPriority,
+    pinnedQuery,
+    commandOpen,
+    commandQuery,
+    commandLoading,
+    commandResults,
+    commandHasMore,
+    commandSelectedIndex,
+    commandItemsRef,
+    setCommandQuery,
+    setCommandSelectedIndex,
+    handleCommandSelect,
+    handleCommandClose,
+    loadMoreCommandResults,
+    clearPinnedSearch,
     toggleTracingKey,
     updateTracingFilter,
     updateMinPriority,
@@ -96,7 +111,7 @@ export function FocusContent({
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-1.5">
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-1.5 shrink-0">
+      <div id="tour-focus-stats" className="grid grid-cols-4 gap-1.5 shrink-0">
         <Card>
           <CardHeader className="pb-1 pt-3 px-4">
             <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
@@ -131,12 +146,31 @@ export function FocusContent({
       </div>
 
       {/* Records list */}
-      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <Card id="tour-focus-records" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* Search */}
+        <CommandSearch
+          open={commandOpen}
+          query={commandQuery}
+          loading={commandLoading}
+          results={commandResults}
+          hasMore={commandHasMore}
+          selectedIndex={commandSelectedIndex}
+          pinnedQuery={pinnedQuery}
+          filteredCount={filteredRecords.length}
+          itemsRef={commandItemsRef}
+          onOpenChange={handleCommandClose}
+          onQueryChange={setCommandQuery}
+          onSelect={handleCommandSelect}
+          onSelectedIndexChange={setCommandSelectedIndex}
+          onLoadMore={loadMoreCommandResults}
+          onClearPinned={clearPinnedSearch}
+        />
         {/* Header with filter toggle */}
         <button
           onClick={() => setFiltersOpen((v) => !v)}
           className={cn(
-            "w-full flex items-center justify-between px-4 py-2.5 border-b border-border/40 transition-colors text-left shrink-0",
+            "w-full flex items-center justify-between px-4 py-2.5 transition-colors text-left shrink-0",
+            !filtersOpen && "border-b border-border/40",
             filtersOpen ? "bg-muted/40" : "hover:bg-muted/30"
           )}
         >

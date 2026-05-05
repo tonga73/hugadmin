@@ -98,7 +98,7 @@ export function RecordsList({
   const activeFilterCount = tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0);
 
   return (
-    <div className="w-full">
+    <div className="flex flex-col h-full">
       {/* Buscador */}
       <CommandSearch
           open={commandOpen}
@@ -234,7 +234,7 @@ export function RecordsList({
       )}
 
       {/* Lista de records */}
-      <ScrollArea className="h-[calc(100vh-230px)]" ref={scrollRef}>
+      <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
         {/* Record destacado */}
         {highlightedRecord && (
           <HighlightedRecordCard
