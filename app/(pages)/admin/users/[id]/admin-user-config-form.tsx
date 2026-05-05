@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, BarChart2, Star, Layers, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ export function AdminUserConfigForm({
   userImage,
   userRole,
   userActive,
+  userVisible,
   dashboardView,
 }: {
   userId: number;
@@ -38,14 +40,21 @@ export function AdminUserConfigForm({
   userImage: string | null;
   userRole: Role;
   userActive: boolean;
+  userVisible: boolean;
   dashboardView: DashboardView;
 }) {
   const router = useRouter();
   const [name, setName] = useState(userName ?? "");
   const [role, setRole] = useState<Role>(userRole);
   const [active, setActive] = useState(userActive);
+  const [visible, setVisible] = useState(userVisible);
   const [view, setView] = useState<DashboardView>(dashboardView);
   const [saving, setSaving] = useState(false);
+
+  const handleActiveChange = (val: boolean) => {
+    setActive(val);
+    if (!val) setVisible(false);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -54,7 +63,7 @@ export function AdminUserConfigForm({
         fetch(`/api/users/${userId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name.trim() || null, role, active }),
+          body: JSON.stringify({ name: name.trim() || null, role, active, visible }),
         }),
         fetch(`/api/users/${userId}/config`, {
           method: "PATCH",
@@ -111,25 +120,22 @@ export function AdminUserConfigForm({
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
-            <label className="flex items-center justify-between p-3 rounded-xl border cursor-pointer hover:bg-muted/30 transition-colors">
+
+            <div className="flex items-center justify-between p-3 rounded-xl border">
               <div>
                 <p className="text-sm font-medium">Usuario activo</p>
-                <p className="text-[11px] text-muted-foreground">Los usuarios inactivos no pueden ingresar ni aparecen en listas.</p>
+                <p className="text-[11px] text-muted-foreground">Puede ingresar al sistema.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setActive((v) => !v)}
-                className={cn(
-                  "w-9 h-5 rounded-full transition-colors relative shrink-0",
-                  active ? "bg-primary" : "bg-muted-foreground/30"
-                )}
-              >
-                <span className={cn(
-                  "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform",
-                  active ? "translate-x-4" : "translate-x-0.5"
-                )} />
-              </button>
-            </label>
+              <ToggleSwitch checked={active} onCheckedChange={handleActiveChange} />
+            </div>
+
+            <div className={cn("flex items-center justify-between p-3 rounded-xl border transition-opacity", !active && "opacity-50")}>
+              <div>
+                <p className="text-sm font-medium">Visible en el sistema</p>
+                <p className="text-[11px] text-muted-foreground">Aparece en listas de asignación y selección de usuarios.</p>
+              </div>
+              <ToggleSwitch checked={visible} onCheckedChange={setVisible} disabled={!active} />
+            </div>
           </div>
         </section>
 
