@@ -117,6 +117,8 @@ DRIVE_WEBHOOK_SECRET   # Header token para validar webhook de Drive
 - Los tests corren automáticamente en pre-commit (Husky) — no usar `--no-verify`
 - Commits van a `develop`, se mergea a `main` cuando está listo para producción
 - Railway deploya automáticamente al hacer push a `main`
+- **Commits**: mensaje breve pero explicativo — una línea que diga qué cambió y por qué, sin ser críptico ni verboso
+- **Push**: siempre confirmar con el usuario antes de hacer `git push`, sin excepción
 - No agregar comentarios obvios al código; solo cuando el *porqué* no es evidente
 - Preferir editar archivos existentes antes de crear nuevos
 
