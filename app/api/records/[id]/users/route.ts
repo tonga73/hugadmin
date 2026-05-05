@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/session";
 import { createNotifications } from "@/lib/notifications";
+import { logActivity } from "@/lib/record-activity";
 
 export async function GET(
   _req: NextRequest,
@@ -44,6 +45,22 @@ export async function POST(
     });
 
     if (record) {
+      // Fetch names for audit log
+      const assignedUsers = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true, email: true },
+      });
+      await Promise.all(
+        assignedUsers.map((u) =>
+          logActivity({
+            recordId,
+            userId: me?.id,
+            action: "user_assigned",
+            newValue: u.name ?? u.email,
+          })
+        )
+      );
+
       const targetIds = userIds.filter((uid) => uid !== me?.id);
       await createNotifications(targetIds, {
         type: "RECORD_ASSIGNED",

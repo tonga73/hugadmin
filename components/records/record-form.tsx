@@ -21,6 +21,7 @@ import {
 } from "../ui/card";
 import { useRouter } from "next/navigation";
 import { Plus, X, Loader2, FileText, ArrowLeft } from "lucide-react";
+import { validateOrderYear } from "@/lib/record-number";
 import { TracingBadge } from "./tracing-badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,10 @@ import type { District, Court, Office } from "@/app/generated/prisma/client";
 /* ---------- Zod schema ---------- */
 export const recordSchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres"),
-  order: z.string().min(1, "Campo requerido"),
+  order: z.string().min(1, "Campo requerido").refine(
+    (val) => validateOrderYear(val) === null,
+    "El año debe tener 4 dígitos (ej: 12345/2024)"
+  ),
   tracing: z.enum(Object.keys(TRACING_OPTIONS) as [string, ...string[]]),
   defendant: z.array(z.object({ value: z.string() })).default([]),
   prosecutor: z.array(z.object({ value: z.string() })).default([]),

@@ -13,10 +13,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const chatId = Number(id);
   const { lastMessageId } = await req.json();
 
-  await prisma.chatMember.update({
-    where: { chatId_userId: { chatId, userId: me.id } },
-    data: { lastReadId: lastMessageId },
-  });
+  await Promise.all([
+    prisma.chatMember.update({
+      where: { chatId_userId: { chatId, userId: me.id } },
+      data: { lastReadId: lastMessageId },
+    }),
+    prisma.notification.updateMany({
+      where: { userId: me.id, type: "CHAT_MESSAGE", entityId: chatId, read: false },
+      data: { read: true },
+    }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

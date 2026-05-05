@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, CheckCheck, FileText, MessageSquare, UserPlus } from "lucide-react";
+import { Bell, CheckCheck, FileText, MessageSquare, UserPlus, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -94,19 +94,33 @@ export function NotificationBell() {
       <PopoverContent align="end" className="w-80 p-0 overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 border-b">
           <p className="text-xs font-semibold">Notificaciones</p>
-          {notifications.some((n) => !n.read) && (
-            <button
-              onClick={async () => {
-                setUnread(0);
-                setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-                await fetch("/api/notifications/read-all", { method: "POST" });
-              }}
-              className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
-            >
-              <CheckCheck className="h-3 w-3" />
-              Marcar todo como leído
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {notifications.some((n) => !n.read) && (
+              <button
+                onClick={async () => {
+                  setUnread(0);
+                  setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+                  await fetch("/api/notifications/read-all", { method: "POST" });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+              >
+                <CheckCheck className="h-3 w-3" />
+                Leídas
+              </button>
+            )}
+            {notifications.some((n) => n.read) && (
+              <button
+                onClick={async () => {
+                  setNotifications((prev) => prev.filter((n) => !n.read));
+                  await fetch("/api/notifications", { method: "DELETE" });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1"
+              >
+                <Trash2 className="h-3 w-3" />
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="max-h-80 overflow-y-auto divide-y">

@@ -15,10 +15,12 @@ const TRACING_LABELS: Record<string, string> = {
   COBRADO: "Cobrado",
 };
 
-function highlightMentions(text: string) {
+function highlightMentions(text: string, isMe: boolean) {
   return text.split(/(@\w+)/g).map((part, i) =>
     part.startsWith("@") ? (
-      <span key={i} className="text-primary font-medium">{part}</span>
+      <span key={i} className={cn("font-medium", isMe ? "text-primary-foreground/70 underline underline-offset-2" : "text-primary")}>
+        {part}
+      </span>
     ) : (
       part
     )
@@ -106,7 +108,7 @@ export function MessageBubble({ message, isMe, onReply }: MessageBubbleProps) {
             ? "bg-primary text-primary-foreground rounded-br-sm"
             : "bg-muted text-foreground rounded-bl-sm"
         )}>
-          <p className="whitespace-pre-wrap break-words">{highlightMentions(message.text)}</p>
+          <p className="whitespace-pre-wrap break-words">{highlightMentions(message.text, isMe)}</p>
         </div>
 
         {/* Time + reply action */}

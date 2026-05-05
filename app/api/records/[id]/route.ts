@@ -4,14 +4,18 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
 import { Prisma } from "@/app/generated/prisma/client";
-import { normalizeOrder } from "@/lib/record-number";
+import { normalizeOrder, validateOrderYear } from "@/lib/record-number";
 import { getSessionUser } from "@/lib/session";
 import { createNotifications } from "@/lib/notifications";
+import { logActivity } from "@/lib/record-activity";
 
 // Schema de validación para PATCH
 const updateRecordSchema = z.object({
   code: z.string().optional(),
-  order: z.string().min(1, "El orden es requerido").optional(),
+  order: z.string().min(1, "El orden es requerido").optional().refine(
+    (val) => val === undefined || validateOrderYear(val) === null,
+    "El año debe tener 4 dígitos (ej: 12345/2024)"
+  ),
   name: z
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
@@ -106,6 +110,17 @@ export async function PATCH(
         : { disconnect: true };
     }
 
+    // Fetch current state for audit log
+    const session = await getSessionUser().catch(() => null);
+    const me = session?.email
+      ? await prisma.user.findUnique({ where: { email: session.email }, select: { id: true } })
+      : null;
+
+    const current = await prisma.record.findUnique({
+      where: { id: Number(id) },
+      select: { order: true, name: true, tracing: true, priority: true },
+    });
+
     // Actualizar en base de datos
     const updated = await prisma.record.update({
       where: { id: Number(id) },
@@ -126,6 +141,23 @@ export async function PATCH(
 
     // Invalida cache
     revalidateTag("records", "default");
+
+    // Audit log
+    if (current) {
+      const loggableFields: Array<[string, string, string]> = [
+        ["tracing", current.tracing, updated.tracing],
+        ["priority", current.priority, updated.priority],
+        ["name", current.name, updated.name],
+        ["order", current.order, updated.order],
+      ];
+      await Promise.all(
+        loggableFields
+          .filter(([, oldV, newV]) => oldV !== newV)
+          .map(([field, oldValue, newValue]) =>
+            logActivity({ recordId: Number(id), userId: me?.id, action: "field_updated", field, oldValue, newValue })
+          )
+      );
+    }
 
     // Notify assignees of significant changes (tracing or priority)
     if (validatedData.tracing !== undefined || validatedData.priority !== undefined) {

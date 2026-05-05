@@ -22,6 +22,11 @@ export default async function RecordPage({
             User: { select: { id: true, name: true, email: true, image: true } },
           },
         },
+        activity: {
+          orderBy: { createdAt: "desc" },
+          take: 30,
+          include: { user: { select: { id: true, name: true, email: true, image: true } } },
+        },
       },
     }),
     getSessionUser(),
@@ -42,6 +47,10 @@ export default async function RecordPage({
       record={record}
       tracingOptions={TRACING_OPTIONS}
       assignees={assignees}
+      initialActivity={record.activity.map((a) => ({
+        ...a,
+        createdAt: a.createdAt.toISOString(),
+      }))}
     />
   );
 }

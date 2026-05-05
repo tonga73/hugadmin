@@ -64,6 +64,7 @@ model Record {
   RecordsAndUser RecordsAndUser[]
   files          RecordFile[]
   messages       Message[]
+  activity       RecordActivity[]
 
   @@index([tracing])
   @@index([priority])
@@ -115,6 +116,7 @@ model User {
   chatMemberships ChatMember[]
   sentMessages    Message[]        @relation("MessageSender")
   notifications   Notification[]
+  recordActivity  RecordActivity[]
 }
 
 model UserViewConfig {
@@ -174,6 +176,21 @@ model Config {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model RecordActivity {
+  id        Int      @id @default(autoincrement())
+  recordId  Int
+  userId    Int?
+  action    String
+  field     String?
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+  record    Record   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([recordId, createdAt])
 }
 
 model Notification {

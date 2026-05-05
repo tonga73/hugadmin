@@ -20,6 +20,8 @@ import { EditableSelect } from "./editable-select";
 import { EditableList } from "./editable-list";
 import { NotesSection } from "./notes-section";
 import { OfficeSelector } from "./office-selector";
+import { RecordHistorySection } from "./record-history-section";
+import { validateOrderYear } from "@/lib/record-number";
 import { toast } from "sonner";
 import { DeleteButton } from "@/components/records/delete-button";
 import { FilesSection } from "@/components/records/files-section";
@@ -96,6 +98,15 @@ interface EditableRecordPageProps {
     } | null;
   };
   tracingOptions: Record<string, { label: string; color?: string }>;
+  initialActivity?: Array<{
+    id: number;
+    action: string;
+    field: string | null;
+    oldValue: string | null;
+    newValue: string | null;
+    createdAt: string;
+    user: { id: number; name: string | null; email: string; image: string | null } | null;
+  }>;
 }
 
 export default function EditableRecordPage({
@@ -103,6 +114,7 @@ export default function EditableRecordPage({
   tracingOptions,
   assignees: initialAssignees = [],
   onBack,
+  initialActivity = [],
 }: EditableRecordPageProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -171,9 +183,12 @@ export default function EditableRecordPage({
   // Handler para campos del formulario
   const handleFieldChange = useCallback(
     (fieldName: keyof RecordFormValues, value: unknown) => {
+      if (fieldName === "order") {
+        const err = validateOrderYear(value as string);
+        if (err) { toast.error(err); return; }
+      }
       setValue(fieldName, value as any);
       saveField(fieldName, value).catch(() => {
-        // Revertir en caso de error
         setValue(fieldName, record[fieldName] as any);
       });
     },
@@ -392,6 +407,13 @@ export default function EditableRecordPage({
               </div>
             </div>
           </Card>
+
+          {/* Historial */}
+          {initialActivity.length > 0 && (
+            <Card className="shrink-0 px-3 py-2.5">
+              <RecordHistorySection recordId={record.id} initialActivity={initialActivity} />
+            </Card>
+          )}
 
           {/* Bloque notas: header fijo + lista scrollable */}
           <Card className="flex-1 min-h-0 flex flex-col overflow-hidden p-0">
