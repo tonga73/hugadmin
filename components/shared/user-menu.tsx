@@ -17,13 +17,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, ShieldCheck, Info } from "lucide-react";
+import { LogOut, User, ShieldCheck, Info, MapPin } from "lucide-react";
+import { useAppTour } from "@/components/tour/app-tour";
 
 export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const { startTour } = useAppTour();
 
   const handleLogout = async () => {
     try {
@@ -74,7 +76,7 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
     </Dialog>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <button id="tour-user-menu" className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
           <Avatar>
             <AvatarImage
               src={user.photoURL || undefined}
@@ -112,6 +114,12 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
           </>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => startTour()}
+        >
+          <MapPin className="mr-2 h-4 w-4" />
+          <span>Recorrido guiado</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setAboutOpen(true)}>
           <Info className="mr-2 h-4 w-4" />
           <span>Acerca de</span>

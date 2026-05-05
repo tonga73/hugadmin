@@ -186,3 +186,62 @@
 .animate-gradient {
   animation: gradient 6s linear infinite;
 }
+
+/* driver.js tour overrides */
+.driver-popover.hugadmin-tour-popover {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 16px 18px 14px;
+  min-width: 260px;
+  max-width: 320px;
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: hsl(var(--foreground));
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-description {
+  font-size: 12px;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-progress-text {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-navigation-btns {
+  margin-top: 12px;
+  gap: 6px;
+}
+.driver-popover.hugadmin-tour-popover button {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.driver-popover.hugadmin-tour-popover button:hover {
+  background: hsl(var(--accent));
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-next-btn {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-next-btn:hover {
+  opacity: 0.9;
+}
+.driver-popover.hugadmin-tour-popover .driver-popover-arrow-side-top::before,
+.driver-popover.hugadmin-tour-popover .driver-popover-arrow-side-bottom::before,
+.driver-popover.hugadmin-tour-popover .driver-popover-arrow-side-left::before,
+.driver-popover.hugadmin-tour-popover .driver-popover-arrow-side-right::before {
+  border-color: hsl(var(--border));
+}

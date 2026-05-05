@@ -54,7 +54,10 @@ export async function AppSidebar() {
               {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <a
+                      href={item.url}
+                      id={item.url === "/records/create" ? "tour-create-record" : undefined}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
@@ -63,7 +66,7 @@ export async function AppSidebar() {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-          <SidebarGroupContent>
+          <SidebarGroupContent id="tour-records-list">
             <RecordsList
               initialRecords={recordsWithDates}
               lastId={lastId}

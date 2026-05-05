@@ -101,7 +101,7 @@ export function ViewSwitcher() {
   if (!loaded) return null;
 
   return (
-    <div className="flex items-center gap-0.5 bg-muted/60 rounded-lg p-0.5">
+    <div id="tour-view-switcher" className="flex items-center gap-0.5 bg-muted/60 rounded-lg p-0.5">
       {VIEWS.map(({ value, icon: Icon, label }) => (
         <button
           key={value}

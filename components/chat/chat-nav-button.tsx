@@ -37,7 +37,7 @@ export function ChatNavButton({ meId }: { meId: number }) {
   }, [meId]);
 
   return (
-    <Button variant="ghost" size="icon" asChild className="h-7 w-7 relative" title="Mensajes">
+    <Button id="tour-chat-button" variant="ghost" size="icon" asChild className="h-7 w-7 relative" title="Mensajes">
       <Link href="/chat">
         <MessageSquare className="h-4 w-4" />
         {hasUnread && (

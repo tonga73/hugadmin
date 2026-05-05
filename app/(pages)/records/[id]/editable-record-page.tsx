@@ -363,8 +363,8 @@ export default function EditableRecordPage({
           </Card>
         </div>
 
-        {/* Right column */}
-        <div className="w-[260px] shrink-0 flex flex-col min-h-0 gap-2">
+        {/* Right column — scrollable sidebar */}
+        <div className="w-[260px] shrink-0 overflow-y-auto flex flex-col gap-2 pb-2">
 
           {/* Bloque expediente: juzgado + partes */}
           <Card className="shrink-0 px-3 py-2.5 space-y-3">
@@ -415,8 +415,8 @@ export default function EditableRecordPage({
             </Card>
           )}
 
-          {/* Bloque notas: header fijo + lista scrollable */}
-          <Card className="flex-1 min-h-0 flex flex-col overflow-hidden p-0">
+          {/* Bloque notas */}
+          <Card className="min-h-[240px] flex flex-col overflow-hidden p-0">
             <NotesSection
               recordId={record.id}
               initialNotes={RecordNote.map((note) => ({
