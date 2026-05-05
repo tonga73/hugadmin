@@ -34,6 +34,7 @@ export default async function AdminUserPage({
       userActive={user.active}
       userVisible={user.visible}
       dashboardView={(user.viewConfig?.dashboardView ?? "OVERVIEW") as any}
+      chatPanel={user.viewConfig?.chatPanel ?? false}
     />
   );
 }

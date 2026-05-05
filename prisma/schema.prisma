@@ -63,6 +63,7 @@ model Record {
   Office         Office?          @relation(fields: [officeId], references: [id])
   RecordsAndUser RecordsAndUser[]
   files          RecordFile[]
+  messages       Message[]
 
   @@index([tracing])
   @@index([priority])
@@ -87,6 +88,7 @@ model RecordFile {
   category     FileCategory @default(DRIVE)
   createdAt    DateTime     @default(now())
   record       Record?      @relation(fields: [recordId], references: [id])
+  messages     Message[]
 }
 
 model RecordsAndUser {
@@ -110,6 +112,8 @@ model User {
   image          String?
   RecordsAndUser RecordsAndUser[]
   viewConfig     UserViewConfig?
+  chatMemberships ChatMember[]
+  sentMessages    Message[]       @relation("MessageSender")
 }
 
 model UserViewConfig {
@@ -121,7 +125,48 @@ model UserViewConfig {
   fileCategories   FileCategory[]
   dashboardView    DashboardView  @default(OVERVIEW)
   assignedToMeOnly Boolean        @default(false)
+  chatPanel        Boolean        @default(false)
   user             User           @relation(fields: [userId], references: [id])
+}
+
+model Chat {
+  id        Int          @id @default(autoincrement())
+  name      String?
+  isGroup   Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  members   ChatMember[]
+  messages  Message[]
+}
+
+model ChatMember {
+  chatId     Int
+  userId     Int
+  joinedAt   DateTime @default(now())
+  lastReadId Int?
+  chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@id([chatId, userId])
+}
+
+model Message {
+  id         Int         @id @default(autoincrement())
+  chatId     Int
+  senderId   Int
+  text       String
+  replyToId  Int?
+  recordId   Int?
+  fileId     Int?
+  createdAt  DateTime    @default(now())
+  chat       Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender     User        @relation("MessageSender", fields: [senderId], references: [id])
+  replyTo    Message?    @relation("MessageReply", fields: [replyToId], references: [id])
+  replies    Message[]   @relation("MessageReply")
+  record     Record?     @relation(fields: [recordId], references: [id])
+  file       RecordFile? @relation(fields: [fileId], references: [id])
+
+  @@index([chatId, createdAt])
 }
 
 model Config {

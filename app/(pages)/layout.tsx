@@ -7,6 +7,7 @@ import { getUserViewConfig } from "@/lib/user-config";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { ChatPanel } from "@/components/chat/chat-panel";
 
 export default async function PrivateLayout({
   children,
@@ -16,7 +17,7 @@ export default async function PrivateLayout({
   const [sessionUser, cookieStore] = await Promise.all([getSessionUser(), cookies()]);
   const email = sessionUser?.email;
   const [dbUser, userConfig, maintenanceConfig] = await Promise.all([
-    email ? prisma.user.findUnique({ where: { email }, select: { role: true, active: true } }) : Promise.resolve(null),
+    email ? prisma.user.findUnique({ where: { email }, select: { id: true, role: true, active: true } }) : Promise.resolve(null),
     email ? getUserViewConfig(email) : Promise.resolve(null),
     prisma.config.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null),
   ]);
@@ -30,6 +31,15 @@ export default async function PrivateLayout({
   const isAdmin = userRole === "ADMIN";
   const defaultIsFocus = userConfig?.dashboardView === "FOCUS";
   const sidebarDefaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  const chatPanelEnabled = userConfig?.chatPanel ?? false;
+
+  const allUsers = chatPanelEnabled && dbUser
+    ? await prisma.user.findMany({
+        where: { active: true, visible: true },
+        select: { id: true, name: true, email: true, image: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
 
   return (
     <ViewProvider defaultIsFocus={defaultIsFocus}>
@@ -41,6 +51,10 @@ export default async function PrivateLayout({
           {children}
           <Toaster position="bottom-right" richColors closeButton />
         </main>
+
+        {chatPanelEnabled && dbUser && (
+          <ChatPanel meId={dbUser.id} allUsers={allUsers} />
+        )}
       </SidebarProvider>
     </ViewProvider>
   );

@@ -32,6 +32,7 @@ export function AdminUserConfigForm({
   userActive,
   userVisible,
   dashboardView,
+  chatPanel,
 }: {
   userId: number;
   userName: string | null;
@@ -41,6 +42,7 @@ export function AdminUserConfigForm({
   userActive: boolean;
   userVisible: boolean;
   dashboardView: DashboardView;
+  chatPanel: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(userName ?? "");
@@ -48,6 +50,7 @@ export function AdminUserConfigForm({
   const [active, setActive] = useState(userActive);
   const [visible, setVisible] = useState(userVisible);
   const [view, setView] = useState<DashboardView>(dashboardView);
+  const [chatPanelEnabled, setChatPanelEnabled] = useState(chatPanel);
   const [saving, setSaving] = useState(false);
 
   const handleActiveChange = (val: boolean) => {
@@ -67,7 +70,7 @@ export function AdminUserConfigForm({
         fetch(`/api/users/${userId}/config`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dashboardView: view }),
+          body: JSON.stringify({ dashboardView: view, chatPanel: chatPanelEnabled }),
         }),
       ]);
       if (!userRes.ok || !configRes.ok) throw new Error();
@@ -162,6 +165,14 @@ export function AdminUserConfigForm({
 
         {/* Dashboard */}
         <section className="space-y-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Preferencias</p>
+          <div className="flex items-center justify-between p-3 rounded-xl border">
+            <div>
+              <p className="text-sm font-medium">Panel de chat flotante</p>
+              <p className="text-[11px] text-muted-foreground">Muestra el chat como panel fijo en todas las páginas.</p>
+            </div>
+            <ToggleSwitch checked={chatPanelEnabled} onCheckedChange={setChatPanelEnabled} />
+          </div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Vista por defecto</p>
           <div className="grid grid-cols-2 gap-2">
             {DASHBOARD_OPTIONS.map((opt) => {

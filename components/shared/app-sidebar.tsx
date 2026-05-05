@@ -11,23 +11,16 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Separator } from "../ui/separator";
-import { PlusIcon, FolderOpen } from "lucide-react";
+import { PlusIcon, FolderOpen, MessageSquare } from "lucide-react";
 import { RecordsList } from "../records";
 import { Logo } from "./logo";
 import { getSessionUser } from "@/lib/session";
 import { getUserViewConfig } from "@/lib/user-config";
 
 const sidebarItems = [
-  {
-    title: "Crear expediente",
-    url: "/records/create",
-    icon: PlusIcon,
-  },
-  {
-    title: "Archivos sin asignar",
-    url: "/unassigned",
-    icon: FolderOpen,
-  },
+  { title: "Crear expediente", url: "/records/create", icon: PlusIcon },
+  { title: "Archivos sin asignar", url: "/unassigned", icon: FolderOpen },
+  { title: "Mensajes", url: "/chat", icon: MessageSquare },
 ];
 
 export async function AppSidebar() {
