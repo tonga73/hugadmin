@@ -47,7 +47,7 @@ export default async function PrivateLayout({
         <AppSidebar />
 
         <main className="flex-1 h-screen flex flex-col overflow-hidden p-3 space-y-3">
-          <NavigationMenu isAdmin={isAdmin} />
+          <NavigationMenu isAdmin={isAdmin} meId={dbUser?.id} />
           {children}
           <Toaster position="bottom-right" richColors closeButton />
         </main>

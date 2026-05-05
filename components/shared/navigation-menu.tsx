@@ -16,8 +16,9 @@ import { useAuth } from "@/contexts/auth-context";
 import { useView } from "@/contexts/view-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogIn, Home, PlusIcon, FolderOpen } from "lucide-react";
+import { ChatNavButton } from "@/components/chat/chat-nav-button";
 
-export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
+export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; meId?: number }) {
   const isMobile = useIsMobile();
   const { loading, user } = useAuth();
   const { isFocus } = useView();
@@ -61,6 +62,7 @@ export function NavigationMenu({ isAdmin = false }: { isAdmin?: boolean }) {
 
       {/* View switcher (only when logged in) */}
       {!loading && user && <ViewSwitcher />}
+      {!loading && user && meId && <ChatNavButton meId={meId} />}
 
       <div className="flex-1" />
 

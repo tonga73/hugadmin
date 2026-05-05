@@ -79,11 +79,14 @@ export async function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-2">
-        <p className="text-[10px] text-muted-foreground/40 leading-snug">
-          v2.1.0 · Desarrollado por Hugo Mitoire
-          <br />
-          <span className="opacity-70">con el aporte técnico de Claudia</span>
-        </p>
+        <a
+          href="https://tonga73.github.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+        >
+          desarrollado por gastoire
+        </a>
       </SidebarFooter>
     </Sidebar>
   );

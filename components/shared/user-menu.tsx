@@ -10,13 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, User, ShieldCheck, Info } from "lucide-react";
 
 export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -41,6 +48,30 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
   };
 
   return (
+    <>
+    <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
+      <DialogContent className="max-w-xs">
+        <DialogHeader>
+          <DialogTitle>hugadmin</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>Versión <span className="font-mono font-medium text-foreground">v2.1.0</span></p>
+          <p>Sistema de gestión de expedientes para estudio jurídico.</p>
+          <p>
+            Desarrollado por{" "}
+            <a
+              href="https://tonga73.github.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground underline underline-offset-2"
+            >
+              gastoire
+            </a>
+            {" "}con el aporte técnico de Claudia.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -81,11 +112,17 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
           </>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setAboutOpen(true)}>
+          <Info className="mr-2 h-4 w-4" />
+          <span>Acerca de</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Cerrar sesión</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 };
