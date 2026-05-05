@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET() {
   const users = await prisma.user.findMany({
-    where: { visible: true },
+    where: { active: true, visible: true },
     select: { id: true, name: true, email: true, image: true },
     orderBy: { name: "asc" },
   });

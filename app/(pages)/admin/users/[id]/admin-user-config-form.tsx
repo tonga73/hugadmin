@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ToggleSwitch } from "@/components/ui/toggle-switch";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, BarChart2, Star, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -128,7 +128,7 @@ export function AdminUserConfigForm({
                 <p className="text-sm font-medium">Usuario activo</p>
                 <p className="text-[11px] text-muted-foreground">Puede ingresar al sistema.</p>
               </div>
-              <ToggleSwitch checked={active} onCheckedChange={handleActiveChange} />
+              <Switch checked={active} onCheckedChange={handleActiveChange} />
             </div>
 
             <div className={cn("flex items-center justify-between p-3 rounded-xl border transition-opacity", !active && "opacity-50")}>
@@ -136,7 +136,7 @@ export function AdminUserConfigForm({
                 <p className="text-sm font-medium">Visible en el sistema</p>
                 <p className="text-[11px] text-muted-foreground">Aparece en listas de asignación y selección de usuarios.</p>
               </div>
-              <ToggleSwitch checked={visible} onCheckedChange={setVisible} disabled={!active} />
+              <Switch checked={visible} onCheckedChange={setVisible} disabled={!active} />
             </div>
           </div>
         </section>
@@ -171,7 +171,7 @@ export function AdminUserConfigForm({
               <p className="text-sm font-medium">Panel de chat flotante</p>
               <p className="text-[11px] text-muted-foreground">Muestra el chat como panel fijo en todas las páginas.</p>
             </div>
-            <ToggleSwitch checked={chatPanelEnabled} onCheckedChange={setChatPanelEnabled} />
+            <Switch checked={chatPanelEnabled} onCheckedChange={setChatPanelEnabled} />
           </div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Vista por defecto</p>
           <div className="grid grid-cols-2 gap-2">

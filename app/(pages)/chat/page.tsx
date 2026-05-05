@@ -14,7 +14,7 @@ export default async function ChatPage() {
   if (!me) redirect("/login");
 
   const allUsers = await prisma.user.findMany({
-    where: { active: true, visible: true },
+    where: { active: true },
     select: { id: true, name: true, email: true, image: true },
     orderBy: { name: "asc" },
   });
