@@ -27,16 +27,11 @@ export default async function AdminUserPage({
   return (
     <AdminUserConfigForm
       userId={user.id}
-      userName={user.name ?? user.email}
+      userName={user.name}
       userEmail={user.email}
       userImage={user.image}
-      initialConfig={{
-        dashboardView: (user.viewConfig?.dashboardView ?? "OVERVIEW") as any,
-        tracingFilter: (user.viewConfig?.tracingFilter as string[]) ?? [],
-        favoritesOnly: user.viewConfig?.favoritesOnly ?? false,
-        minPriority: (user.viewConfig?.minPriority as any) ?? null,
-        fileCategories: (user.viewConfig?.fileCategories as any[]) ?? [],
-      }}
+      userRole={user.role as any}
+      dashboardView={(user.viewConfig?.dashboardView ?? "OVERVIEW") as any}
     />
   );
 }
