@@ -1,16 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Trash2, Check, X } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Loader2, Trash2, Check, X, Maximize2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export interface Note {
@@ -31,155 +27,198 @@ interface NoteCardProps {
   fullWidth?: boolean;
 }
 
-export function NoteCard({
+function NoteEditForm({
   note,
-  isNew = false,
+  isNew,
   onSave,
   onDelete,
   onCancel,
-  fullWidth = false,
-}: NoteCardProps) {
-  const [isEditing, setIsEditing] = useState(isNew);
+  onClose,
+}: {
+  note: Note;
+  isNew: boolean;
+  onSave: (note: Note) => Promise<void>;
+  onDelete?: (noteId: number) => Promise<void>;
+  onCancel?: () => void;
+  onClose?: () => void;
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editedName, setEditedName] = useState(note.name || "");
   const [editedText, setEditedText] = useState(note.text || "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus en el input de título cuando está en modo edición
+  const hasChanges = editedName !== (note.name || "") || editedText !== (note.text || "");
+
   useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isEditing]);
-
-  // Verificar si hay cambios
-  const hasChanges =
-    editedName !== (note.name || "") || editedText !== (note.text || "");
-
-  const handleSave = async () => {
-    if (!editedText.trim()) return;
-
-    // Si es edición de nota existente y hay cambios, pedir confirmación
-    if (!isNew && hasChanges) {
-      setShowSaveConfirm(true);
-      return;
-    }
-
-    await performSave();
-  };
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
 
   const performSave = async () => {
+    if (!editedText.trim()) return;
     setIsSaving(true);
     setShowSaveConfirm(false);
     try {
-      await onSave({
-        ...note,
-        name: editedName.trim() || null,
-        text: editedText.trim(),
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error saving note:", error);
+      await onSave({ ...note, name: editedName.trim() || null, text: editedText.trim() });
+      onClose?.();
+    } catch {
+      // error handled upstream
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowDeleteConfirm(true);
+  const handleSave = () => {
+    if (!editedText.trim()) return;
+    if (!isNew && hasChanges) { setShowSaveConfirm(true); return; }
+    performSave();
   };
 
   const performDelete = async () => {
     if (!note.id || !onDelete) return;
-
     setIsDeleting(true);
     setShowDeleteConfirm(false);
     try {
       await onDelete(note.id);
-    } catch (error) {
-      console.error("Error deleting note:", error);
+      onClose?.();
+    } catch {
       setIsDeleting(false);
     }
   };
 
   const handleCancel = () => {
-    if (isNew && onCancel) {
-      onCancel();
-    } else {
-      setEditedName(note.name || "");
-      setEditedText(note.text || "");
-      setIsEditing(false);
-    }
+    if (isNew) onCancel?.();
+    else onClose?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      handleCancel();
-    }
-    // Ctrl/Cmd + Enter para guardar
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      handleSave();
-    }
+    if (e.key === "Escape") handleCancel();
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") handleSave();
   };
+
+  return (
+    <>
+      <div className="flex flex-col gap-2">
+        <Input
+          ref={inputRef}
+          value={editedName}
+          onChange={(e) => setEditedName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Título (opcional)"
+          className="text-sm font-semibold"
+        />
+        <Textarea
+          value={editedText}
+          onChange={(e) => setEditedText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Contenido..."
+          className="min-h-[120px] resize-none text-sm leading-relaxed"
+        />
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-muted-foreground/40">⌘↵ guardar</span>
+          <div className="flex gap-1.5">
+            {note.id && onDelete && (
+              <Button size="sm" variant="ghost" onClick={() => setShowDeleteConfirm(true)} disabled={isDeleting} className="text-destructive hover:text-destructive">
+                {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={handleCancel} disabled={isSaving}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={isSaving || !editedText.trim()}>
+              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+              Guardar
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <ConfirmDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm} title="Guardar cambios"
+        description="¿Guardás los cambios en esta nota?" confirmText="Guardar" cancelText="Cancelar"
+        onConfirm={performSave} loading={isSaving} />
+      <ConfirmDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm} title="Eliminar nota"
+        description={`¿Eliminás la nota "${note.name || "sin título"}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar" cancelText="Cancelar" variant="destructive"
+        onConfirm={performDelete} loading={isDeleting} />
+    </>
+  );
+}
+
+function NoteExpandDialog({
+  note,
+  open,
+  onOpenChange,
+  onSave,
+  onDelete,
+}: {
+  note: Note;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSave: (note: Note) => Promise<void>;
+  onDelete?: (noteId: number) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+
+  const handleOpenChange = (v: boolean) => {
+    if (!v) setEditing(false);
+    onOpenChange(v);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-xl w-full">
+        <DialogTitle className="text-base font-semibold">
+          {note.name || "Sin título"}
+        </DialogTitle>
+        {editing ? (
+          <NoteEditForm
+            note={note}
+            isNew={false}
+            onSave={async (n) => { await onSave(n); setEditing(false); }}
+            onDelete={onDelete}
+            onClose={() => handleOpenChange(false)}
+          />
+        ) : (
+          <div className="space-y-4">
+            {note.createdAt && (
+              <p className="text-[11px] text-muted-foreground">
+                {new Date(note.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+            )}
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 min-h-[80px]">
+              {note.text}
+            </p>
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Editar
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function NoteCard({ note, isNew = false, onSave, onDelete, onCancel, fullWidth = false }: NoteCardProps) {
+  const [isEditing, setIsEditing] = useState(isNew);
+  const [expandOpen, setExpandOpen] = useState(false);
 
   if (isEditing) {
     return (
-      <>
-        <div className={cn(
-          "rounded-lg border ring-2 ring-primary/50 bg-card flex flex-col gap-0",
-          fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
-        )}>
-          <div className="px-2.5 pt-2">
-            <Input
-              ref={inputRef}
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Título (opcional)"
-              className="h-5 text-[10px] font-semibold bg-transparent border-0 border-b border-dashed focus-visible:ring-0 rounded-none px-0 text-muted-foreground"
-            />
-          </div>
-          <div className="px-2.5 pt-1.5 pb-2 flex flex-col gap-1.5">
-            <Textarea
-              ref={textareaRef}
-              value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Contenido..."
-              className="min-h-[60px] max-h-[160px] resize-none text-xs leading-snug"
-              autoFocus={!isNew}
-            />
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[8px] text-muted-foreground/40">⌘↵ guardar</span>
-              <div className="flex gap-0.5">
-                <Button size="icon" variant="ghost" onClick={handleCancel} disabled={isSaving} className="h-5 w-5">
-                  <X className="h-2.5 w-2.5" />
-                </Button>
-                <Button size="icon" onClick={handleSave} disabled={isSaving || !editedText.trim()} className="h-5 w-5">
-                  {isSaving ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Check className="h-2.5 w-2.5" />}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Confirmación de guardar */}
-        <ConfirmDialog
-          open={showSaveConfirm}
-          onOpenChange={setShowSaveConfirm}
-          title="Guardar cambios"
-          description="¿Estás seguro de que deseas guardar los cambios en esta nota?"
-          confirmText="Guardar"
-          cancelText="Cancelar"
-          onConfirm={performSave}
-          loading={isSaving}
+      <div className={cn("rounded-lg border ring-2 ring-primary/50 bg-card p-3", fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]")}>
+        <NoteEditForm
+          note={note}
+          isNew={isNew}
+          onSave={async (n) => { await onSave(n); setIsEditing(false); }}
+          onDelete={onDelete}
+          onCancel={onCancel}
+          onClose={() => setIsEditing(false)}
         />
-      </>
+      </div>
     );
   }
 
@@ -187,7 +226,7 @@ export function NoteCard({
     <>
       <div
         className={cn(
-          "rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors group px-2.5 py-2",
+          "rounded-lg border bg-card hover:bg-accent/50 transition-colors group px-2.5 py-2 cursor-pointer",
           fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
         )}
         onClick={() => setIsEditing(true)}
@@ -199,43 +238,29 @@ export function NoteCard({
           <div className="flex items-center gap-1 shrink-0">
             {note.createdAt && (
               <span className="text-[9px] text-muted-foreground/40">
-                {new Date(note.createdAt).toLocaleDateString("es-AR", {
-                  day: "2-digit",
-                  month: "short",
-                })}
+                {new Date(note.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })}
               </span>
             )}
-            {note.id && onDelete && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={handleDeleteClick}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                ) : (
-                  <Trash2 className="h-2.5 w-2.5 text-destructive" />
-                )}
-              </Button>
-            )}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => { e.stopPropagation(); setExpandOpen(true); }}
+              title="Abrir nota"
+            >
+              <Maximize2 className="h-2.5 w-2.5" />
+            </Button>
           </div>
         </div>
-        <p className="text-xs text-foreground/80 leading-snug whitespace-pre-wrap">{note.text}</p>
+        <p className="text-xs text-foreground/80 leading-snug line-clamp-4 whitespace-pre-wrap">{note.text}</p>
       </div>
 
-      {/* Confirmación de eliminar */}
-      <ConfirmDialog
-        open={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
-        title="Eliminar nota"
-        description={`¿Estás seguro de que deseas eliminar la nota "${note.name || "sin título"}"? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        variant="destructive"
-        onConfirm={performDelete}
-        loading={isDeleting}
+      <NoteExpandDialog
+        note={note}
+        open={expandOpen}
+        onOpenChange={setExpandOpen}
+        onSave={async (n) => { await onSave(n); setExpandOpen(false); }}
+        onDelete={onDelete}
       />
     </>
   );

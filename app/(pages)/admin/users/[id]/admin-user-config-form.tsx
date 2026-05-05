@@ -5,15 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, BarChart2, Star, Layers, User } from "lucide-react";
+import { Loader2, ArrowLeft, BarChart2, Star, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type DashboardView = "OVERVIEW" | "STAGE" | "FOCUS";
+type DashboardView = "OVERVIEW" | "FOCUS";
 type Role = "USER" | "ADMIN" | "PART" | "CLIENT";
 
 const DASHBOARD_OPTIONS: { value: DashboardView; label: string; icon: React.ElementType; description: string }[] = [
   { value: "OVERVIEW", icon: BarChart2, label: "Overview", description: "Pipeline completo y stats globales." },
-  { value: "STAGE", icon: Layers, label: "Mi etapa", description: "Expedientes filtrados por estado asignado." },
   { value: "FOCUS", icon: Star, label: "Focus", description: "Solo expedientes destacados por prioridad." },
 ];
 

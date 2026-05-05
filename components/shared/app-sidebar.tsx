@@ -2,6 +2,7 @@ import { getRecords } from "@/app/actions/getRecords";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
@@ -83,6 +84,14 @@ export async function AppSidebar() {
         </SidebarGroup>
 
       </SidebarContent>
+
+      <SidebarFooter className="px-3 py-2">
+        <p className="text-[10px] text-muted-foreground/40 leading-snug">
+          v2.1.0 · Desarrollado por Hugo Mitoire
+          <br />
+          <span className="opacity-70">con el aporte técnico de Claudia</span>
+        </p>
+      </SidebarFooter>
     </Sidebar>
   );
 }
