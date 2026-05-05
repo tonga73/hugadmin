@@ -101,7 +101,7 @@ export function NotesSection({ recordId, initialNotes }: NotesSectionProps) {
                   +{hiddenCount} más
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+              <DialogContent className="max-w-[min(32rem,95vw)] max-h-[85dvh] overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                   <DialogTitle>Todas las notas ({notes.length})</DialogTitle>
                 </DialogHeader>

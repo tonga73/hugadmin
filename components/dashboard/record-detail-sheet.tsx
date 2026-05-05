@@ -49,7 +49,7 @@ export function RecordDetailSheet({ recordId, onClose }: RecordDetailSheetProps)
 
   return (
     <Dialog open={recordId !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent showCloseButton={false} className="sm:max-w-[95vw] w-full h-[95vh] p-4 flex flex-col overflow-hidden gap-0">
+      <DialogContent showCloseButton={false} className="max-w-[98vw] sm:max-w-[95vw] w-full h-[92dvh] sm:h-[95vh] p-3 sm:p-4 flex flex-col overflow-hidden gap-0">
         <DialogTitle className="sr-only">Detalle del expediente</DialogTitle>
         {loading ? (
           <div className="flex-1 flex items-center justify-center">

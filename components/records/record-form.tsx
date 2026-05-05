@@ -230,9 +230,9 @@ export function RecordForm({ districts }: RecordFormProps) {
         </p>
       </div>
 
-      <div className="flex-1 grid grid-cols-3 gap-2 min-h-0">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2 min-h-0">
         {/* Card principal */}
-        <Card className="col-span-2 flex flex-col">
+        <Card className="md:col-span-2 flex flex-col">
           <CardHeader className="pb-0 shrink-0">
             {/* Código + Tracing */}
             <div className="flex items-start gap-3">

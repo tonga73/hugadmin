@@ -290,11 +290,11 @@ export default function EditableRecordPage({
         </div>
       </div>
 
-      {/* Main content — two columns, fills remaining height */}
-      <div className="flex-1 min-h-0 flex gap-2">
+      {/* Main content — stacks on mobile, side-by-side on desktop */}
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2">
 
         {/* Left column: header + files */}
-        <div className="flex-1 flex flex-col min-h-0 gap-2">
+        <div className="flex-1 flex flex-col min-h-0 gap-2 min-w-0">
 
           {/* Header card */}
           <Card className="shrink-0">
@@ -364,7 +364,7 @@ export default function EditableRecordPage({
         </div>
 
         {/* Right column — scrollable sidebar */}
-        <div className="w-[260px] shrink-0 overflow-y-auto flex flex-col gap-2 pb-2">
+        <div className="w-full lg:w-[260px] shrink-0 overflow-y-auto flex flex-col gap-2 pb-2">
 
           {/* Bloque expediente: juzgado + partes */}
           <Card className="shrink-0 px-3 py-2.5 space-y-3">

@@ -42,10 +42,10 @@ export function ChatPanel({ meId, allUsers }: ChatPanelProps) {
 
   return (
     <div className={cn(
-      "fixed bottom-0 right-4 w-[680px] h-[520px] rounded-t-xl border shadow-2xl bg-background flex overflow-hidden z-50",
+      "fixed bottom-0 right-2 sm:right-4 w-[calc(100vw-1rem)] sm:w-[680px] h-[75dvh] sm:h-[520px] rounded-t-xl border shadow-2xl bg-background flex overflow-hidden z-50",
     )}>
       {/* Chat list */}
-      <div className="w-56 shrink-0">
+      <div className="w-44 sm:w-56 shrink-0">
         <ChatList
           chats={chats}
           activeChatId={activeChatId}

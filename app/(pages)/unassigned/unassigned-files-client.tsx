@@ -200,7 +200,7 @@ function RecordCombobox({
   return (
     <Popover open={open} onOpenChange={(v) => { setOpen(v); if (!v) setQuery(""); }}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 text-xs w-[190px] justify-between font-normal">
+        <Button variant="outline" size="sm" className="h-7 text-xs w-full sm:w-[190px] justify-between font-normal">
           <span className="truncate">{selectedLabel || "Asignar a…"}</span>
           <ChevronsUpDown className="h-3 w-3 shrink-0 text-muted-foreground ml-1" />
         </Button>

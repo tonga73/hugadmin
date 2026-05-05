@@ -209,7 +209,7 @@ export function NoteCard({ note, isNew = false, onSave, onDelete, onCancel, full
 
   if (isEditing) {
     return (
-      <div className={cn("rounded-lg border ring-2 ring-primary/50 bg-card p-3", fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]")}>
+      <div className={cn("rounded-lg border ring-2 ring-primary/50 bg-card p-3", fullWidth ? "w-full" : "w-full sm:min-w-[240px] sm:max-w-[240px]")}>
         <NoteEditForm
           note={note}
           isNew={isNew}
@@ -227,7 +227,7 @@ export function NoteCard({ note, isNew = false, onSave, onDelete, onCancel, full
       <div
         className={cn(
           "rounded-lg border bg-card hover:bg-accent/50 transition-colors group px-2.5 py-2 cursor-pointer",
-          fullWidth ? "w-full" : "min-w-[240px] max-w-[240px]"
+          fullWidth ? "w-full" : "w-full sm:min-w-[240px] sm:max-w-[240px]"
         )}
         onClick={() => setIsEditing(true)}
       >

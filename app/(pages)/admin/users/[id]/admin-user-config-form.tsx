@@ -144,7 +144,7 @@ export function AdminUserConfigForm({
         {/* Rol */}
         <section className="space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Rol</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ROLE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -174,7 +174,7 @@ export function AdminUserConfigForm({
             <Switch checked={chatPanelEnabled} onCheckedChange={setChatPanelEnabled} />
           </div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Vista por defecto</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {DASHBOARD_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (

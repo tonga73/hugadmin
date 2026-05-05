@@ -56,39 +56,31 @@ export async function OverviewDashboard({ assignedToUserId, favoritesOnly, initi
         <span className="text-sm font-medium">Expedientes</span>
         <OverviewFilters mine={initialMine} favoritesOnly={favoritesOnly ?? false} />
       </div>
-      <div className="grid grid-cols-4 gap-1.5 shrink-0">
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
-            <p className="text-3xl font-bold">{totalStat}</p>
-            <p className="text-[10px] text-muted-foreground">expedientes registrados</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Activos</p>
-            <p className="text-3xl font-bold">{activosStat}</p>
-            <p className="text-[10px] text-muted-foreground">{inactivoStat} archivados</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
-            <p className="text-3xl font-bold">{destacadoStat}</p>
-            <p className="text-[10px] text-muted-foreground">{getPercentage(destacadoStat)}% del total</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Cobrados</p>
-            <p className="text-3xl font-bold text-teal-400">{cobradoStat}</p>
-            <p className="text-[10px] text-muted-foreground">{getPercentage(cobradoStat)}% completados</p>
-          </CardHeader>
-        </Card>
+      <div className="shrink-0 rounded-lg overflow-hidden border bg-border grid grid-cols-2 sm:grid-cols-4 gap-px">
+        <div className="bg-card px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight">{totalStat}</p>
+          <p className="text-[10px] text-muted-foreground">expedientes</p>
+        </div>
+        <div className="bg-card px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Activos</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight">{activosStat}</p>
+          <p className="text-[10px] text-muted-foreground">{inactivoStat} archivados</p>
+        </div>
+        <div className="bg-card px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight">{destacadoStat}</p>
+          <p className="text-[10px] text-muted-foreground">{getPercentage(destacadoStat)}% del total</p>
+        </div>
+        <div className="bg-card px-3 py-2.5">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Cobrados</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight text-teal-400">{cobradoStat}</p>
+          <p className="text-[10px] text-muted-foreground">{getPercentage(cobradoStat)}% completados</p>
+        </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-3 gap-1.5 min-h-0">
-        <Card className="col-span-2 flex flex-col min-h-0">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-1.5 min-h-0">
+        <Card className="md:col-span-2 flex flex-col min-h-0">
           <CardHeader className="pb-2 shrink-0">
             <CardTitle className="text-sm">Flujo de expedientes</CardTitle>
           </CardHeader>

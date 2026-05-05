@@ -5,7 +5,7 @@ import { Record } from "@/app/generated/prisma/client";
 import { useRecordsList } from "@/hooks/use-records-list";
 import { RecordDetailSheet } from "./record-detail-sheet";
 import { RecordUsersPopover } from "@/components/records/record-users-popover";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TracingBadge } from "@/components/records/tracing-badge";
 import { Badge } from "@/components/ui/badge";
@@ -109,44 +109,32 @@ export function FocusContent({
     tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+    <div className="flex-1 min-h-0 flex flex-col gap-0">
       {/* Stats row */}
-      <div id="tour-focus-stats" className="grid grid-cols-4 gap-1.5 shrink-0">
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-4">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
-            <p className="text-3xl font-bold">{stats.total}</p>
-            <p className="text-[10px] text-muted-foreground">expedientes</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-4">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Urgentes</p>
-            <p className="text-3xl font-bold text-red-400">{stats.urgente}</p>
-            <p className="text-[10px] text-muted-foreground">atención inmediata</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-4">
-            <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Alta prioridad</p>
-            <p className="text-3xl font-bold text-orange-400">{stats.alta}</p>
-            <p className="text-[10px] text-muted-foreground">a resolver pronto</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-4">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
-            </div>
-            <p className="text-3xl font-bold">{stats.favoritos}</p>
-            <p className="text-[10px] text-muted-foreground">marcados</p>
-          </CardHeader>
-        </Card>
+      <div id="tour-focus-stats" className="shrink-0 rounded-t-lg overflow-hidden border-x border-t bg-border grid grid-cols-2 sm:grid-cols-4 gap-px">
+        <div className="bg-card px-3 py-2">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight">{stats.total}</p>
+        </div>
+        <div className="bg-card px-3 py-2">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Urgentes</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight text-red-400">{stats.urgente}</p>
+        </div>
+        <div className="bg-card px-3 py-2">
+          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Alta prioridad</p>
+          <p className="text-2xl font-bold tabular-nums leading-tight text-orange-400">{stats.alta}</p>
+        </div>
+        <div className="bg-card px-3 py-2">
+          <div className="flex items-center gap-1">
+            <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400 shrink-0" />
+            <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
+          </div>
+          <p className="text-2xl font-bold tabular-nums leading-tight">{stats.favoritos}</p>
+        </div>
       </div>
 
       {/* Records list */}
-      <Card id="tour-focus-records" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <Card id="tour-focus-records" className="flex-1 min-h-0 flex flex-col overflow-hidden border-x border-b shadow-none rounded-none rounded-b-lg gap-0">
         {/* Search */}
         <CommandSearch
           open={commandOpen}
@@ -169,12 +157,12 @@ export function FocusContent({
         <button
           onClick={() => setFiltersOpen((v) => !v)}
           className={cn(
-            "w-full flex items-center justify-between px-4 py-2.5 transition-colors text-left shrink-0",
+            "w-full flex items-center justify-between px-4 py-1.5 border-t border-border/40 transition-colors text-left shrink-0",
             !filtersOpen && "border-b border-border/40",
             filtersOpen ? "bg-muted/40" : "hover:bg-muted/30"
           )}
         >
-          <span className="text-sm font-medium">Expedientes</span>
+          <span className="text-sm font-medium text-muted-foreground">Expedientes</span>
           <div className="flex items-center gap-1.5">
             <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
               <SlidersHorizontal className="h-3 w-3" />
@@ -191,7 +179,7 @@ export function FocusContent({
 
         {/* Filters panel */}
         {filtersOpen && (
-          <div className="border-b border-border/40 bg-muted/20 px-4 py-3 space-y-3 shrink-0">
+          <div className="border-b border-border/40 bg-muted/20 px-4 py-3 space-y-3 overflow-y-auto max-h-[40vh]">
             {/* Estado */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">

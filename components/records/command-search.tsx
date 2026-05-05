@@ -89,10 +89,10 @@ export function CommandSearch({
   }, [open, hasMore, loading, onLoadMore]);
 
   return (
-    <div className="sticky top-0 z-20 bg-background px-2 py-3 space-y-2">
+    <div className="sticky top-0 z-20 bg-background">
       {/* Botón trigger */}
       <button
-        className="flex items-center gap-2 w-full rounded-md border px-3 py-2 text-sm bg-transparent"
+        className="flex items-center gap-2 w-full px-4 py-1.5 text-sm bg-muted/30 hover:bg-muted/50 transition-colors"
         onClick={() => onOpenChange(true)}
         aria-label="Buscar expedientes (Cmd/Ctrl+K)"
       >
@@ -105,8 +105,8 @@ export function CommandSearch({
 
       {/* Indicador de búsqueda fijada */}
       {pinnedQuery && (
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-xs text-muted-foreground truncate flex-1">
+        <div className="flex items-center gap-2 px-4 py-1 border-t border-border/40 text-xs text-muted-foreground bg-muted/20">
+          <span className="truncate flex-1">
             Filtro: &quot;{pinnedQuery}&quot; ({filteredCount} resultados)
           </span>
           <button

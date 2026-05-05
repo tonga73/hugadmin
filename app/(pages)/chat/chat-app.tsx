@@ -5,6 +5,7 @@ import { ChatList } from "@/components/chat/chat-list";
 import { ChatWindow } from "@/components/chat/chat-window";
 import { MessageSquare } from "lucide-react";
 import type { Chat, ChatUser } from "@/components/chat/chat-types";
+import { cn } from "@/lib/utils";
 
 interface ChatAppProps {
   meId: number;
@@ -28,10 +29,15 @@ export function ChatApp({ meId, allUsers }: ChatAppProps) {
 
   const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
 
+  const showList = !activeChatId || !activeChat;
+
   return (
     <div className="flex-1 flex overflow-hidden rounded-xl border">
-      {/* Chat list */}
-      <div className="w-64 shrink-0">
+      {/* Chat list — full on mobile when no chat selected, sidebar on md+ */}
+      <div className={cn(
+        "shrink-0 w-full md:w-64 md:block border-r",
+        activeChatId ? "hidden md:block" : "block"
+      )}>
         <ChatList
           chats={chats}
           activeChatId={activeChatId}
@@ -45,10 +51,24 @@ export function ChatApp({ meId, allUsers }: ChatAppProps) {
         />
       </div>
 
-      {/* Chat window */}
-      <div className="flex-1 min-w-0">
+      {/* Chat window — full on mobile when chat selected, fills remaining on md+ */}
+      <div className={cn(
+        "flex-1 min-w-0 flex flex-col",
+        !activeChatId ? "hidden md:flex" : "flex"
+      )}>
         {activeChat ? (
-          <ChatWindow chat={activeChat} meId={meId} allUsers={allUsers} />
+          <>
+            {/* Mobile back button */}
+            <button
+              onClick={() => setActiveChatId(null)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground border-b shrink-0"
+            >
+              ← Conversaciones
+            </button>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ChatWindow chat={activeChat} meId={meId} allUsers={allUsers} />
+            </div>
+          </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <MessageSquare className="h-10 w-10 opacity-20" />
