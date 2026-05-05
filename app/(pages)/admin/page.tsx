@@ -18,7 +18,7 @@ export default async function AdminPage() {
   const [userCount, recordCount, maintenanceConfig] = await Promise.all([
     prisma.user.count(),
     prisma.record.count(),
-    prisma.config.findUnique({ where: { key: "maintenance_mode" } }),
+    prisma.config.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null),
   ]);
   const maintenanceEnabled = maintenanceConfig?.value === "true";
 

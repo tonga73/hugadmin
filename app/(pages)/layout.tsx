@@ -18,7 +18,7 @@ export default async function PrivateLayout({
   const [userRole, userConfig, maintenanceConfig] = await Promise.all([
     email ? getUserRole(email) : Promise.resolve(null),
     email ? getUserViewConfig(email) : Promise.resolve(null),
-    prisma.config.findUnique({ where: { key: "maintenance_mode" } }),
+    prisma.config.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null),
   ]);
 
   if (maintenanceConfig?.value === "true" && userRole !== "ADMIN") {
