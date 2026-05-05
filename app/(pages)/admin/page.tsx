@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import Link from "next/link";
 import { Users, ShieldCheck } from "lucide-react";
+import { MaintenanceToggle } from "./maintenance-toggle";
 
 export default async function AdminPage() {
   const sessionUser = await getSessionUser();
@@ -14,10 +15,12 @@ export default async function AdminPage() {
   });
   if (currentUser?.role !== "ADMIN") redirect("/");
 
-  const [userCount, recordCount] = await Promise.all([
+  const [userCount, recordCount, maintenanceConfig] = await Promise.all([
     prisma.user.count(),
     prisma.record.count(),
+    prisma.config.findUnique({ where: { key: "maintenance_mode" } }),
   ]);
+  const maintenanceEnabled = maintenanceConfig?.value === "true";
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -44,6 +47,7 @@ export default async function AdminPage() {
 
         {/* Links */}
         <div className="space-y-2">
+          <MaintenanceToggle initialEnabled={maintenanceEnabled} />
           <Link
             href="/admin/users"
             className="flex items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors"

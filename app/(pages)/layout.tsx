@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import { getSessionUser } from "@/lib/session";
 import { getUserRole, getUserViewConfig } from "@/lib/user-config";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
 
 export default async function PrivateLayout({
   children,
@@ -13,10 +15,15 @@ export default async function PrivateLayout({
 }) {
   const [sessionUser, cookieStore] = await Promise.all([getSessionUser(), cookies()]);
   const email = sessionUser?.email;
-  const [userRole, userConfig] = await Promise.all([
+  const [userRole, userConfig, maintenanceConfig] = await Promise.all([
     email ? getUserRole(email) : Promise.resolve(null),
     email ? getUserViewConfig(email) : Promise.resolve(null),
+    prisma.config.findUnique({ where: { key: "maintenance_mode" } }),
   ]);
+
+  if (maintenanceConfig?.value === "true" && userRole !== "ADMIN") {
+    redirect("/maintenance");
+  }
   const isAdmin = userRole === "ADMIN";
   const defaultIsFocus = userConfig?.dashboardView === "FOCUS";
   const sidebarDefaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
