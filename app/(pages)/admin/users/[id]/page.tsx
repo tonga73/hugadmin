@@ -31,6 +31,7 @@ export default async function AdminUserPage({
       userEmail={user.email}
       userImage={user.image}
       userRole={user.role as any}
+      userActive={user.active}
       dashboardView={(user.viewConfig?.dashboardView ?? "OVERVIEW") as any}
     />
   );

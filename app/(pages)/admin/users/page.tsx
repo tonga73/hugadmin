@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const DASHBOARD_VIEW_LABELS: Record<string, string> = {
   OVERVIEW: "Overview",
@@ -63,7 +64,10 @@ export default async function AdminUsersPage() {
               <Link
                 key={user.id}
                 href={`/admin/users/${user.id}`}
-                className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/30 transition-colors"
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/30 transition-colors",
+                  !user.active && "opacity-50"
+                )}
               >
                 <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                   {user.image ? (
@@ -80,6 +84,11 @@ export default async function AdminUsersPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  {!user.active && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-muted-foreground/20 text-muted-foreground">
+                      Inactivo
+                    </span>
+                  )}
                   <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {DASHBOARD_VIEW_LABELS[view]}
                   </span>

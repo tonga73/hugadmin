@@ -24,7 +24,7 @@ export async function PATCH(
   if (isNaN(userId)) return NextResponse.json({ error: "ID inválido" }, { status: 400 });
 
   const body = await req.json();
-  const { name, role } = body;
+  const { name, role, active } = body;
 
   const validRoles = ["USER", "ADMIN", "PART", "CLIENT"];
   if (role !== undefined && !validRoles.includes(role)) {
@@ -36,8 +36,9 @@ export async function PATCH(
     data: {
       ...(name !== undefined && { name }),
       ...(role !== undefined && { role }),
+      ...(active !== undefined && { active }),
     },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, active: true },
   });
 
   return NextResponse.json(updated);

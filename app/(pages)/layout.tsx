@@ -3,7 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { ViewProvider } from "@/contexts/view-context";
 import { Toaster } from "sonner";
 import { getSessionUser } from "@/lib/session";
-import { getUserRole, getUserViewConfig } from "@/lib/user-config";
+import { getUserViewConfig } from "@/lib/user-config";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
@@ -15,11 +15,14 @@ export default async function PrivateLayout({
 }) {
   const [sessionUser, cookieStore] = await Promise.all([getSessionUser(), cookies()]);
   const email = sessionUser?.email;
-  const [userRole, userConfig, maintenanceConfig] = await Promise.all([
-    email ? getUserRole(email) : Promise.resolve(null),
+  const [dbUser, userConfig, maintenanceConfig] = await Promise.all([
+    email ? prisma.user.findUnique({ where: { email }, select: { role: true, active: true } }) : Promise.resolve(null),
     email ? getUserViewConfig(email) : Promise.resolve(null),
     prisma.config.findUnique({ where: { key: "maintenance_mode" } }).catch(() => null),
   ]);
+
+  if (dbUser && !dbUser.active) redirect("/login");
+  const userRole = dbUser?.role ?? null;
 
   if (maintenanceConfig?.value === "true" && userRole !== "ADMIN") {
     redirect("/maintenance");

@@ -104,6 +104,7 @@ model User {
   name           String?
   googleId       String?
   verified       Boolean          @default(false)
+  active         Boolean          @default(true)
   role           Role             @default(USER)
   image          String?
   RecordsAndUser RecordsAndUser[]

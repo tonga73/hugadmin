@@ -16,6 +16,15 @@ export async function POST(request: NextRequest) {
 
     // Upsert user in DB so getUserViewConfig always finds them
     if (user.email) {
+      const existing = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { active: true },
+      });
+
+      if (existing && !existing.active) {
+        return NextResponse.json({ error: "Usuario desactivado" }, { status: 403 });
+      }
+
       await prisma.user.upsert({
         where: { email: user.email },
         update: {
