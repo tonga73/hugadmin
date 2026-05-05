@@ -118,7 +118,8 @@ DRIVE_WEBHOOK_SECRET   # Header token para validar webhook de Drive
 - Commits van a `develop`, se mergea a `main` cuando está listo para producción
 - Railway deploya automáticamente al hacer push a `main`
 - **Commits**: mensaje breve pero explicativo — una línea que diga qué cambió y por qué, sin ser críptico ni verboso
-- **Push**: siempre confirmar con el usuario antes de hacer `git push`, sin excepción
+- **Push**: pushear al final de un bloque de trabajo coherente (feature completa, fix completo), sin pedir confirmación cada vez. Agrupar para no disparar builds innecesarios en Railway
+- **Versionado**: semver `MAJOR.MINOR.PATCH` — patch para fixes, minor para features, major para cambios de arquitectura. Actualizar `package.json` y `CHANGELOG.md` al cerrar un bloque de cambios significativo. Tagear con `git tag vX.Y.Z`
 - No agregar comentarios obvios al código; solo cuando el *porqué* no es evidente
 - Preferir editar archivos existentes antes de crear nuevos
 
