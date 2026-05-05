@@ -101,19 +101,20 @@ model RecordsAndUser {
 }
 
 model User {
-  id             Int              @id @default(autoincrement())
-  email          String           @unique
-  name           String?
-  googleId       String?
-  verified       Boolean          @default(false)
-  active         Boolean          @default(true)
-  visible        Boolean          @default(true)
-  role           Role             @default(USER)
-  image          String?
-  RecordsAndUser RecordsAndUser[]
-  viewConfig     UserViewConfig?
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  name            String?
+  googleId        String?
+  verified        Boolean          @default(false)
+  active          Boolean          @default(true)
+  visible         Boolean          @default(true)
+  role            Role             @default(USER)
+  image           String?
+  RecordsAndUser  RecordsAndUser[]
+  viewConfig      UserViewConfig?
   chatMemberships ChatMember[]
-  sentMessages    Message[]       @relation("MessageSender")
+  sentMessages    Message[]        @relation("MessageSender")
+  notifications   Notification[]
 }
 
 model UserViewConfig {
@@ -173,6 +174,27 @@ model Config {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  type      NotifType
+  title     String
+  body      String
+  entityId  Int?
+  read      Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+enum NotifType {
+  RECORD_ASSIGNED
+  RECORD_UPDATED
+  CHAT_MESSAGE
 }
 
 enum DashboardView {

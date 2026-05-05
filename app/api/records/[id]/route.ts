@@ -5,6 +5,8 @@ import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
 import { Prisma } from "@/app/generated/prisma/client";
 import { normalizeOrder } from "@/lib/record-number";
+import { getSessionUser } from "@/lib/session";
+import { createNotifications } from "@/lib/notifications";
 
 // Schema de validación para PATCH
 const updateRecordSchema = z.object({
@@ -124,6 +126,31 @@ export async function PATCH(
 
     // Invalida cache
     revalidateTag("records", "default");
+
+    // Notify assignees of significant changes (tracing or priority)
+    if (validatedData.tracing !== undefined || validatedData.priority !== undefined) {
+      const session = await getSessionUser().catch(() => null);
+      const me = session?.email
+        ? await prisma.user.findUnique({ where: { email: session.email }, select: { id: true } })
+        : null;
+
+      const assignees = await prisma.recordsAndUser.findMany({
+        where: { recordId: Number(id) },
+        select: { userId: true },
+      });
+      const recipientIds = assignees
+        .map((a) => a.userId)
+        .filter((uid) => uid !== me?.id);
+
+      if (recipientIds.length > 0) {
+        await createNotifications(recipientIds, {
+          type: "RECORD_UPDATED",
+          title: "Expediente actualizado",
+          body: `${updated.order} — ${updated.name}`,
+          entityId: Number(id),
+        });
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

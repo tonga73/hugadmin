@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { emitNewMessage } from "@/lib/chat-events";
+import { createNotifications } from "@/lib/notifications";
 
 async function getDbUser() {
   const session = await getSessionUser();
@@ -72,5 +73,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   ]);
 
   emitNewMessage(chatId, message);
+
+  // Notify other chat members
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    select: { name: true, isGroup: true, members: { select: { userId: true } } },
+  });
+  if (chat) {
+    const recipientIds = chat.members
+      .map((m) => m.userId)
+      .filter((uid) => uid !== me.id);
+    const senderName = message.sender.name ?? message.sender.email;
+    const title = chat.isGroup
+      ? `${senderName} en ${chat.name ?? "grupo"}`
+      : `Nuevo mensaje de ${senderName}`;
+    const preview = message.text.length > 60 ? message.text.slice(0, 60) + "…" : message.text;
+    await createNotifications(recipientIds, {
+      type: "CHAT_MESSAGE",
+      title,
+      body: preview,
+      entityId: chatId,
+    });
+  }
+
   return NextResponse.json(message);
 }

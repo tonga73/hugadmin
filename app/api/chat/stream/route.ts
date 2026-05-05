@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { chatEvents } from "@/lib/chat-events";
+import { notifEvents } from "@/lib/notification-events";
 import { getSessionUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 
@@ -39,11 +40,15 @@ export async function GET(req: NextRequest) {
         handlers.push({ chatId, handler });
       }
 
+      const notifHandler = (notif: unknown) => send("notification", notif);
+      notifEvents.on(`notif:${me.id}`, notifHandler);
+
       req.signal.addEventListener("abort", () => {
         clearInterval(keepAlive);
         for (const { chatId, handler } of handlers) {
           chatEvents.off(`chat:${chatId}`, handler);
         }
+        notifEvents.off(`notif:${me.id}`, notifHandler);
         controller.close();
       });
     },

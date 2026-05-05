@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { getSessionUser } from "@/lib/session";
+import { createNotifications } from "@/lib/notifications";
 
 export async function GET(
   _req: NextRequest,
@@ -28,10 +30,28 @@ export async function POST(
     const body = await req.json();
     const { userIds } = assignSchema.parse(body);
 
+    const [session, record] = await Promise.all([
+      getSessionUser(),
+      prisma.record.findUnique({ where: { id: recordId }, select: { order: true, name: true } }),
+    ]);
+    const me = session?.email
+      ? await prisma.user.findUnique({ where: { email: session.email }, select: { id: true } })
+      : null;
+
     await prisma.recordsAndUser.createMany({
       data: userIds.map((userId) => ({ recordId, userId })),
       skipDuplicates: true,
     });
+
+    if (record) {
+      const targetIds = userIds.filter((uid) => uid !== me?.id);
+      await createNotifications(targetIds, {
+        type: "RECORD_ASSIGNED",
+        title: "Te asignaron a un expediente",
+        body: `${record.order} — ${record.name}`,
+        entityId: recordId,
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
