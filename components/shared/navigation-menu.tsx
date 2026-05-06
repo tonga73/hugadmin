@@ -61,10 +61,13 @@ export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; m
         </NavigationMenuList>
       </NavigationMenuUI>
 
-      {/* View switcher (only when logged in) */}
-      {!loading && user && <ViewSwitcher />}
-      {!loading && user && meId && <ChatNavButton meId={meId} />}
-      {!loading && user && <NotificationBell />}
+      {!loading && user && (
+        <>
+          <ViewSwitcher />
+          {meId && <ChatNavButton meId={meId} />}
+          <NotificationBell />
+        </>
+      )}
 
       <div className="flex-1" />
 

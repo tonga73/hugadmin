@@ -188,15 +188,22 @@
 }
 
 /* driver.js tour overrides */
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.72) !important;
+}
+
 .driver-popover.hugadmin-tour-popover {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
   padding: 16px 18px 14px;
-  min-width: 260px;
-  max-width: 320px;
+  min-width: 280px;
+  max-width: 340px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 .driver-popover.hugadmin-tour-popover .driver-popover-title {
   font-size: 14px;
@@ -205,8 +212,8 @@
   color: hsl(var(--foreground));
 }
 .driver-popover.hugadmin-tour-popover .driver-popover-description {
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 12.5px;
+  line-height: 1.6;
   color: hsl(var(--muted-foreground));
 }
 .driver-popover.hugadmin-tour-popover .driver-popover-progress-text {
@@ -214,12 +221,12 @@
   color: hsl(var(--muted-foreground));
 }
 .driver-popover.hugadmin-tour-popover .driver-popover-navigation-btns {
-  margin-top: 12px;
+  margin-top: 14px;
   gap: 6px;
 }
 .driver-popover.hugadmin-tour-popover button {
-  font-size: 11px;
-  padding: 4px 12px;
+  font-size: 12px;
+  padding: 5px 14px;
   border-radius: 6px;
   font-weight: 500;
   border: 1px solid hsl(var(--border));
@@ -227,6 +234,9 @@
   color: hsl(var(--foreground));
   cursor: pointer;
   transition: background 0.15s;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 .driver-popover.hugadmin-tour-popover button:hover {
   background: hsl(var(--accent));
