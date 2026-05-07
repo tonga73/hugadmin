@@ -89,19 +89,37 @@ Asignados: ${assignees || "Ninguno"}`;
     context += `\n\nArchivos adjuntos: ${files.length} (sin texto extraíble)`;
   }
 
-  const stream = anthropic.messages.stream({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: context }],
-  });
+  let stream: ReturnType<typeof anthropic.messages.stream>;
+  try {
+    stream = anthropic.messages.stream({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: context }],
+    });
+    // Trigger the first request so auth/billing errors surface before streaming starts
+    await stream.initialMessagePromise;
+  } catch (err: any) {
+    const msg = err?.error?.error?.message ?? err?.message ?? "";
+    if (msg.includes("credit balance") || msg.includes("billing")) {
+      return new Response("Sin créditos en la cuenta de Anthropic. Recargá en console.anthropic.com → Plans & Billing.", { status: 402 });
+    }
+    if (err?.status === 401 || msg.includes("API key")) {
+      return new Response("API key de Anthropic inválida o no configurada.", { status: 401 });
+    }
+    return new Response("Error al conectar con la IA. Intentá de nuevo.", { status: 500 });
+  }
 
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
-          controller.enqueue(new TextEncoder().encode(chunk.delta.text));
+      try {
+        for await (const chunk of stream) {
+          if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+            controller.enqueue(new TextEncoder().encode(chunk.delta.text));
+          }
         }
+      } catch {
+        // Stream interrupted — client will see partial response or retry
       }
       controller.close();
     },

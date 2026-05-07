@@ -15,12 +15,12 @@ export function RecordAnalyzer({ recordId, recordOrder }: RecordAnalyzerProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const analyze = async () => {
     setText("");
-    setError(false);
+    setError(null);
     setLoading(true);
 
     abortRef.current = new AbortController();
@@ -33,7 +33,11 @@ export function RecordAnalyzer({ recordId, recordOrder }: RecordAnalyzerProps) {
         signal: abortRef.current.signal,
       });
 
-      if (!res.ok || !res.body) throw new Error();
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Error desconocido");
+      }
+      if (!res.body) throw new Error("Sin respuesta del servidor");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -44,7 +48,7 @@ export function RecordAnalyzer({ recordId, recordOrder }: RecordAnalyzerProps) {
         setText((prev) => prev + decoder.decode(value, { stream: true }));
       }
     } catch (e: any) {
-      if (e?.name !== "AbortError") setError(true);
+      if (e?.name !== "AbortError") setError(e?.message || "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -115,9 +119,9 @@ export function RecordAnalyzer({ recordId, recordOrder }: RecordAnalyzerProps) {
             )}
 
             {error && (
-              <div className="text-xs text-destructive">
-                No se pudo completar el análisis.{" "}
-                <button onClick={retry} className="underline underline-offset-2">Reintentar</button>
+              <div className="space-y-2">
+                <p className="text-xs text-destructive leading-snug">{error}</p>
+                <button onClick={retry} className="text-xs text-muted-foreground underline underline-offset-2">Reintentar</button>
               </div>
             )}
 
