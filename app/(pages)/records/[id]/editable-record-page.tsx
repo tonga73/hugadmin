@@ -27,6 +27,7 @@ import { DeleteButton } from "@/components/records/delete-button";
 import { FilesSection } from "@/components/records/files-section";
 import { cn } from "@/lib/utils";
 import { formatOrder } from "@/lib/record-number";
+import { RecordAnalyzer } from "@/components/ai/record-analyzer";
 
 // Schema de validación para campos editables
 const recordSchema = z.object({
@@ -261,6 +262,8 @@ export default function EditableRecordPage({
           {isSaving && (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground/50" />
           )}
+
+          <RecordAnalyzer recordId={record.id} recordOrder={formatOrder(record.order)} />
 
           {/* Asignados popover */}
           <RecordUsersPopover

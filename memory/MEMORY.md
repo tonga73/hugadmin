@@ -15,6 +15,10 @@
 - Auth under `app/(auth)/`
 - Shared components under `components/`
 
+## AI Features
+- `app/api/ai/analyze/route.ts` – POST streaming endpoint: carga expediente + archivos, llama a Claude Haiku, devuelve análisis en tiempo real
+- `components/ai/record-analyzer.tsx` – Sheet lateral con botón Sparkles en detalle de expediente; acciones concretas (prioridad/tracing) por definir
+
 ## Key Files
 - `components/records/record-form.tsx` – Create record form (React Hook Form + Zod)
 - `app/(pages)/records/[id]/editable-record-page.tsx` – Edit record (click-to-edit)
