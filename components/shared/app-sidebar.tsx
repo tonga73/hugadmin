@@ -1,27 +1,8 @@
 import { getRecords } from "@/app/actions/getRecords";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
-import { Separator } from "../ui/separator";
-import { PlusIcon, FolderOpen, MessageSquare } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar";
 import { RecordsList } from "../records";
-import { Logo } from "./logo";
 import { getSessionUser } from "@/lib/session";
 import { getUserViewConfig } from "@/lib/user-config";
-
-const sidebarItems = [
-  { title: "Crear expediente", url: "/records/create", icon: PlusIcon },
-  { title: "Archivos sin asignar", url: "/unassigned", icon: FolderOpen },
-  { title: "Mensajes", url: "/chat", icon: MessageSquare },
-];
 
 export async function AppSidebar() {
   const [{ records, lastId, hasMore }, sessionUser] = await Promise.all([
@@ -39,58 +20,45 @@ export async function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarContent className="h-screen overflow-hidden">
-        <SidebarGroup>
-          <Logo />
-        </SidebarGroup>
+      <SidebarContent className="h-screen overflow-hidden flex flex-col">
 
-        <SidebarGroup className="gap-3 py-0 flex-1 min-h-0 overflow-hidden">
-          <SidebarGroupContent>
-            <SidebarGroupLabel>Expedientes</SidebarGroupLabel>
-            <Separator />
-          </SidebarGroupContent>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a
-                      href={item.url}
-                      id={
-                        item.url === "/records/create" ? "tour-create-record" :
-                        item.url === "/unassigned" ? "tour-unassigned" :
-                        undefined
-                      }
-                    >
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-          <SidebarGroupContent id="tour-records-list" className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <RecordsList
-              initialRecords={recordsWithDates}
-              lastId={lastId}
-              hasMore={hasMore}
-              initialTracingFilter={(config?.tracingFilter as string[]) ?? []}
-              initialMinPriority={(config?.minPriority as string | null) ?? null}
-              initialMine={config?.assignedToMeOnly ?? false}
-              initialFavoritesOnly={config?.favoritesOnly ?? false}
-            />
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Brand header */}
+        <div className="flex items-center px-4 py-3 shrink-0 border-b border-sidebar-border/40">
+          <span
+            className="font-montserrat text-2xl font-light uppercase select-none"
+            style={{
+              background: "linear-gradient(to right, #07f49e, #0380b6)",
+              backgroundSize: "200% 200%",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            HA
+          </span>
+        </div>
+
+        {/* Records list */}
+        <div id="tour-records-list" className="flex-1 min-h-0 overflow-hidden">
+          <RecordsList
+            initialRecords={recordsWithDates}
+            lastId={lastId}
+            hasMore={hasMore}
+            initialTracingFilter={(config?.tracingFilter as string[]) ?? []}
+            initialMinPriority={(config?.minPriority as string | null) ?? null}
+            initialMine={config?.assignedToMeOnly ?? false}
+            initialFavoritesOnly={config?.favoritesOnly ?? false}
+          />
+        </div>
 
       </SidebarContent>
 
-      <SidebarFooter className="px-3 py-2">
+      <SidebarFooter className="px-4 py-2 border-t border-sidebar-border/30">
         <a
           href="https://tonga73.github.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+          className="text-[10px] text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
         >
           desarrollado por gastoire
         </a>

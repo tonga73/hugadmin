@@ -39,6 +39,7 @@ interface UseRecordsListProps {
   initialMinPriority?: string | null;
   initialMine?: boolean;
   initialFavoritesOnly?: boolean;
+  priorityPreload?: boolean;
 }
 
 export function useRecordsList({
@@ -49,6 +50,7 @@ export function useRecordsList({
   initialMinPriority = null,
   initialMine = false,
   initialFavoritesOnly = false,
+  priorityPreload = false,
 }: UseRecordsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -153,8 +155,9 @@ export function useRecordsList({
       setRecords([]);
       try {
         const { records: fresh, lastId: newLastId, hasMore: newHasMore } = await getRecords({
-          take: 10,
+          take: 20,
           explicitFilters: { tracingFilter, minPriority, mine, favoritesOnly },
+          priorityPreload,
         });
         if (!cancelled) {
           setRecords(parseRecordsDates(fresh));
@@ -258,6 +261,7 @@ export function useRecordsList({
   const clearPinnedSearch = useCallback(() => {
     setPinnedQuery("");
     setCommandQuery("");
+    setCommandResults([]);
     setHighlightedRecord(null);
   }, []);
 
@@ -279,8 +283,9 @@ export function useRecordsList({
         lastId: newLastId,
         hasMore: newHasMore,
       } = await getRecords({
-        take: records.length || 10,
+        take: Math.max(records.length, 20),
         explicitFilters: { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav },
+        priorityPreload,
       });
       setRecords(parseRecordsDates(freshRecords));
       setCursor(newLastId);
@@ -474,22 +479,42 @@ export function useRecordsList({
     }
   }, [pathname, highlightedRecord]);
 
-  // Keyboard shortcut para abrir Command (Cmd/Ctrl+K)
+  // Ref para el input de búsqueda inline
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Búsqueda inline: limpia resultados stale y dispara búsqueda server
+  const setSearch = useCallback((query: string) => {
+    setPinnedQuery(query);
+    setCommandResults([]); // evita que resultados de búsqueda anterior contaminen la vista
+    setCommandQuery(query);
+  }, []);
+
+  // Resultados visibles:
+  // - Sin query: lista normal (filteredRecords)
+  // - Con query + server respondió: solo resultados del server filtrados client-side (precisos, iguales en ambos layouts)
+  // - Con query + server cargando: fallback a filtro local mientras llega la respuesta
+  const displayRecords = useMemo(() => {
+    if (!pinnedQuery.trim()) return filteredRecords;
+    if (commandResults.length > 0) return filterRecords(commandResults, pinnedQuery, exactMatch);
+    return filteredRecords;
+  }, [pinnedQuery, filteredRecords, commandResults, exactMatch]);
+
+  // Keyboard shortcut Cmd/Ctrl+K: hace focus al input inline
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setCommandOpen((v) => !v);
+        searchInputRef.current?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Navegación por teclado en la lista (deshabilitada cuando Command está abierto)
+  // Navegación por teclado en la lista (deshabilitada cuando hay un input con foco)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (commandOpen || !filteredRecords.length) return;
+      if (document.activeElement?.tagName === "INPUT" || !filteredRecords.length) return;
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -719,6 +744,9 @@ export function useRecordsList({
     highlightedRef,
     commandItemsRef,
     // Actions
+    searchInputRef,
+    setSearch,
+    displayRecords,
     setCommandQuery,
     setCommandSelectedIndex,
     setHighlightedRecord,

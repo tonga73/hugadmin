@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Record } from "@/app/generated/prisma/client";
 import { useRecordsList } from "@/hooks/use-records-list";
 import { RecordDetailSheet } from "./record-detail-sheet";
 import { RecordUsersPopover } from "@/components/records/record-users-popover";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TracingBadge } from "@/components/records/tracing-badge";
 import { Badge } from "@/components/ui/badge";
-import { Star, SlidersHorizontal, ChevronDown, X } from "lucide-react";
+import { Star, SlidersHorizontal, ChevronDown, ChevronRight, X, Search, AlertTriangle } from "lucide-react";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { formatOrder } from "@/lib/record-number";
 import { cn } from "@/lib/utils";
-import { CommandSearch } from "@/components/records/command-search";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+
 function relativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
@@ -26,14 +26,22 @@ function relativeTime(date: Date): string {
   return `${Math.floor(days / 365)}a`;
 }
 
+const PRIORITY_TIER: { [k: string]: number } = {
+  URGENTE: 0, ALTA: 1, MEDIA: 2, BAJA: 3, NULA: 4, INACTIVO: 5,
+};
+
 interface Stats {
   total: number;
   urgente: number;
   alta: number;
   favoritos: number;
+  enCobro: number;
+  staleUrgente: number;
 }
 
-type AssigneesMap = { [recordId: number]: { id: number; name: string | null; email: string; image: string | null }[] };
+type AssigneesMap = {
+  [recordId: number]: { id: number; name: string | null; email: string; image: string | null }[];
+};
 
 interface FocusContentProps {
   initialRecords: Record[];
@@ -45,14 +53,143 @@ interface FocusContentProps {
   initialAssigneesMap?: AssigneesMap;
 }
 
-function RecordRowSkeleton() {
+
+function RecordRow({
+  record,
+  isSelected,
+  onClick,
+  assignees,
+  hidePriorityBadge = false,
+}: {
+  record: Record;
+  isSelected: boolean;
+  onClick: () => void;
+  assignees?: AssigneesMap[number];
+  hidePriorityBadge?: boolean;
+}) {
+  const priority = PRIORITY_OPTIONS[record.priority];
+  const updatedAt = new Date(record.updatedAt);
+
   return (
-    <div className="px-4 py-3 border-l-[3px] border-muted-foreground/20 animate-pulse flex items-center gap-3">
-      <Skeleton className="h-5 w-24 shrink-0" />
-      <Skeleton className="h-5 w-20 shrink-0 rounded-full" />
-      <Skeleton className="h-4 flex-1" />
-      <Skeleton className="h-4 w-16 shrink-0" />
+    <div
+      onClick={onClick}
+      className={cn(
+        "w-full text-left flex items-center gap-3 px-4 py-2.5 border-l-[3px] transition-colors cursor-pointer",
+        isSelected ? "bg-accent/80" : "hover:bg-accent/40"
+      )}
+      style={{ borderLeftColor: priority?.color ?? "transparent" }}
+    >
+      <span className="text-sm font-semibold shrink-0 w-28 font-mono truncate">
+        {formatOrder(record.order)}
+      </span>
+      <span className="shrink-0">
+        <TracingBadge tracing={record.tracing} size="sm" />
+      </span>
+      <span className="flex-1 text-sm truncate min-w-0">{record.name}</span>
+
+      {!hidePriorityBadge && priority && record.priority !== "NULA" && record.priority !== "INACTIVO" && (
+        <Badge
+          className="shrink-0 text-[10px] h-5 px-1.5"
+          style={{ backgroundColor: priority.color, color: "#1a1a1a" }}
+        >
+          {priority.label}
+        </Badge>
+      )}
+
+      <RecordUsersPopover
+        recordId={record.id}
+        size="sm"
+        initialAssignees={assignees}
+      />
+
+      <Star
+        className={cn(
+          "h-3.5 w-3.5 shrink-0 transition-colors",
+          record.favorite ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"
+        )}
+      />
+
+      <span className="text-[11px] text-muted-foreground shrink-0 w-14 text-right tabular-nums">
+        {relativeTime(updatedAt)}
+      </span>
     </div>
+  );
+}
+
+function TriageSectionHeader({
+  label,
+  tooltip,
+  count,
+  staleCount,
+  color,
+  open,
+  onToggle,
+  muted = false,
+}: {
+  label: string;
+  tooltip?: string;
+  count: number;
+  staleCount?: number;
+  color: string;
+  open: boolean;
+  onToggle: () => void;
+  muted?: boolean;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/10 transition-colors"
+    >
+      <div
+        className="h-2 w-2 rounded-full shrink-0"
+        style={{ background: muted ? "var(--muted-foreground)" : color, opacity: muted ? 0.4 : 0.9 }}
+      />
+      {tooltip ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className={cn("text-[10px] font-bold uppercase tracking-widest shrink-0", muted && "text-muted-foreground/50")}
+              style={muted ? undefined : { color }}
+            >
+              {label}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="right">{tooltip}</TooltipContent>
+        </Tooltip>
+      ) : (
+        <span
+          className={cn("text-[10px] font-bold uppercase tracking-widest shrink-0", muted && "text-muted-foreground/50")}
+          style={muted ? undefined : { color }}
+        >
+          {label}
+        </span>
+      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="text-[10px] text-muted-foreground/60 font-mono shrink-0">{count}</span>
+        </TooltipTrigger>
+        <TooltipContent side="right">Total en esta sección</TooltipContent>
+      </Tooltip>
+      {staleCount !== undefined && staleCount > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-0.5 text-[9px] font-semibold text-red-400 bg-red-500/10 px-1.5 rounded shrink-0 leading-[18px]">
+              <AlertTriangle className="h-2 w-2" />
+              {staleCount}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {staleCount} urgente{staleCount !== 1 ? "s" : ""} sin actividad en más de 7 días
+          </TooltipContent>
+        </Tooltip>
+      )}
+      <div className="flex-1 h-px bg-border/40 mx-1" />
+      {open ? (
+        <ChevronDown className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+      ) : (
+        <ChevronRight className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+      )}
+    </button>
   );
 }
 
@@ -67,9 +204,18 @@ export function FocusContent({
 }: FocusContentProps) {
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState({
+    urgente: false,
+    alta: false,
+    proceso: stats.urgente > 0 || stats.alta > 0,
+  });
+
+  const toggleSection = (key: keyof typeof collapsed) =>
+    setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const {
     filteredRecords,
+    displayRecords,
     loading,
     more,
     mine,
@@ -77,18 +223,9 @@ export function FocusContent({
     tracingFilter,
     minPriority,
     pinnedQuery,
-    commandOpen,
-    commandQuery,
     commandLoading,
-    commandResults,
-    commandHasMore,
-    commandSelectedIndex,
-    commandItemsRef,
-    setCommandQuery,
-    setCommandSelectedIndex,
-    handleCommandSelect,
-    handleCommandClose,
-    loadMoreCommandResults,
+    searchInputRef,
+    setSearch,
     clearPinnedSearch,
     toggleTracingKey,
     updateTracingFilter,
@@ -103,84 +240,103 @@ export function FocusContent({
     hasMore,
     initialMine,
     initialFavoritesOnly,
+    priorityPreload: true,
   });
 
   const activeFilterCount =
     tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0);
 
-  return (
-    <div className="flex-1 min-h-0 flex flex-col gap-0">
-      {/* Stats row */}
-      <div id="tour-focus-stats" className="shrink-0 rounded-t-lg overflow-hidden border-x border-t bg-border grid grid-cols-2 sm:grid-cols-4 gap-px">
-        <div className="bg-card px-3 py-2">
-          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold tabular-nums leading-tight">{stats.total}</p>
-        </div>
-        <div className="bg-card px-3 py-2">
-          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Urgentes</p>
-          <p className="text-2xl font-bold tabular-nums leading-tight text-red-400">{stats.urgente}</p>
-        </div>
-        <div className="bg-card px-3 py-2">
-          <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Alta prioridad</p>
-          <p className="text-2xl font-bold tabular-nums leading-tight text-orange-400">{stats.alta}</p>
-        </div>
-        <div className="bg-card px-3 py-2">
-          <div className="flex items-center gap-1">
-            <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400 shrink-0" />
-            <p className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground">Destacados</p>
-          </div>
-          <p className="text-2xl font-bold tabular-nums leading-tight">{stats.favoritos}</p>
-        </div>
-      </div>
+  const sortedRecords = useMemo(
+    () =>
+      [...displayRecords].sort((a, b) => {
+        const ta = PRIORITY_TIER[a.priority] ?? 4;
+        const tb = PRIORITY_TIER[b.priority] ?? 4;
+        if (ta !== tb) return ta - tb;
+        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+      }),
+    [filteredRecords]
+  );
 
-      {/* Records list */}
-      <Card id="tour-focus-records" className="flex-1 min-h-0 flex flex-col overflow-hidden border-x border-b shadow-none rounded-none rounded-b-lg gap-0">
-        {/* Search */}
-        <CommandSearch
-          open={commandOpen}
-          query={commandQuery}
-          loading={commandLoading}
-          results={commandResults}
-          hasMore={commandHasMore}
-          selectedIndex={commandSelectedIndex}
-          pinnedQuery={pinnedQuery}
-          filteredCount={filteredRecords.length}
-          itemsRef={commandItemsRef}
-          onOpenChange={handleCommandClose}
-          onQueryChange={setCommandQuery}
-          onSelect={handleCommandSelect}
-          onSelectedIndexChange={setCommandSelectedIndex}
-          onLoadMore={loadMoreCommandResults}
-          onClearPinned={clearPinnedSearch}
-        />
-        {/* Header with filter toggle */}
-        <button
-          onClick={() => setFiltersOpen((v) => !v)}
-          className={cn(
-            "w-full flex items-center justify-between px-4 py-1.5 border-t border-border/40 transition-colors text-left shrink-0",
-            !filtersOpen && "border-b border-border/40",
-            filtersOpen ? "bg-muted/40" : "hover:bg-muted/30"
+  const urgentesRecs = useMemo(
+    () => sortedRecords.filter((r) => r.priority === "URGENTE"),
+    [sortedRecords]
+  );
+  const altasRecs = useMemo(
+    () => sortedRecords.filter((r) => r.priority === "ALTA"),
+    [sortedRecords]
+  );
+  const procesoRecs = useMemo(
+    () => sortedRecords.filter((r) => r.priority !== "URGENTE" && r.priority !== "ALTA"),
+    [sortedRecords]
+  );
+
+  // Server-computed counts — stable, never jump on scroll
+  const procesoTotal = Math.max(0, stats.total - stats.urgente - stats.alta);
+
+  return (
+    <>
+      <Card
+        id="tour-focus-records"
+        className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg p-0 gap-0"
+      >
+        {/* Search + filter bar */}
+        <div className={cn("flex items-center border-b border-border/40 shrink-0", filtersOpen && "border-b-0")}>
+          <div className="flex items-center gap-2 flex-1 px-3 py-1.5 min-w-0">
+            {commandLoading ? (
+              <span className="flex items-center gap-[3px] shrink-0 w-3.5">
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+              </span>
+            ) : (
+              <Search className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+            )}
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={pinnedQuery}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") clearPinnedSearch(); }}
+              placeholder="Buscar expedientes..."
+              className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
+            />
+            {pinnedQuery && (
+              <span className="text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">{displayRecords.length}</span>
+            )}
+          </div>
+
+          {pinnedQuery && (
+            <button
+              onClick={clearPinnedSearch}
+              className="shrink-0 px-2 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-3 w-3" />
+            </button>
           )}
-        >
-          <span className="text-sm font-medium text-muted-foreground">Expedientes</span>
-          <div className="flex items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-              <SlidersHorizontal className="h-3 w-3" />
-              Filtros
-            </span>
+
+          <div className="w-px h-4 bg-border/60 shrink-0" />
+
+          <button
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 hover:bg-muted/30 transition-colors shrink-0",
+              filtersOpen && "bg-muted/40"
+            )}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
             {activeFilterCount > 0 && (
               <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full px-1.5 leading-4">
                 {activeFilterCount}
               </span>
             )}
             <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", filtersOpen && "rotate-180")} />
-          </div>
-        </button>
+          </button>
+        </div>
 
         {/* Filters panel */}
         {filtersOpen && (
-          <div className="border-b border-border/40 bg-muted/20 px-4 py-3 space-y-3 overflow-y-auto max-h-[40vh]">
-            {/* Estado */}
+          <div className="border-y border-border/40 bg-muted/20 px-4 py-3 space-y-3 overflow-y-auto max-h-[40vh] shrink-0">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Estado</p>
@@ -217,7 +373,6 @@ export function FocusContent({
               </div>
             </div>
 
-            {/* Prioridad mínima */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Prioridad mínima</p>
@@ -255,7 +410,6 @@ export function FocusContent({
               </div>
             </div>
 
-            {/* Mis expedientes / Destacados */}
             <div className="space-y-1.5">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Asignación</p>
               <div className="flex flex-wrap gap-1">
@@ -282,101 +436,159 @@ export function FocusContent({
             </div>
           </div>
         )}
+
+        {/* Context chips */}
+        <div
+          id="tour-focus-stats"
+          className="flex items-center gap-2 px-4 py-1 border-b border-border/30 shrink-0 bg-muted/10"
+        >
+          <span className="text-[10px] text-muted-foreground/60">{stats.total} expedientes</span>
+          {stats.urgente > 0 && (
+            <>
+              <span className="text-muted-foreground/25 text-[10px]">·</span>
+              <span className="text-[10px] text-red-400 font-medium">{stats.urgente} urgentes</span>
+            </>
+          )}
+          {stats.alta > 0 && (
+            <>
+              <span className="text-muted-foreground/25 text-[10px]">·</span>
+              <span className="text-[10px] text-orange-400">{stats.alta} alta</span>
+            </>
+          )}
+          {stats.enCobro > 0 && (
+            <>
+              <span className="text-muted-foreground/25 text-[10px]">·</span>
+              <span className="text-[10px] text-violet-400">{stats.enCobro} en cobro</span>
+            </>
+          )}
+          {stats.staleUrgente > 0 && (
+            <>
+              <span className="text-muted-foreground/25 text-[10px]">·</span>
+              <span className="flex items-center gap-0.5 text-[10px] text-red-400/70">
+                <AlertTriangle className="h-2.5 w-2.5" />
+                {stats.staleUrgente} inactivos
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Triage list */}
         <div className="flex-1 min-h-0 overflow-y-auto" ref={scrollRef}>
-          <div className="divide-y divide-border/40">
-            {filteredRecords.length === 0 && !loading ? (
-              <div className="py-12 text-center">
-                <p className="text-sm text-muted-foreground">No hay expedientes</p>
-              </div>
-            ) : (
-              filteredRecords.map((record) => {
-                const priority = PRIORITY_OPTIONS[record.priority];
-                const isSelected = selectedRecordId === record.id;
-                return (
-                  <div
-                    key={record.id}
-                    onClick={() => setSelectedRecordId(record.id)}
-                    className={cn(
-                      "w-full text-left flex items-center gap-3 px-4 py-3 border-l-[3px] transition-colors cursor-pointer",
-                      isSelected ? "bg-accent/80" : "hover:bg-accent/40"
-                    )}
-                    style={{ borderLeftColor: priority?.color ?? "transparent" }}
-                  >
-                    {/* Order */}
-                    <span className="text-sm font-semibold shrink-0 w-28 font-mono truncate">
-                      {formatOrder(record.order)}
-                    </span>
+          {displayRecords.length === 0 && !loading ? (
+            <div className="py-16 text-center">
+              <p className="text-sm text-muted-foreground">No hay expedientes</p>
+            </div>
+          ) : (
+            <>
+              {/* INMEDIATO — urgente */}
+              {urgentesRecs.length > 0 && (
+                <div>
+                  <TriageSectionHeader
+                    label="Inmediato"
+                    tooltip="Expedientes que requieren acción inmediata"
+                    count={stats.urgente}
+                    staleCount={stats.staleUrgente}
+                    color="#ef4444"
+                    open={!collapsed.urgente}
+                    onToggle={() => toggleSection("urgente")}
+                  />
+                  {!collapsed.urgente && (
+                    <div className="divide-y divide-border/30">
+                      {urgentesRecs.map((record) => (
+                        <RecordRow
+                          key={record.id}
+                          record={record}
+                          isSelected={selectedRecordId === record.id}
+                          onClick={() => setSelectedRecordId(record.id)}
+                          assignees={initialAssigneesMap[record.id]}
+                          hidePriorityBadge
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-                    {/* Tracing */}
-                    <span className="shrink-0">
-                      <TracingBadge tracing={record.tracing} size="sm" />
-                    </span>
+              {/* SEGUIMIENTO — alta */}
+              {altasRecs.length > 0 && (
+                <div>
+                  <TriageSectionHeader
+                    label="Seguimiento"
+                    tooltip="Expedientes de seguimiento prioritario"
+                    count={stats.alta}
+                    color="#f97316"
+                    open={!collapsed.alta}
+                    onToggle={() => toggleSection("alta")}
+                  />
+                  {!collapsed.alta && (
+                    <div className="divide-y divide-border/30">
+                      {altasRecs.map((record) => (
+                        <RecordRow
+                          key={record.id}
+                          record={record}
+                          isSelected={selectedRecordId === record.id}
+                          onClick={() => setSelectedRecordId(record.id)}
+                          assignees={initialAssigneesMap[record.id]}
+                          hidePriorityBadge
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-                    {/* Name */}
-                    <span className="flex-1 text-sm truncate min-w-0">{record.name}</span>
+              {/* EN PROCESO — resto */}
+              {procesoRecs.length > 0 && (
+                <div>
+                  <TriageSectionHeader
+                    label="En proceso"
+                    tooltip="Expedientes en curso sin urgencia inmediata"
+                    count={procesoTotal}
+                    color="#94a3b8"
+                    open={!collapsed.proceso}
+                    onToggle={() => toggleSection("proceso")}
+                    muted
+                  />
+                  {!collapsed.proceso && (
+                    <div className="divide-y divide-border/30">
+                      {procesoRecs.map((record) => (
+                        <RecordRow
+                          key={record.id}
+                          record={record}
+                          isSelected={selectedRecordId === record.id}
+                          onClick={() => setSelectedRecordId(record.id)}
+                          assignees={initialAssigneesMap[record.id]}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
 
-                    {/* Priority badge */}
-                    {priority && record.priority !== "NULA" && (
-                      <Badge
-                        className="shrink-0 text-[10px] h-5 px-1.5"
-                        style={{ backgroundColor: priority.color, color: "#1a1a1a" }}
-                      >
-                        {priority.label}
-                      </Badge>
-                    )}
-
-                    {/* Assignees */}
-                    <RecordUsersPopover
-                      recordId={record.id}
-                      size="sm"
-                      initialAssignees={initialAssigneesMap[record.id]}
-                    />
-
-                    {/* Favorite star */}
-                    <Star
-                      className={cn(
-                        "h-3.5 w-3.5 shrink-0 transition-colors",
-                        record.favorite
-                          ? "fill-amber-400 text-amber-400"
-                          : "text-muted-foreground/25"
-                      )}
-                    />
-
-                    {/* Date */}
-                    <span className="text-[11px] text-muted-foreground shrink-0 w-16 text-right">
-                      {relativeTime(new Date(record.updatedAt))}
-                    </span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Sentinel for infinite scroll */}
           {more && <div ref={sentinelRef} className="h-4" />}
 
-          {/* Loading */}
           {loading && (
-            <div className="divide-y divide-border/40">
-              <RecordRowSkeleton />
-              <RecordRowSkeleton />
-              <RecordRowSkeleton />
+            <div className="py-3 flex items-center justify-center gap-2 text-[10px] text-muted-foreground/40">
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:0ms]" />
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:150ms]" />
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:300ms]" />
             </div>
           )}
 
-          {!more && filteredRecords.length > 0 && (
+          {!more && displayRecords.length > 0 && (
             <div className="py-3 text-center">
-              <span className="text-[10px] text-muted-foreground/50">— {filteredRecords.length} expedientes —</span>
+              <span className="text-[10px] text-muted-foreground/40">— {displayRecords.length} expedientes —</span>
             </div>
           )}
         </div>
       </Card>
 
-      {/* Record detail sheet */}
       <RecordDetailSheet
         recordId={selectedRecordId}
         onClose={() => setSelectedRecordId(null)}
       />
-    </div>
+    </>
   );
 }

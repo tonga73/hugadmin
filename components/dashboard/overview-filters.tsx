@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Star } from "lucide-react";
+import { User, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OverviewFiltersProps {
@@ -28,25 +28,30 @@ export function OverviewFilters({ mine, favoritesOnly }: OverviewFiltersProps) {
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-0.5">
       <button
         onClick={() => toggle("lm", mine)}
+        title={mine ? "Todos los expedientes" : "Mis expedientes"}
         className={cn(
-          "px-2 py-0.5 rounded-full text-[10px] font-medium border border-muted-foreground/40 transition-all",
-          mine ? "opacity-100 bg-muted-foreground/20" : "opacity-55 hover:opacity-75"
+          "h-6 w-6 flex items-center justify-center rounded-md transition-all",
+          mine
+            ? "text-foreground bg-muted"
+            : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50"
         )}
       >
-        Mis expedientes
+        <User className="h-3.5 w-3.5" />
       </button>
       <button
         onClick={() => toggle("lf", favoritesOnly)}
+        title={favoritesOnly ? "Todos los expedientes" : "Solo destacados"}
         className={cn(
-          "px-2 py-0.5 rounded-full text-[10px] font-medium border border-amber-400/60 text-amber-500 transition-all flex items-center gap-0.5",
-          favoritesOnly ? "opacity-100 bg-amber-400/15" : "opacity-55 hover:opacity-75"
+          "h-6 w-6 flex items-center justify-center rounded-md transition-all",
+          favoritesOnly
+            ? "text-amber-400"
+            : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50"
         )}
       >
-        <Star className={cn("h-2.5 w-2.5", favoritesOnly && "fill-amber-400")} />
-        Destacados
+        <Star className={cn("h-3.5 w-3.5", favoritesOnly && "fill-amber-400")} />
       </button>
     </div>
   );

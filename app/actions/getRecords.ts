@@ -16,12 +16,14 @@ async function fetchRecords({
   exactMatch = false,
   userFilters,
   assignedToUserId,
+  priorityPreload = false,
 }: {
   cursor?: number;
   take?: number;
   query?: string;
   exactMatch?: boolean;
   assignedToUserId?: number;
+  priorityPreload?: boolean;
   userFilters?: {
     tracingFilter: string[];
     favoritesOnly: boolean;
@@ -108,6 +110,67 @@ async function fetchRecords({
     }
   }
 
+  // Priority preload: urgentes + altas fetched separately so they always appear
+  // regardless of how long ago they were updated. Mirrors focus-dashboard.tsx server logic.
+  if (priorityPreload && !query) {
+    // Build base where without the priority constraint (minPriority)
+    const baseWhere: any = {};
+    if (assignedToUserId) baseWhere.RecordsAndUser = { some: { userId: assignedToUserId } };
+    if (userFilters?.tracingFilter && userFilters.tracingFilter.length > 0)
+      baseWhere.tracing = { in: userFilters.tracingFilter };
+    if (userFilters?.favoritesOnly) baseWhere.favorite = true;
+
+    // Paginated where: minPriority but excluding urgente/alta (already handled above)
+    const paginatedWhere = { ...baseWhere };
+    if (userFilters?.minPriority) {
+      const remaining = getPrioritiesAboveMin(userFilters.minPriority).filter(
+        (p) => p !== "URGENTE" && p !== "ALTA"
+      );
+      if (remaining.length > 0) paginatedWhere.priority = { in: remaining };
+      else paginatedWhere.priority = { in: [] }; // nothing to show in paginated
+    } else {
+      paginatedWhere.priority = { notIn: ["URGENTE", "ALTA"] };
+    }
+
+    const [urgentRecords, altaRecords, paginatedRecords] = await Promise.all([
+      prisma.record.findMany({
+        where: { ...baseWhere, priority: "URGENTE" },
+        orderBy: { updatedAt: "asc" },
+        take: 50,
+      }),
+      prisma.record.findMany({
+        where: { ...baseWhere, priority: "ALTA" },
+        orderBy: { updatedAt: "asc" },
+        take: 100,
+      }),
+      prisma.record.findMany({
+        where: paginatedWhere,
+        ...(cursor && { skip: 1, cursor: { id: cursor } }),
+        orderBy: { updatedAt: "desc" },
+        take,
+      }),
+    ]);
+
+    const priorityIds = new Set([
+      ...urgentRecords.map((r) => r.id),
+      ...altaRecords.map((r) => r.id),
+    ]);
+    const paginatedOthers = paginatedRecords.filter((r) => !priorityIds.has(r.id));
+    const allRecords = [...urgentRecords, ...altaRecords, ...paginatedOthers];
+
+    const serialize = (r: any) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+    });
+
+    return {
+      records: allRecords.map(serialize),
+      lastId: paginatedOthers.at(-1)?.id ?? null,
+      hasMore: paginatedRecords.length === take,
+    };
+  }
+
   const records = await prisma.record.findMany({
     take,
     ...(cursor && { skip: 1, cursor: { id: cursor } }),
@@ -180,12 +243,14 @@ export async function getRecords({
   exactMatch = false,
   assignedToUserId,
   explicitFilters,
+  priorityPreload = false,
 }: {
   cursor?: number;
   take?: number;
   query?: string;
   exactMatch?: boolean;
   assignedToUserId?: number;
+  priorityPreload?: boolean;
   explicitFilters?: {
     tracingFilter: string[];
     minPriority: string | null;
@@ -212,6 +277,7 @@ export async function getRecords({
         take,
         query,
         exactMatch,
+        priorityPreload,
         userFilters: hasFilters
           ? {
               tracingFilter: explicitFilters.tracingFilter,
@@ -222,7 +288,8 @@ export async function getRecords({
         assignedToUserId: resolvedAssignedToUserId,
       });
     }
-    // No filters: use shared cache
+    // No filters: use shared cache (priorityPreload still applies)
+    if (priorityPreload) return fetchRecords({ cursor, take, query, exactMatch, priorityPreload });
     if (cursor) return fetchRecords({ cursor, take, query, exactMatch });
     if (query?.trim()) return getCachedSearchResults(query.trim(), take, exactMatch);
     return getCachedRecords(undefined, take);

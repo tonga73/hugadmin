@@ -18,7 +18,6 @@ export async function FocusDashboard({
   minPriority,
   initialMine,
 }: FocusDashboardProps) {
-  // Build base where clause for stats
   const statsWhere: any = {};
   if (assignedToUserId) statsWhere.RecordsAndUser = { some: { userId: assignedToUserId } };
   if (favoritesOnly) statsWhere.favorite = true;
@@ -28,31 +27,50 @@ export async function FocusDashboard({
     if (priorities.length > 0) statsWhere.priority = { in: priorities };
   }
 
-  const [initialData, total, urgente, alta, favoritos] = await Promise.all([
-    getRecords({
-      take: 20,
-      explicitFilters: { tracingFilter, minPriority, mine: initialMine, favoritesOnly },
-      assignedToUserId,
-    }),
-    prisma.record.count({ where: statsWhere }),
-    prisma.record.count({ where: { ...statsWhere, priority: "URGENTE" } }),
-    prisma.record.count({ where: { ...statsWhere, priority: "ALTA" } }),
-    prisma.record.count({ where: { ...statsWhere, favorite: true } }),
-  ]);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
 
-  const records = initialData.records.map((r) => ({
-    ...r,
-    createdAt: new Date(r.createdAt),
-    updatedAt: new Date(r.updatedAt),
-  }));
+  // Pre-fetch urgentes and altas completely so sections are always fully populated on first render
+  const [urgentRecords, altaRecords, paginatedData, total, urgente, alta, favoritos, enCobro, staleUrgente] =
+    await Promise.all([
+      prisma.record.findMany({
+        where: { ...statsWhere, priority: "URGENTE" },
+        orderBy: { updatedAt: "asc" }, // stale first
+        take: 50,
+      }),
+      prisma.record.findMany({
+        where: { ...statsWhere, priority: "ALTA" },
+        orderBy: { updatedAt: "asc" }, // stale first
+        take: 100,
+      }),
+      getRecords({
+        take: 20,
+        explicitFilters: { tracingFilter, minPriority, mine: initialMine, favoritesOnly },
+        assignedToUserId,
+      }),
+      prisma.record.count({ where: statsWhere }),
+      prisma.record.count({ where: { ...statsWhere, priority: "URGENTE" } }),
+      prisma.record.count({ where: { ...statsWhere, priority: "ALTA" } }),
+      prisma.record.count({ where: { ...statsWhere, favorite: true } }),
+      prisma.record.count({ where: { ...statsWhere, tracing: { in: ["HONORARIOS_REGULADOS", "EN_TRATATIVA_DE_COBRO"] } } }),
+      prisma.record.count({ where: { ...statsWhere, priority: "URGENTE", archive: false, updatedAt: { lt: sevenDaysAgo } } }),
+    ]);
 
-  const recordIds = records.map((r) => r.id);
-  const assigneesRows = recordIds.length > 0
-    ? await prisma.recordsAndUser.findMany({
-        where: { recordId: { in: recordIds } },
-        include: { User: { select: { id: true, name: true, email: true, image: true } } },
-      })
-    : [];
+  // Merge: urgentes and altas first, then paginated non-priority records (deduplicated)
+  const priorityIds = new Set([...urgentRecords.map((r) => r.id), ...altaRecords.map((r) => r.id)]);
+  const paginatedOthers = paginatedData.records
+    .filter((r) => !priorityIds.has(r.id))
+    .map((r) => ({ ...r, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) }));
+
+  const initialRecords = [...urgentRecords, ...altaRecords, ...paginatedOthers];
+
+  const recordIds = initialRecords.map((r) => r.id);
+  const assigneesRows =
+    recordIds.length > 0
+      ? await prisma.recordsAndUser.findMany({
+          where: { recordId: { in: recordIds } },
+          include: { User: { select: { id: true, name: true, email: true, image: true } } },
+        })
+      : [];
 
   const assigneesMap: Record<number, { id: number; name: string | null; email: string; image: string | null }[]> = {};
   for (const row of assigneesRows) {
@@ -62,10 +80,10 @@ export async function FocusDashboard({
 
   return (
     <FocusContent
-      initialRecords={records}
-      lastId={initialData.lastId}
-      hasMore={initialData.hasMore}
-      stats={{ total, urgente, alta, favoritos }}
+      initialRecords={initialRecords}
+      lastId={paginatedData.lastId}
+      hasMore={paginatedData.hasMore}
+      stats={{ total, urgente, alta, favoritos, enCobro, staleUrgente }}
       initialMine={initialMine}
       initialFavoritesOnly={favoritesOnly}
       initialAssigneesMap={assigneesMap}

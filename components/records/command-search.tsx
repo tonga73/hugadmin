@@ -45,6 +45,8 @@ interface CommandSearchProps {
   onSelectedIndexChange: (index: number) => void;
   onLoadMore: () => void;
   onClearPinned: () => void;
+  // Layout
+  hideTrigger?: boolean;
 }
 
 export function CommandSearch({
@@ -63,6 +65,7 @@ export function CommandSearch({
   onSelectedIndexChange,
   onLoadMore,
   onClearPinned,
+  hideTrigger = false,
 }: CommandSearchProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -89,34 +92,35 @@ export function CommandSearch({
   }, [open, hasMore, loading, onLoadMore]);
 
   return (
-    <div className="sticky top-0 z-20 bg-background">
-      {/* Botón trigger */}
-      <button
-        className="flex items-center gap-2 w-full px-4 py-1.5 text-sm bg-muted/30 hover:bg-muted/50 transition-colors"
-        onClick={() => onOpenChange(true)}
-        aria-label="Buscar expedientes (Cmd/Ctrl+K)"
-      >
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground truncate flex-1 text-left">
-          {pinnedQuery || "Buscar..."}
-        </span>
-        <span className="text-xs text-muted-foreground">⌘K</span>
-      </button>
-
-      {/* Indicador de búsqueda fijada */}
-      {pinnedQuery && (
-        <div className="flex items-center gap-2 px-4 py-1 border-t border-border/40 text-xs text-muted-foreground bg-muted/20">
-          <span className="truncate flex-1">
-            Filtro: &quot;{pinnedQuery}&quot; ({filteredCount} resultados)
-          </span>
+    <>
+      {/* Botón trigger — ocultable cuando el padre provee su propio trigger */}
+      {!hideTrigger && (
+        <div className="sticky top-0 z-20 bg-background">
           <button
-            onClick={onClearPinned}
-            className="shrink-0 p-1 rounded hover:bg-accent transition-colors"
-            aria-label="Limpiar búsqueda"
-            title="Limpiar búsqueda"
+            className="flex items-center gap-2 w-full px-4 py-1.5 text-sm bg-muted/30 hover:bg-muted/50 transition-colors"
+            onClick={() => onOpenChange(true)}
+            aria-label="Buscar expedientes (Cmd/Ctrl+K)"
           >
-            <X className="h-3.5 w-3.5 text-muted-foreground" />
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground truncate flex-1 text-left">
+              {pinnedQuery || "Buscar..."}
+            </span>
+            <span className="text-xs text-muted-foreground">⌘K</span>
           </button>
+          {pinnedQuery && (
+            <div className="flex items-center gap-2 px-4 py-1 border-t border-border/40 text-xs text-muted-foreground bg-muted/20">
+              <span className="truncate flex-1">
+                Filtro: &quot;{pinnedQuery}&quot; ({filteredCount} resultados)
+              </span>
+              <button
+                onClick={onClearPinned}
+                className="shrink-0 p-1 rounded hover:bg-accent transition-colors"
+                aria-label="Limpiar búsqueda"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -216,7 +220,7 @@ export function CommandSearch({
           </div>
         </div>
       </CommandDialog>
-    </div>
+    </>
   );
 }
 

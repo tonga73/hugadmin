@@ -7,30 +7,11 @@ import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { useRecordsList } from "@/hooks/use-records-list";
 import { formatOrder } from "@/lib/record-number";
 import { cn } from "@/lib/utils";
-import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
-import { CommandSearch } from "./command-search";
+import { SlidersHorizontal, ChevronDown, X, Search, Star } from "lucide-react";
 import { HighlightedRecordCard } from "./highlighted-record-card";
 import { TracingBadge } from "./tracing-badge";
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// Skeleton que simula un item de la lista
-function RecordItemSkeleton() {
-  return (
-    <div className="px-2 py-1.5 border-l-[3px] border-muted-foreground/20 animate-pulse">
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-14 rounded-full" />
-      </div>
-      <Skeleton className="h-3 w-36" />
-    </div>
-  );
-}
 
 interface RecordsListProps {
   initialRecords: Record[];
@@ -52,8 +33,8 @@ export function RecordsList({
   initialFavoritesOnly = false,
 }: RecordsListProps) {
   const {
-    // State
     filteredRecords,
+    displayRecords,
     selectedIndex,
     loading,
     more,
@@ -64,32 +45,21 @@ export function RecordsList({
     minPriority,
     mine,
     favoritesOnly,
-    // Command state
-    commandOpen,
-    commandQuery,
     commandLoading,
-    commandResults,
-    commandHasMore,
-    commandSelectedIndex,
-    // Refs
     scrollRef,
     sentinelRef,
     itemsRef,
     highlightedRef,
-    commandItemsRef,
-    // Actions
-    setCommandQuery,
-    setCommandSelectedIndex,
+    searchInputRef,
+    setSearch,
     setHighlightedRecord,
     handleItemClick,
-    handleCommandSelect,
-    handleCommandClose,
-    loadMoreCommandResults,
     clearPinnedSearch,
     toggleTracingKey,
     updateTracingFilter,
     updateMinPriority,
-    // Router
+    updateMine,
+    updateFavoritesOnly,
     router,
     pathname,
   } = useRecordsList({ initialRecords, lastId, hasMore, initialTracingFilter, initialMinPriority, initialMine, initialFavoritesOnly });
@@ -99,61 +69,69 @@ export function RecordsList({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Buscador */}
-      <CommandSearch
-          open={commandOpen}
-        query={commandQuery}
-        loading={commandLoading}
-        results={commandResults}
-        hasMore={commandHasMore}
-        selectedIndex={commandSelectedIndex}
-        pinnedQuery={pinnedQuery}
-        filteredCount={filteredRecords.length}
-        itemsRef={commandItemsRef}
-        onOpenChange={handleCommandClose}
-        onQueryChange={setCommandQuery}
-        onSelect={handleCommandSelect}
-        onSelectedIndexChange={setCommandSelectedIndex}
-        onLoadMore={loadMoreCommandResults}
-        onClearPinned={clearPinnedSearch}
-      />
 
-      {/* Filtros — trigger */}
-      <button
-        onClick={() => setFiltersOpen((v) => !v)}
-        className={cn(
-          "w-full flex items-center justify-between px-2 py-1.5 border-b border-border/40 transition-colors text-left",
-          filtersOpen ? "bg-muted/40" : "hover:bg-muted/30",
-          activeFilterCount > 0 ? "text-foreground" : "text-muted-foreground"
+      {/* Search + filter bar */}
+      <div className={cn("flex items-center border-b border-border/40 shrink-0", filtersOpen && "border-b-0")}>
+        <div className="flex items-center gap-2 flex-1 px-3 py-1.5 min-w-0">
+          {commandLoading ? (
+            <span className="flex items-center gap-[3px] shrink-0 w-3.5">
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+            </span>
+          ) : (
+            <Search className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+          )}
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={pinnedQuery}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Escape") clearPinnedSearch(); }}
+            placeholder="Buscar..."
+            className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
+          />
+          {pinnedQuery && (
+            <span className="text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">{displayRecords.length}</span>
+          )}
+        </div>
+
+        {pinnedQuery && (
+          <button
+            onClick={clearPinnedSearch}
+            className="shrink-0 px-2 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+            aria-label="Limpiar búsqueda"
+          >
+            <X className="h-3 w-3" />
+          </button>
         )}
-      >
-        <span className="flex items-center gap-1.5 text-[11px] font-medium">
-          <SlidersHorizontal className="h-3 w-3 shrink-0" />
-          Filtros
+
+        <div className="w-px h-4 bg-border/60 shrink-0" />
+
+        <button
+          onClick={() => setFiltersOpen((v) => !v)}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 hover:bg-muted/30 transition-colors shrink-0",
+            filtersOpen && "bg-muted/40"
+          )}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
           {activeFilterCount > 0 && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full px-1.5 leading-4">
               {activeFilterCount}
             </span>
           )}
-        </span>
-        <ChevronDown
-          className={cn(
-            "h-3 w-3 shrink-0 transition-transform",
-            filtersOpen && "rotate-180"
-          )}
-        />
-      </button>
+          <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", filtersOpen && "rotate-180")} />
+        </button>
+      </div>
 
-      {/* Filtros — panel */}
+      {/* Filter panel */}
       {filtersOpen && (
-        <div className="border-b border-border/40 bg-muted/20 px-2 py-2.5 space-y-3">
+        <div className="border-y border-border/40 bg-muted/20 px-3 py-2.5 space-y-3 shrink-0">
 
-          {/* Estado */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                Estado
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Estado</p>
               {tracingFilter.length > 0 && (
                 <button
                   onClick={() => updateTracingFilter([])}
@@ -172,7 +150,7 @@ export function RecordsList({
                     onClick={() => toggleTracingKey(key)}
                     className={cn(
                       "px-1.5 py-0.5 rounded-full text-[10px] font-medium border transition-all",
-                      active ? "opacity-100" : "opacity-55 hover:opacity-75"
+                      active ? "opacity-100" : "opacity-70 hover:opacity-100"
                     )}
                     style={
                       active
@@ -187,12 +165,9 @@ export function RecordsList({
             </div>
           </div>
 
-          {/* Prioridad mínima */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                Prioridad mínima
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Prioridad mínima</p>
               {minPriority && (
                 <button
                   onClick={() => updateMinPriority(null)}
@@ -202,9 +177,6 @@ export function RecordsList({
                 </button>
               )}
             </div>
-            <p className="text-[10px] text-muted-foreground/60 leading-snug">
-              Muestra expedientes con esta prioridad o mayor.
-            </p>
             <div className="flex flex-wrap gap-1">
               {(["BAJA", "MEDIA", "ALTA", "URGENTE"] as const).map((p) => {
                 const opt = PRIORITY_OPTIONS[p];
@@ -230,12 +202,37 @@ export function RecordsList({
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Asignación</p>
+            <div className="flex flex-wrap gap-1">
+              <button
+                onClick={() => updateMine(!mine)}
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-medium border border-muted-foreground/40 transition-all",
+                  mine ? "opacity-100 bg-muted-foreground/20" : "opacity-55 hover:opacity-75"
+                )}
+              >
+                Mis expedientes
+              </button>
+              <button
+                onClick={() => updateFavoritesOnly(!favoritesOnly)}
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-medium border border-amber-400/60 text-amber-500 transition-all flex items-center gap-0.5",
+                  favoritesOnly ? "opacity-100 bg-amber-400/15" : "opacity-55 hover:opacity-75"
+                )}
+              >
+                <Star className={cn("h-2.5 w-2.5", favoritesOnly && "fill-amber-400")} />
+                Destacados
+              </button>
+            </div>
+          </div>
+
         </div>
       )}
 
-      {/* Lista de records */}
+      {/* Record list */}
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
-        {/* Record destacado */}
+
         {highlightedRecord && (
           <HighlightedRecordCard
             ref={highlightedRef}
@@ -249,57 +246,41 @@ export function RecordsList({
           />
         )}
 
-        {/* Lista principal */}
         <SidebarMenu>
-          {filteredRecords.length === 0 && !loading && !highlightedRecord ? (
-            <div className="py-6 text-center">
-              <p className="text-xs text-muted-foreground">
+          {displayRecords.length === 0 && !loading && !highlightedRecord ? (
+            <div className="py-8 text-center">
+              <p className="text-xs text-muted-foreground/50">
                 {pinnedQuery ? "Sin resultados" : "No hay expedientes"}
               </p>
             </div>
           ) : (
-            filteredRecords
-              .filter(
-                (r) =>
-                  !highlightedRecord ||
-                  Number(r.id) !== Number(highlightedRecord.id)
-              )
+            displayRecords
+              .filter((r) => !highlightedRecord || Number(r.id) !== Number(highlightedRecord.id))
               .map((record) => {
-                const actualIndex = filteredRecords.findIndex(
-                  (r) => r.id === record.id
-                );
+                const actualIndex = displayRecords.findIndex((r) => r.id === record.id);
                 const isSelected = selectedIndex === actualIndex;
-
                 return (
                   <SidebarMenuItem
                     key={record.id}
-                    ref={(el) => {
-                      if (el) itemsRef.current[actualIndex] = el;
-                    }}
-                    className={`transition-colors duration-150 cursor-pointer ${
+                    ref={(el) => { if (el) itemsRef.current[actualIndex] = el; }}
+                    className={cn(
+                      "transition-colors duration-150 cursor-pointer",
                       isSelected ? "bg-accent/80" : "hover:bg-accent/40"
-                    }`}
-                    style={{
-                      borderLeft: `3px solid ${
-                        PRIORITY_OPTIONS[record.priority].color
-                      }`,
-                    }}
+                    )}
+                    style={{ borderLeft: `3px solid ${PRIORITY_OPTIONS[record.priority]?.color ?? "transparent"}` }}
                   >
                     <SidebarMenuButton asChild className="h-auto max-h-full">
                       <a
-                        className="flex flex-col items-start justify-start py-1"
+                        className="flex flex-col items-start justify-start py-1.5 px-2"
                         onClick={() => handleItemClick(actualIndex)}
                       >
                         <span className="flex items-center gap-1.5 w-full min-w-0">
-                          <span className="text-sm font-medium shrink-0">{formatOrder(record.order)}</span>
-                          {record.code && (
-                            <span className="text-[10px] font-mono text-muted-foreground/50 truncate">
-                              {record.code}
-                            </span>
-                          )}
+                          <span className="text-[13px] font-semibold shrink-0 font-mono">
+                            {formatOrder(record.order)}
+                          </span>
                           <TracingBadge tracing={record.tracing} size="sm" />
                         </span>
-                        <span className="text-xs text-muted-foreground truncate w-full">
+                        <span className="text-[11px] text-muted-foreground/70 truncate w-full leading-tight mt-0.5">
                           {record.name}
                         </span>
                       </a>
@@ -310,34 +291,22 @@ export function RecordsList({
           )}
         </SidebarMenu>
 
-        {/* Sentinel para infinite scroll */}
         {more && <div ref={sentinelRef} className="h-4" />}
 
-        {/* Loading indicator */}
         {loading && (
-          <div className="space-y-1 px-1">
-            <RecordItemSkeleton />
-            <RecordItemSkeleton />
+          <div className="py-3 flex items-center justify-center gap-2">
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:0ms]" />
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:150ms]" />
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/30 animate-bounce [animation-delay:300ms]" />
           </div>
         )}
 
-        {/* Indicador de carga inline más sutil */}
-        {more && !loading && (
-          <div className="py-2 text-center">
-            <span className="text-[10px] text-muted-foreground/50">
-              Desplaza para cargar más
-            </span>
-          </div>
-        )}
-
-        {/* End of list message */}
         {!more && records.length > 0 && (
           <div className="py-3 text-center">
-            <span className="text-[10px] text-muted-foreground/50">
-              — {records.length} expedientes —
-            </span>
+            <span className="text-[10px] text-muted-foreground/30">— {records.length} —</span>
           </div>
         )}
+
       </ScrollArea>
     </div>
   );
