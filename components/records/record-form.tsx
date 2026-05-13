@@ -32,7 +32,7 @@ export const recordSchema = z.object({
   name: z.string().min(3, "Mínimo 3 caracteres"),
   order: z.string().min(1, "Campo requerido").refine(
     (val) => validateOrderYear(val) === null,
-    "El año debe tener 4 dígitos (ej: 12345/2024)"
+    "El formato debe ser número/año con 4 dígitos (ej: 12345/2024)"
   ),
   tracing: z.enum(Object.keys(TRACING_OPTIONS) as [string, ...string[]]),
   defendant: z.array(z.object({ value: z.string() })).default([]),
@@ -172,6 +172,19 @@ export function RecordForm({ districts }: RecordFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
       });
+
+      if (res.status === 409) {
+        const data = await res.json();
+        const existing = data.existingRecord;
+        toast.error(data.error || "Ya existe un expediente con ese número", {
+          description: existing ? `${existing.order} — ${existing.name}` : undefined,
+          action: existing
+            ? { label: "Ver expediente", onClick: () => router.push(`/records/${existing.id}`) }
+            : undefined,
+          duration: 8000,
+        });
+        return;
+      }
 
       if (!res.ok) {
         const error = await res.json();

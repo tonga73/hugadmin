@@ -3,12 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Priority, Tracing } from "@/app/generated/prisma/enums";
-import { normalizeOrder } from "@/lib/record-number";
+import { normalizeOrder, validateOrderYear } from "@/lib/record-number";
+import { Prisma } from "@/app/generated/prisma/client";
 
 // Schema de validación para POST
 const createRecordSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
-  order: z.string().min(1, "El orden es requerido"),
+  order: z.string().min(1, "El orden es requerido").refine(
+    (val) => validateOrderYear(val) === null,
+    "El formato debe ser número/año con 4 dígitos (ej: 12345/2024)"
+  ),
   tracing: z.nativeEnum(Tracing),
   priority: z.nativeEnum(Priority).optional().default(Priority.NULA),
   code: z.string().optional(),
@@ -60,22 +64,20 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let normalizedOrder: string | undefined;
   try {
     const body = await req.json();
 
-    console.log("Body recibido:", body); // Debug
-
     // Validar datos
     const validatedData = createRecordSchema.parse(body);
-
-    console.log("Datos validados:", validatedData); // Debug
+    normalizedOrder = normalizeOrder(validatedData.order);
 
     const now = new Date();
 
     const newRecord = await prisma.record.create({
       data: {
         ...validatedData,
-        order: normalizeOrder(validatedData.order),
+        order: normalizedOrder,
         createdAt: now,
         updatedAt: now,
       },
@@ -107,6 +109,18 @@ export async function POST(req: NextRequest) {
           })),
         },
         { status: 400 }
+      );
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = normalizedOrder
+        ? await prisma.record.findUnique({
+            where: { order: normalizedOrder },
+            select: { id: true, order: true, name: true },
+          })
+        : null;
+      return NextResponse.json(
+        { error: "Ya existe un expediente con ese número", existingRecord: existing },
+        { status: 409 }
       );
     }
     console.error("Error creating record:", error);

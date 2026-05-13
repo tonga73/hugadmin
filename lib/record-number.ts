@@ -6,15 +6,13 @@ export function normalizeOrder(raw: string): string {
 }
 
 /**
- * Valida que el año (parte después de /) tenga exactamente 4 dígitos.
+ * Valida que el order tenga el formato <dígitos>/<4 dígitos>.
  * Retorna null si es válido, o el mensaje de error si no lo es.
  */
 export function validateOrderYear(raw: string): string | null {
   const stripped = raw.replace(/\./g, "").trim();
-  if (!stripped.includes("/")) return null;
-  const year = stripped.split("/").pop() ?? "";
-  if (!/^\d{4}$/.test(year)) {
-    return `El año debe tener 4 dígitos (ej: ${stripped.split("/")[0]}/2005)`;
+  if (!/^\d+\/\d{4}$/.test(stripped)) {
+    return "El formato debe ser número/año con 4 dígitos (ej: 12345/2024)";
   }
   return null;
 }

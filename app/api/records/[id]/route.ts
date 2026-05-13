@@ -14,7 +14,7 @@ const updateRecordSchema = z.object({
   code: z.string().optional(),
   order: z.string().min(1, "El orden es requerido").optional().refine(
     (val) => val === undefined || validateOrderYear(val) === null,
-    "El año debe tener 4 dígitos (ej: 12345/2024)"
+    "El formato debe ser número/año con 4 dígitos (ej: 12345/2024)"
   ),
   name: z
     .string()
