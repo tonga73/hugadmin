@@ -29,18 +29,23 @@ export async function FocusDashboard({
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
 
-  // Pre-fetch urgentes and altas completely so sections are always fully populated on first render
-  const [urgentRecords, altaRecords, paginatedData, total, urgente, alta, favoritos, enCobro, staleUrgente] =
+  // Pre-fetch urgentes, altas and trámite-en-cámara so sections are always fully populated on first render
+  const [urgentRecords, altaRecords, camaraRecords, paginatedData, total, urgente, alta, camara, favoritos, enCobro, staleUrgente] =
     await Promise.all([
       prisma.record.findMany({
         where: { ...statsWhere, priority: "URGENTE" },
-        orderBy: { updatedAt: "asc" }, // stale first
+        orderBy: { updatedAt: "desc" }, // más reciente primero
         take: 50,
       }),
       prisma.record.findMany({
         where: { ...statsWhere, priority: "ALTA" },
-        orderBy: { updatedAt: "asc" }, // stale first
+        orderBy: { updatedAt: "desc" },
         take: 100,
+      }),
+      prisma.record.findMany({
+        where: { ...statsWhere, tracing: "TRAMITE_EN_CAMARA", priority: { notIn: ["URGENTE", "ALTA"] } },
+        orderBy: { updatedAt: "desc" },
+        take: 50,
       }),
       getRecords({
         take: 20,
@@ -50,18 +55,23 @@ export async function FocusDashboard({
       prisma.record.count({ where: statsWhere }),
       prisma.record.count({ where: { ...statsWhere, priority: "URGENTE" } }),
       prisma.record.count({ where: { ...statsWhere, priority: "ALTA" } }),
+      prisma.record.count({ where: { ...statsWhere, tracing: "TRAMITE_EN_CAMARA", priority: { notIn: ["URGENTE", "ALTA"] } } }),
       prisma.record.count({ where: { ...statsWhere, favorite: true } }),
       prisma.record.count({ where: { ...statsWhere, tracing: { in: ["HONORARIOS_REGULADOS", "EN_TRATATIVA_DE_COBRO"] } } }),
       prisma.record.count({ where: { ...statsWhere, priority: "URGENTE", archive: false, updatedAt: { lt: sevenDaysAgo } } }),
     ]);
 
-  // Merge: urgentes and altas first, then paginated non-priority records (deduplicated)
-  const priorityIds = new Set([...urgentRecords.map((r) => r.id), ...altaRecords.map((r) => r.id)]);
+  // Merge: urgentes, altas y cámara primero, luego el resto paginado (sin duplicados)
+  const priorityIds = new Set([
+    ...urgentRecords.map((r) => r.id),
+    ...altaRecords.map((r) => r.id),
+    ...camaraRecords.map((r) => r.id),
+  ]);
   const paginatedOthers = paginatedData.records
     .filter((r) => !priorityIds.has(r.id))
     .map((r) => ({ ...r, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) }));
 
-  const initialRecords = [...urgentRecords, ...altaRecords, ...paginatedOthers];
+  const initialRecords = [...urgentRecords, ...altaRecords, ...camaraRecords, ...paginatedOthers];
 
   const recordIds = initialRecords.map((r) => r.id);
   const assigneesRows =
@@ -83,7 +93,7 @@ export async function FocusDashboard({
       initialRecords={initialRecords}
       lastId={paginatedData.lastId}
       hasMore={paginatedData.hasMore}
-      stats={{ total, urgente, alta, favoritos, enCobro, staleUrgente }}
+      stats={{ total, urgente, alta, camara, favoritos, enCobro, staleUrgente }}
       initialMine={initialMine}
       initialFavoritesOnly={favoritesOnly}
       initialAssigneesMap={assigneesMap}

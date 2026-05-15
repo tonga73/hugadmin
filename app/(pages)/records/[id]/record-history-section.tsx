@@ -28,6 +28,7 @@ const TRACING_LABELS: Record<string, string> = {
   SENTENCIA_O_CONVENIO_DE_PARTES: "Sentencia",
   HONORARIOS_REGULADOS: "Honorarios",
   EN_TRATATIVA_DE_COBRO: "En cobro",
+  TRAMITE_EN_CAMARA: "Trámite en cámara",
   COBRADO: "Cobrado",
 };
 

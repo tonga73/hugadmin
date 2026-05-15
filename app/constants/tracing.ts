@@ -34,6 +34,11 @@ export const TRACING_OPTIONS: Record<
     color: "#f9a8d4", // rosa suave
     textColor: "#831843", // rosa oscuro
   },
+  TRAMITE_EN_CAMARA: {
+    label: "Trámite en Cámara",
+    color: "#fed7aa", // naranja suave (orange-200)
+    textColor: "#7c2d12", // naranja oscuro (orange-900)
+  },
   COBRADO: {
     label: "Cobrado",
     color: "#5eead4", // turquesa claro

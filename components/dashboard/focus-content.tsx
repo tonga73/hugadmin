@@ -34,6 +34,7 @@ interface Stats {
   total: number;
   urgente: number;
   alta: number;
+  camara: number;
   favoritos: number;
   enCobro: number;
   staleUrgente: number;
@@ -207,7 +208,7 @@ export function FocusContent({
   const [collapsed, setCollapsed] = useState({
     urgente: false,
     alta: false,
-    proceso: stats.urgente > 0 || stats.alta > 0,
+    proceso: stats.urgente > 0 || stats.alta > 0 || stats.camara > 0,
   });
 
   const toggleSection = (key: keyof typeof collapsed) =>
@@ -252,9 +253,9 @@ export function FocusContent({
         const ta = PRIORITY_TIER[a.priority] ?? 4;
         const tb = PRIORITY_TIER[b.priority] ?? 4;
         if (ta !== tb) return ta - tb;
-        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); // más reciente primero
       }),
-    [filteredRecords]
+    [displayRecords]
   );
 
   const urgentesRecs = useMemo(
@@ -262,16 +263,20 @@ export function FocusContent({
     [sortedRecords]
   );
   const altasRecs = useMemo(
-    () => sortedRecords.filter((r) => r.priority === "ALTA"),
+    () => sortedRecords.filter(
+      (r) => r.priority === "ALTA" || (r.tracing === "TRAMITE_EN_CAMARA" && r.priority !== "URGENTE")
+    ),
     [sortedRecords]
   );
   const procesoRecs = useMemo(
-    () => sortedRecords.filter((r) => r.priority !== "URGENTE" && r.priority !== "ALTA"),
+    () => sortedRecords.filter(
+      (r) => r.priority !== "URGENTE" && r.priority !== "ALTA" && r.tracing !== "TRAMITE_EN_CAMARA"
+    ),
     [sortedRecords]
   );
 
   // Server-computed counts — stable, never jump on scroll
-  const procesoTotal = Math.max(0, stats.total - stats.urgente - stats.alta);
+  const procesoTotal = Math.max(0, stats.total - stats.urgente - stats.alta - stats.camara);
 
   return (
     <>
@@ -509,13 +514,13 @@ export function FocusContent({
                 </div>
               )}
 
-              {/* SEGUIMIENTO — alta */}
+              {/* SEGUIMIENTO — alta + trámite en cámara */}
               {altasRecs.length > 0 && (
                 <div>
                   <TriageSectionHeader
                     label="Seguimiento"
                     tooltip="Expedientes de seguimiento prioritario"
-                    count={stats.alta}
+                    count={stats.alta + stats.camara}
                     color="#f97316"
                     open={!collapsed.alta}
                     onToggle={() => toggleSection("alta")}
