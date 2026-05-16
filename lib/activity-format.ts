@@ -25,11 +25,16 @@ export const PRIORITY_LABELS: Record<string, string> = {
   INACTIVO: "Inactivo",
 };
 
-export function formatActivityValue(field: string | null, value: string | null) {
+function formatValue(field: string | null, value: string | null, maxLen = 40) {
   if (!value) return "—";
   if (field === "tracing") return TRACING_LABELS[value] ?? value;
   if (field === "priority") return PRIORITY_LABELS[value] ?? value;
-  return value.length > 40 ? value.slice(0, 40) + "…" : value;
+  return value.length > maxLen ? value.slice(0, maxLen) + "…" : value;
+}
+
+// Keep for external callers that only need the new value
+export function formatActivityValue(field: string | null, value: string | null) {
+  return formatValue(field, value);
 }
 
 export interface ActivityItem {
@@ -47,7 +52,11 @@ export function describeActivity(a: ActivityItem) {
   if (a.action === "user_assigned") return `Asignó a ${a.newValue ?? "usuario"}`;
   if (a.action === "field_updated" && a.field) {
     const label = FIELD_LABELS[a.field] ?? a.field;
-    return `${label}: ${formatActivityValue(a.field, a.newValue)}`;
+    // Text fields: compact truncation so the arrow fits on one line
+    const maxLen = a.field === "name" ? 25 : 40;
+    const oldStr = a.oldValue ? formatValue(a.field, a.oldValue, maxLen) : null;
+    const newStr = formatValue(a.field, a.newValue, maxLen);
+    return oldStr ? `${label}: ${oldStr} → ${newStr}` : `${label}: ${newStr}`;
   }
   return a.action;
 }

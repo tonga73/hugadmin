@@ -73,7 +73,7 @@ export function ActivityFeed({
       (entries) => {
         if (entries[0].isIntersecting) loadMore();
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: "120px" }
     );
     observerRef.current.observe(sentinelRef.current);
     return () => observerRef.current?.disconnect();

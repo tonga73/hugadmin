@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Trash2, Check, X, Maximize2, Pencil } from "lucide-react";
+import { Loader2, Trash2, Check, X, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -18,14 +18,7 @@ export interface Note {
   updatedAt?: Date;
 }
 
-interface NoteCardProps {
-  note: Note;
-  isNew?: boolean;
-  onSave: (note: Note) => Promise<void>;
-  onDelete?: (noteId: number) => Promise<void>;
-  onCancel?: () => void;
-  fullWidth?: boolean;
-}
+// ── Edit form (shared between create and edit modal) ──────────────────────────
 
 function NoteEditForm({
   note,
@@ -146,120 +139,107 @@ function NoteEditForm({
   );
 }
 
-function NoteExpandDialog({
+// ── Edit modal ────────────────────────────────────────────────────────────────
+
+export function NoteEditDialog({
   note,
+  isNew = false,
   open,
   onOpenChange,
   onSave,
   onDelete,
+  onCancel,
 }: {
   note: Note;
+  isNew?: boolean;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSave: (note: Note) => Promise<void>;
   onDelete?: (noteId: number) => Promise<void>;
+  onCancel?: () => void;
 }) {
-  const [editing, setEditing] = useState(false);
-
-  const handleOpenChange = (v: boolean) => {
-    if (!v) setEditing(false);
-    onOpenChange(v);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-xl w-full">
-        <DialogTitle className="text-base font-semibold">
-          {note.name || "Sin título"}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[min(32rem,95vw)]">
+        <DialogTitle className="text-sm font-semibold">
+          {isNew ? "Nueva nota" : (note.name || "Editar nota")}
         </DialogTitle>
-        {editing ? (
-          <NoteEditForm
-            note={note}
-            isNew={false}
-            onSave={async (n) => { await onSave(n); setEditing(false); }}
-            onDelete={onDelete}
-            onClose={() => handleOpenChange(false)}
-          />
-        ) : (
-          <div className="space-y-4">
-            {note.createdAt && (
-              <p className="text-[11px] text-muted-foreground">
-                {new Date(note.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" })}
-              </p>
-            )}
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 min-h-[80px]">
-              {note.text}
-            </p>
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-                <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                Editar
-              </Button>
-            </div>
-          </div>
-        )}
+        <NoteEditForm
+          note={note}
+          isNew={isNew}
+          onSave={async (n) => { await onSave(n); onOpenChange(false); }}
+          onDelete={onDelete}
+          onCancel={() => { onCancel?.(); onOpenChange(false); }}
+          onClose={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );
 }
 
-export function NoteCard({ note, isNew = false, onSave, onDelete, onCancel, fullWidth = false }: NoteCardProps) {
-  const [isEditing, setIsEditing] = useState(isNew);
-  const [expandOpen, setExpandOpen] = useState(false);
+// ── Note card (view + expand + edit trigger) ──────────────────────────────────
 
-  if (isEditing) {
-    return (
-      <div className={cn("rounded-lg border ring-2 ring-primary/50 bg-card p-3", fullWidth ? "w-full" : "w-full sm:min-w-[240px] sm:max-w-[240px]")}>
-        <NoteEditForm
-          note={note}
-          isNew={isNew}
-          onSave={async (n) => { await onSave(n); setIsEditing(false); }}
-          onDelete={onDelete}
-          onCancel={onCancel}
-          onClose={() => setIsEditing(false)}
-        />
-      </div>
-    );
-  }
+interface NoteCardProps {
+  note: Note;
+  onSave: (note: Note) => Promise<void>;
+  onDelete?: (noteId: number) => Promise<void>;
+  alwaysExpanded?: boolean;
+}
+
+export function NoteCard({ note, onSave, onDelete, alwaysExpanded = false }: NoteCardProps) {
+  const [expanded, setExpanded] = useState(alwaysExpanded);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const dateLabel = note.createdAt
+    ? new Date(note.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "2-digit" })
+    : null;
 
   return (
     <>
-      <div
-        className={cn(
-          "rounded-lg border bg-card hover:bg-accent/50 transition-colors group px-2.5 py-2 cursor-pointer",
-          fullWidth ? "w-full" : "w-full sm:min-w-[240px] sm:max-w-[240px]"
-        )}
-        onClick={() => setIsEditing(true)}
-      >
-        <div className="flex items-start justify-between gap-1 mb-0.5">
+      <div className="rounded-lg border bg-card">
+        {/* Header: edit button — no es zona de expand */}
+        <div className="flex items-center gap-1.5 px-2.5 pt-2 pb-1 select-none">
           <span className="text-[10px] font-semibold text-muted-foreground flex-1 truncate">
             {note.name || "Sin título"}
           </span>
-          <div className="flex items-center gap-1 shrink-0">
-            {note.createdAt && (
-              <span className="text-[9px] text-muted-foreground/40">
-                {new Date(note.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })}
-              </span>
-            )}
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => { e.stopPropagation(); setExpandOpen(true); }}
-              title="Abrir nota"
-            >
-              <Maximize2 className="h-2.5 w-2.5" />
-            </Button>
-          </div>
+          {dateLabel && (
+            <span className="text-[9px] text-muted-foreground/40 shrink-0">{dateLabel}</span>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-5 w-5 shrink-0 text-muted-foreground/30 hover:text-muted-foreground hover:bg-transparent"
+            onClick={() => setEditOpen(true)}
+            title="Editar nota"
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
         </div>
-        <p className="text-xs text-foreground/80 leading-snug line-clamp-4 whitespace-pre-wrap">{note.text}</p>
+
+        {/* Body: click para expandir/colapsar */}
+        <div
+          className={cn("px-2.5 pb-2", !alwaysExpanded && "cursor-pointer hover:opacity-80 transition-opacity")}
+          onClick={() => !alwaysExpanded && setExpanded((v) => !v)}
+        >
+          <p className={cn(
+            "text-xs text-foreground/80 leading-snug",
+            expanded || alwaysExpanded ? "whitespace-pre-wrap" : "line-clamp-4"
+          )}>
+            {note.text}
+          </p>
+          {!alwaysExpanded && (
+            <span className="text-[9px] text-muted-foreground/30 mt-0.5 block">
+              {expanded ? "↑ contraer" : ""}
+            </span>
+          )}
+        </div>
       </div>
 
-      <NoteExpandDialog
+      <NoteEditDialog
         note={note}
-        open={expandOpen}
-        onOpenChange={setExpandOpen}
-        onSave={async (n) => { await onSave(n); setExpandOpen(false); }}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={onSave}
         onDelete={onDelete}
       />
     </>

@@ -12,20 +12,23 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { email: sessionUser.email },
-    select: { id: true, name: true, image: true, email: true },
+    select: { id: true, name: true, image: true, email: true, role: true },
   });
   if (!user) redirect("/login");
 
   const LIMIT = 25;
-  const activityRaw = await prisma.recordActivity.findMany({
-    where: { userId: user.id },
-    orderBy: { id: "desc" },
-    take: LIMIT + 1,
-    include: {
-      user: { select: { id: true, name: true, email: true, image: true } },
-      record: { select: { id: true, name: true, order: true } },
-    },
-  });
+  const [activityRaw, totalCount] = await Promise.all([
+    prisma.recordActivity.findMany({
+      where: { userId: user.id },
+      orderBy: { id: "desc" },
+      take: LIMIT + 1,
+      include: {
+        user: { select: { id: true, name: true, email: true, image: true } },
+        record: { select: { id: true, name: true, order: true } },
+      },
+    }),
+    prisma.recordActivity.count({ where: { userId: user.id } }),
+  ]);
 
   const hasMore = activityRaw.length > LIMIT;
   const activityItems = hasMore ? activityRaw.slice(0, LIMIT) : activityRaw;
@@ -37,28 +40,35 @@ export default async function ProfilePage() {
   }));
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-      <div className="flex items-center justify-between mb-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <h1 className="text-sm font-semibold text-foreground">Perfil</h1>
-        </div>
+    <div className="flex-1 min-h-0 flex flex-col gap-3">
+      {/* Header */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <h1 className="text-sm font-semibold text-foreground">Perfil</h1>
       </div>
 
-      <div className="space-y-4">
-        <ProfileForm
-          initialName={user.name}
-          initialImage={user.image}
-          email={user.email}
-        />
+      {/* Layout: dos columnas en desktop, apilado en móvil */}
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-3">
+        {/* Columna izquierda: perfil */}
+        <div className="lg:w-72 shrink-0">
+          <ProfileForm
+            initialName={user.name}
+            initialImage={user.image}
+            email={user.email}
+            role={user.role}
+          />
+        </div>
+
+        {/* Columna derecha: actividad — scrollea independientemente */}
         <UserActivitySection
           initialItems={initialActivity}
           initialNextCursor={nextCursor}
+          totalCount={totalCount}
         />
       </div>
     </div>

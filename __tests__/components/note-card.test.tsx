@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { NoteCard, type Note } from "@/app/(pages)/records/[id]/note-card";
+import { NoteCard, NoteEditDialog, type Note } from "@/app/(pages)/records/[id]/note-card";
 
 const baseNote: Note = {
   id: 1,
@@ -10,7 +10,7 @@ const baseNote: Note = {
   recordId: 42,
 };
 
-describe("NoteCard (modo lectura)", () => {
+describe("NoteCard (vista)", () => {
   it("muestra el nombre y texto de la nota", () => {
     render(<NoteCard note={baseNote} onSave={vi.fn()} onDelete={vi.fn()} />);
     expect(screen.getByText("Título de nota")).toBeInTheDocument();
@@ -22,55 +22,97 @@ describe("NoteCard (modo lectura)", () => {
     expect(screen.getByText("Sin título")).toBeInTheDocument();
   });
 
-  it("cambia a modo edición al hacer click", async () => {
+  it("no abre el formulario de edición al hacer click en el cuerpo", async () => {
     render(<NoteCard note={baseNote} onSave={vi.fn()} onDelete={vi.fn()} />);
     await userEvent.click(screen.getByText("Contenido de la nota"));
-    expect(screen.getByPlaceholderText("Contenido...")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Contenido...")).not.toBeInTheDocument();
   });
 });
 
-describe("NoteCard (modo edición nueva nota)", () => {
+describe("NoteEditDialog (nueva nota)", () => {
   const newNote: Note = { name: null, text: "", recordId: 42 };
 
-  it("empieza en modo edición cuando isNew=true", () => {
-    render(<NoteCard note={newNote} isNew onSave={vi.fn()} onCancel={vi.fn()} />);
+  it("muestra el formulario cuando open=true", () => {
+    render(
+      <NoteEditDialog
+        note={newNote}
+        isNew
+        open
+        onOpenChange={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
     expect(screen.getByPlaceholderText("Contenido...")).toBeInTheDocument();
   });
 
   it("deshabilita el botón guardar si text está vacío", () => {
-    render(<NoteCard note={newNote} isNew onSave={vi.fn()} onCancel={vi.fn()} />);
-    // Buscar el botón de guardar (Check icon) — está disabled cuando text está vacío
-    const buttons = screen.getAllByRole("button");
-    const saveButton = buttons.find((b) => !b.querySelector("svg[data-icon]") && b !== buttons[0]);
-    // El botón submit tiene type="button" y está deshabilitado
-    const submitBtn = buttons[buttons.length - 1];
-    expect(submitBtn).toBeDisabled();
-  });
-
-  it("llama a onCancel al cancelar nota nueva", async () => {
-    const onCancel = vi.fn();
-    render(<NoteCard note={newNote} isNew onSave={vi.fn()} onCancel={onCancel} />);
-    const cancelBtn = screen.getAllByRole("button")[0];
-    await userEvent.click(cancelBtn);
-    expect(onCancel).toHaveBeenCalled();
+    render(
+      <NoteEditDialog
+        note={newNote}
+        isNew
+        open
+        onOpenChange={vi.fn()}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const saveBtn = screen.getByRole("button", { name: /guardar/i });
+    expect(saveBtn).toBeDisabled();
   });
 
   it("llama a onSave con el texto ingresado", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(<NoteCard note={newNote} isNew onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <NoteEditDialog
+        note={newNote}
+        isNew
+        open
+        onOpenChange={vi.fn()}
+        onSave={onSave}
+        onCancel={vi.fn()}
+      />
+    );
     const textarea = screen.getByPlaceholderText("Contenido...");
     await userEvent.type(textarea, "Nueva nota{Control>}{Enter}");
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Nueva nota" })
     );
   });
+
+  it("llama a onCancel al cancelar", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <NoteEditDialog
+        note={newNote}
+        isNew
+        open
+        onOpenChange={onOpenChange}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+    const cancelBtn = screen.getAllByRole("button").find((b) =>
+      b.querySelector("svg") !== null && !b.textContent?.includes("Guardar")
+    );
+    if (cancelBtn) await userEvent.click(cancelBtn);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
 });
 
-describe("NoteCard (cancelar con Escape)", () => {
-  it("cancela edición de nota existente con Escape", async () => {
-    render(<NoteCard note={baseNote} onSave={vi.fn()} onDelete={vi.fn()} />);
-    await userEvent.click(screen.getByText("Contenido de la nota"));
+describe("NoteEditDialog (Escape)", () => {
+  it("cierra el diálogo con Escape", async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <NoteEditDialog
+        note={baseNote}
+        open
+        onOpenChange={onOpenChange}
+        onSave={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
     await userEvent.keyboard("{Escape}");
-    expect(screen.getByText("Contenido de la nota")).toBeInTheDocument();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
