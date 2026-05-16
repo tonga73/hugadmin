@@ -23,8 +23,8 @@ export default async function RecordPage({
           },
         },
         activity: {
-          orderBy: { createdAt: "desc" },
-          take: 30,
+          orderBy: { id: "desc" },
+          take: 26,
           include: { user: { select: { id: true, name: true, email: true, image: true } } },
         },
       },
@@ -41,16 +41,20 @@ export default async function RecordPage({
   }
 
   const assignees = record.RecordsAndUser.map((r) => r.User);
+  const activityHasMore = record.activity.length > 25;
+  const activityItems = activityHasMore ? record.activity.slice(0, 25) : record.activity;
+  const activityNextCursor = activityHasMore ? activityItems[activityItems.length - 1].id : null;
 
   return (
     <EditableRecordPage
       record={record}
       tracingOptions={TRACING_OPTIONS}
       assignees={assignees}
-      initialActivity={record.activity.map((a) => ({
+      initialActivity={activityItems.map((a) => ({
         ...a,
         createdAt: a.createdAt.toISOString(),
       }))}
+      initialActivityNextCursor={activityNextCursor}
     />
   );
 }

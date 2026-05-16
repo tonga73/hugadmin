@@ -108,6 +108,7 @@ interface EditableRecordPageProps {
     createdAt: string;
     user: { id: number; name: string | null; email: string; image: string | null } | null;
   }>;
+  initialActivityNextCursor?: number | null;
 }
 
 export default function EditableRecordPage({
@@ -116,6 +117,7 @@ export default function EditableRecordPage({
   assignees: initialAssignees = [],
   onBack,
   initialActivity = [],
+  initialActivityNextCursor = null,
 }: EditableRecordPageProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -414,7 +416,11 @@ export default function EditableRecordPage({
           {/* Historial */}
           {initialActivity.length > 0 && (
             <Card className="shrink-0 px-3 py-2.5">
-              <RecordHistorySection recordId={record.id} initialActivity={initialActivity} />
+              <RecordHistorySection
+                recordId={record.id}
+                initialActivity={initialActivity}
+                initialNextCursor={initialActivityNextCursor}
+              />
             </Card>
           )}
 
