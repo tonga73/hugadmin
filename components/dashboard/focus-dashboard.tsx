@@ -9,6 +9,7 @@ interface FocusDashboardProps {
   tracingFilter: string[];
   minPriority: string | null;
   initialMine: boolean;
+  apartadoOnly?: boolean;
 }
 
 export async function FocusDashboard({
@@ -17,6 +18,7 @@ export async function FocusDashboard({
   tracingFilter,
   minPriority,
   initialMine,
+  apartadoOnly = false,
 }: FocusDashboardProps) {
   const statsWhere: any = {};
   if (assignedToUserId) statsWhere.RecordsAndUser = { some: { userId: assignedToUserId } };
@@ -26,6 +28,7 @@ export async function FocusDashboard({
     const priorities = getPrioritiesAboveMin(minPriority);
     if (priorities.length > 0) statsWhere.priority = { in: priorities };
   }
+  if (apartadoOnly) statsWhere.files = { some: { category: "APARTADO" } };
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
 
@@ -49,7 +52,7 @@ export async function FocusDashboard({
       }),
       getRecords({
         take: 20,
-        explicitFilters: { tracingFilter, minPriority, mine: initialMine, favoritesOnly },
+        explicitFilters: { tracingFilter, minPriority, mine: initialMine, favoritesOnly, apartadoOnly },
         assignedToUserId,
       }),
       prisma.record.count({ where: statsWhere }),

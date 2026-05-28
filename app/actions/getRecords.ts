@@ -28,6 +28,7 @@ async function fetchRecords({
     tracingFilter: string[];
     favoritesOnly: boolean;
     minPriority: string | null;
+    hasApartado?: boolean;
   };
 }) {
   let where: any = {};
@@ -44,6 +45,9 @@ async function fetchRecords({
     }
     if (userFilters.favoritesOnly) {
       where.favorite = true;
+    }
+    if (userFilters.hasApartado) {
+      where.files = { some: { category: "APARTADO" } };
     }
     if (userFilters.minPriority) {
       const priorities = getPrioritiesAboveMin(userFilters.minPriority);
@@ -119,6 +123,7 @@ async function fetchRecords({
     if (userFilters?.tracingFilter && userFilters.tracingFilter.length > 0)
       baseWhere.tracing = { in: userFilters.tracingFilter };
     if (userFilters?.favoritesOnly) baseWhere.favorite = true;
+    if (userFilters?.hasApartado) baseWhere.files = { some: { category: "APARTADO" } };
 
     // Paginated where: minPriority but excluding urgente/alta (already handled above)
     const paginatedWhere = { ...baseWhere };
@@ -256,6 +261,7 @@ export async function getRecords({
     minPriority: string | null;
     mine: boolean;
     favoritesOnly: boolean;
+    apartadoOnly?: boolean;
   };
 }) {
   // Explicit filters (URL-driven): bypass DB config read
@@ -264,7 +270,8 @@ export async function getRecords({
       explicitFilters.tracingFilter.length > 0 ||
       explicitFilters.minPriority !== null ||
       explicitFilters.mine ||
-      explicitFilters.favoritesOnly;
+      explicitFilters.favoritesOnly ||
+      !!explicitFilters.apartadoOnly;
 
     let resolvedAssignedToUserId = assignedToUserId;
     if (explicitFilters.mine && !resolvedAssignedToUserId) {
@@ -283,6 +290,7 @@ export async function getRecords({
               tracingFilter: explicitFilters.tracingFilter,
               favoritesOnly: explicitFilters.favoritesOnly,
               minPriority: explicitFilters.minPriority,
+              hasApartado: !!explicitFilters.apartadoOnly,
             }
           : undefined,
         assignedToUserId: resolvedAssignedToUserId,

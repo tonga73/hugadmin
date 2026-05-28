@@ -80,12 +80,15 @@ export function useRecordsList({
     const lp = searchParams.get("lp");
     return lp !== null ? (lp || null) : initialMinPriority;
   });
-  // mine y favoritesOnly: URL param tiene prioridad; si ausente, usa prop inicial (DB config)
+  // mine, favoritesOnly y apartadoOnly: URL param tiene prioridad; si ausente, usa prop inicial (DB config)
   const urlMine = searchParams.get("lm");
   const mine = urlMine !== null ? urlMine === "1" : initialMine;
 
   const urlFav = searchParams.get("lf");
   const favoritesOnly = urlFav !== null ? urlFav === "1" : initialFavoritesOnly;
+
+  const urlApartado = searchParams.get("la");
+  const apartadoOnly = urlApartado === "1";
 
   // Búsqueda local
   const [pinnedQuery, setPinnedQuery] = useState("");
@@ -137,10 +140,10 @@ export function useRecordsList({
   }, [pinnedQuery]);
 
   // Ref con filtros actuales para uso en efectos async (infinite scroll, polling)
-  const filtersRef = useRef({ tracingFilter, minPriority, mine, favoritesOnly });
+  const filtersRef = useRef({ tracingFilter, minPriority, mine, favoritesOnly, apartadoOnly });
   useEffect(() => {
-    filtersRef.current = { tracingFilter, minPriority, mine, favoritesOnly };
-  }, [tracingFilter, minPriority, mine, favoritesOnly]);
+    filtersRef.current = { tracingFilter, minPriority, mine, favoritesOnly, apartadoOnly };
+  }, [tracingFilter, minPriority, mine, favoritesOnly, apartadoOnly]);
 
   // Re-fetch del servidor cuando cambian los filtros (skip primer render)
   const filtersInitialized = useRef(false);
@@ -156,7 +159,7 @@ export function useRecordsList({
       try {
         const { records: fresh, lastId: newLastId, hasMore: newHasMore } = await getRecords({
           take: 20,
-          explicitFilters: { tracingFilter, minPriority, mine, favoritesOnly },
+          explicitFilters: { tracingFilter, minPriority, mine, favoritesOnly, apartadoOnly },
           priorityPreload,
         });
         if (!cancelled) {
@@ -170,7 +173,7 @@ export function useRecordsList({
     };
     reload();
     return () => { cancelled = true; };
-  }, [tracingFilter, minPriority, mine, favoritesOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tracingFilter, minPriority, mine, favoritesOnly, apartadoOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helper para actualizar URL params de filtros
   const updateFilterUrl = useCallback((updates: {
@@ -178,6 +181,7 @@ export function useRecordsList({
     minPriority?: string | null;
     mine?: boolean;
     favoritesOnly?: boolean;
+    apartadoOnly?: boolean;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
     if (updates.tracingFilter !== undefined) {
@@ -195,6 +199,10 @@ export function useRecordsList({
     if (updates.favoritesOnly !== undefined) {
       if (updates.favoritesOnly) params.set("lf", "1");
       else params.delete("lf");
+    }
+    if (updates.apartadoOnly !== undefined) {
+      if (updates.apartadoOnly) params.set("la", "1");
+      else params.delete("la");
     }
     const qs = params.toString();
     startTransition(() => {
@@ -257,6 +265,11 @@ export function useRecordsList({
     });
   }, [updateFilterUrl]);
 
+  // Actualizar apartadoOnly — solo URL (sin persistencia en DB)
+  const updateApartadoOnly = useCallback((value: boolean) => {
+    updateFilterUrl({ apartadoOnly: value });
+  }, [updateFilterUrl]);
+
   // Limpiar búsqueda fijada
   const clearPinnedSearch = useCallback(() => {
     setPinnedQuery("");
@@ -277,14 +290,14 @@ export function useRecordsList({
   // Refrescar records desde el servidor (respeta filtros actuales)
   const refreshRecords = useCallback(async () => {
     try {
-      const { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav } = filtersRef.current;
+      const { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav, apartadoOnly: ap } = filtersRef.current;
       const {
         records: freshRecords,
         lastId: newLastId,
         hasMore: newHasMore,
       } = await getRecords({
         take: Math.max(records.length, 20),
-        explicitFilters: { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav },
+        explicitFilters: { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav, apartadoOnly: ap },
         priorityPreload,
       });
       setRecords(parseRecordsDates(freshRecords));
@@ -436,7 +449,7 @@ export function useRecordsList({
       async (entries) => {
         if (entries[0].isIntersecting && more && !loading) {
           setLoading(true);
-          const { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav } = filtersRef.current;
+          const { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav, apartadoOnly: ap } = filtersRef.current;
           const {
             records: newRecords,
             lastId: newCursor,
@@ -445,7 +458,7 @@ export function useRecordsList({
             cursor: cursor ?? undefined,
             take: 10,
             query: pinnedQuery || undefined,
-            explicitFilters: { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav },
+            explicitFilters: { tracingFilter: tf, minPriority: mp, mine: m, favoritesOnly: fav, apartadoOnly: ap },
           });
 
           setRecords((prev) => mergeUniqueRecords(prev, parseRecordsDates(newRecords)));
@@ -730,6 +743,7 @@ export function useRecordsList({
     minPriority,
     mine,
     favoritesOnly,
+    apartadoOnly,
     // Command state
     commandOpen,
     commandQuery,
@@ -761,6 +775,7 @@ export function useRecordsList({
     updateMinPriority,
     updateMine,
     updateFavoritesOnly,
+    updateApartadoOnly,
     // Router
     router,
     pathname,

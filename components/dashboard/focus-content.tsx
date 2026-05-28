@@ -8,7 +8,7 @@ import { RecordUsersPopover } from "@/components/records/record-users-popover";
 import { Card } from "@/components/ui/card";
 import { TracingBadge } from "@/components/records/tracing-badge";
 import { Badge } from "@/components/ui/badge";
-import { Star, SlidersHorizontal, ChevronDown, ChevronRight, X, Search, AlertTriangle } from "lucide-react";
+import { Star, SlidersHorizontal, ChevronDown, ChevronRight, X, Search, AlertTriangle, FolderOpen } from "lucide-react";
 import { PRIORITY_OPTIONS } from "@/app/constants";
 import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { formatOrder } from "@/lib/record-number";
@@ -221,6 +221,7 @@ export function FocusContent({
     more,
     mine,
     favoritesOnly,
+    apartadoOnly,
     tracingFilter,
     minPriority,
     pinnedQuery,
@@ -233,6 +234,7 @@ export function FocusContent({
     updateMinPriority,
     updateMine,
     updateFavoritesOnly,
+    updateApartadoOnly,
     scrollRef,
     sentinelRef,
   } = useRecordsList({
@@ -245,7 +247,7 @@ export function FocusContent({
   });
 
   const activeFilterCount =
-    tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0);
+    tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0) + (apartadoOnly ? 1 : 0);
 
   const sortedRecords = useMemo(
     () =>
@@ -436,6 +438,16 @@ export function FocusContent({
                 >
                   <Star className={cn("h-2.5 w-2.5", favoritesOnly && "fill-amber-400")} />
                   Destacados
+                </button>
+                <button
+                  onClick={() => updateApartadoOnly(!apartadoOnly)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-full text-[10px] font-medium border border-sky-400/60 text-sky-500 transition-all flex items-center gap-0.5",
+                    apartadoOnly ? "opacity-100 bg-sky-400/15" : "opacity-55 hover:opacity-75"
+                  )}
+                >
+                  <FolderOpen className="h-2.5 w-2.5" />
+                  Con apartado
                 </button>
               </div>
             </div>

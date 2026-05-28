@@ -24,7 +24,7 @@ function DashboardSkeleton() {
 }
 
 interface Props {
-  searchParams: Promise<{ view?: string; lm?: string; lf?: string; lt?: string; lp?: string }>;
+  searchParams: Promise<{ view?: string; lm?: string; lf?: string; lt?: string; lp?: string; la?: string }>;
 }
 
 async function resolveAssignedToUserId(email: string): Promise<number | undefined> {
@@ -83,6 +83,7 @@ export default async function Home({ searchParams }: Props) {
           tracingFilter={params.lt ? params.lt.split(",").filter(Boolean) : []}
           minPriority={params.lp || null}
           initialMine={params.lm === "1"}
+          apartadoOnly={params.la === "1"}
         />
       </Suspense>
     );
@@ -106,6 +107,7 @@ export default async function Home({ searchParams }: Props) {
           tracingFilter={params.lt ? params.lt.split(",").filter(Boolean) : ((config?.tracingFilter as string[]) ?? [])}
           minPriority={params.lp !== undefined ? (params.lp || null) : ((config?.minPriority as string | null) ?? null)}
           initialMine={mineFilter}
+          apartadoOnly={params.la === "1"}
         />
       </Suspense>
     );

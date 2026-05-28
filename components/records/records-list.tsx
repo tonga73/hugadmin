@@ -7,7 +7,7 @@ import { TRACING_OPTIONS } from "@/app/constants/tracing";
 import { useRecordsList } from "@/hooks/use-records-list";
 import { formatOrder } from "@/lib/record-number";
 import { cn } from "@/lib/utils";
-import { SlidersHorizontal, ChevronDown, X, Search, Star } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, X, Search, Star, FolderOpen } from "lucide-react";
 import { HighlightedRecordCard } from "./highlighted-record-card";
 import { TracingBadge } from "./tracing-badge";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
@@ -45,6 +45,7 @@ export function RecordsList({
     minPriority,
     mine,
     favoritesOnly,
+    apartadoOnly,
     commandLoading,
     scrollRef,
     sentinelRef,
@@ -60,12 +61,13 @@ export function RecordsList({
     updateMinPriority,
     updateMine,
     updateFavoritesOnly,
+    updateApartadoOnly,
     router,
     pathname,
   } = useRecordsList({ initialRecords, lastId, hasMore, initialTracingFilter, initialMinPriority, initialMine, initialFavoritesOnly });
 
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const activeFilterCount = tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0);
+  const activeFilterCount = tracingFilter.length + (minPriority ? 1 : 0) + (mine ? 1 : 0) + (favoritesOnly ? 1 : 0) + (apartadoOnly ? 1 : 0);
 
   return (
     <div className="flex flex-col h-full">
@@ -223,6 +225,16 @@ export function RecordsList({
               >
                 <Star className={cn("h-2.5 w-2.5", favoritesOnly && "fill-amber-400")} />
                 Destacados
+              </button>
+              <button
+                onClick={() => updateApartadoOnly(!apartadoOnly)}
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-medium border border-sky-400/60 text-sky-500 transition-all flex items-center gap-0.5",
+                  apartadoOnly ? "opacity-100 bg-sky-400/15" : "opacity-55 hover:opacity-75"
+                )}
+              >
+                <FolderOpen className="h-2.5 w-2.5" />
+                Con apartado
               </button>
             </div>
           </div>
