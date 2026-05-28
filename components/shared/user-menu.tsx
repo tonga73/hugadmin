@@ -17,8 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, ShieldCheck, Info, MapPin } from "lucide-react";
+import { LogOut, User, ShieldCheck, Info, MapPin, Sparkles } from "lucide-react";
 import { useAppTour } from "@/components/tour/app-tour";
+import { APP_VERSION } from "@/app/constants/version";
 
 export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => {
   const router = useRouter();
@@ -57,7 +58,7 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
           <DialogTitle>hugadmin</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm text-muted-foreground">
-          <p>Versión <span className="font-mono font-medium text-foreground">v2.1.0</span></p>
+          <p>Versión <span className="font-mono font-medium text-foreground">v{APP_VERSION}</span></p>
           <p>Sistema de gestión de expedientes para estudio jurídico.</p>
           <p>
             Desarrollado por{" "}
@@ -114,6 +115,10 @@ export const UserMenu: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) =
           </>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push("/changelog")}>
+          <Sparkles className="mr-2 h-4 w-4" />
+          <span>Novedades</span>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => startTour()}
         >

@@ -6,6 +6,18 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/): `MAJOR.M
 
 ---
 
+## [2.2.0] — 2026-05-28
+
+### Agregado
+- Estado de trámite "Sin posibilidad de cobro"
+- Estado de trámite "Inicio Ejecutivo"
+- Página `/changelog` con novedades del sistema accesible para todos los usuarios
+- Constante `APP_VERSION` centralizada (`app/constants/version.ts`) — elimina versión hardcodeada
+- Entradas de changelog en `app/constants/changelog.ts` con descripción amigable por versión
+- Ítem "Novedades" en menú de usuario (dropdown)
+
+---
+
 ## [2.1.0] — 2026-05-05
 
 ### Agregado
