@@ -110,14 +110,14 @@ export function PeritoContent({ records: initialRecords }: { records: PeritoReco
       <div className="shrink-0">
         <h1 className="text-base font-semibold">Mi trabajo</h1>
         <p className="text-xs text-muted-foreground">
-          {records.length} expediente{records.length !== 1 ? "s" : ""} asignados
+          {records.length} expediente{records.length !== 1 ? "s" : ""}
         </p>
       </div>
 
       {records.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground/40">
           <Inbox className="h-8 w-8" />
-          <p className="text-sm">No tenés expedientes asignados</p>
+          <p className="text-sm">No hay expedientes disponibles</p>
         </div>
       ) : (
         <>

@@ -15,8 +15,14 @@ export default async function PeritoPage() {
 
   const records = await prisma.record.findMany({
     where: {
-      RecordsAndUser: { some: { userId: dbUser.id } },
       archive: false,
+      OR: [
+        { RecordsAndUser: { some: { userId: dbUser.id } } },
+        {
+          apartadoListo: true,
+          RecordsAndUser: { none: { User: { role: "PERITO" } } },
+        },
+      ],
     },
     orderBy: [{ apartadoListo: "desc" }, { updatedAt: "desc" }],
     select: {
