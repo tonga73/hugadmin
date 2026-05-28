@@ -29,6 +29,7 @@ export default async function PrivateLayout({
     redirect("/maintenance");
   }
   const isAdmin = userRole === "ADMIN";
+  const isPerito = userRole === "PERITO";
   const defaultIsFocus = userConfig?.dashboardView === "FOCUS";
   const sidebarDefaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
   const chatPanelEnabled = userConfig?.chatPanel ?? false;
@@ -41,13 +42,39 @@ export default async function PrivateLayout({
       })
     : [];
 
+  // Layout exclusivo para peritos: sin sidebar, sin controles del dashboard normal
+  if (isPerito) {
+    return (
+      <div className="h-screen flex flex-col overflow-hidden">
+        <header className="flex items-center justify-between px-4 py-2 border-b border-border/40 shrink-0">
+          <span
+            className="font-montserrat text-xl font-light uppercase select-none"
+            style={{
+              background: "linear-gradient(to right, #07f49e, #0380b6)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            HA
+          </span>
+          <NavigationMenu isAdmin={false} isPerito={true} meId={dbUser?.id} />
+        </header>
+        <main className="flex-1 min-h-0 overflow-hidden p-3">
+          {children}
+        </main>
+        <Toaster position="bottom-right" richColors closeButton />
+      </div>
+    );
+  }
+
   return (
     <ViewProvider defaultIsFocus={defaultIsFocus}>
       <SidebarProvider defaultOpen={sidebarDefaultOpen}>
         <AppSidebar />
 
         <main className="flex-1 h-screen flex flex-col overflow-hidden p-3 space-y-3">
-          <NavigationMenu isAdmin={isAdmin} meId={dbUser?.id} />
+          <NavigationMenu isAdmin={isAdmin} isPerito={false} meId={dbUser?.id} />
           {children}
           <Toaster position="bottom-right" richColors closeButton />
         </main>

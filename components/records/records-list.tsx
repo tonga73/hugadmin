@@ -154,8 +154,8 @@ export function RecordsList({
                     )}
                     style={
                       active
-                        ? { backgroundColor: opt.color, color: opt.textColor, borderColor: opt.color }
-                        : { borderColor: opt.color, color: opt.textColor }
+                        ? { backgroundColor: opt.color, color: "var(--tracing-text)", borderColor: opt.color }
+                        : { borderColor: opt.color, color: opt.color }
                     }
                   >
                     {opt.label}

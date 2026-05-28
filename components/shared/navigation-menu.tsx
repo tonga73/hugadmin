@@ -15,9 +15,23 @@ import { cn } from "@/lib/utils";
 
 const btn = "flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors";
 
-export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; meId?: number }) {
+export function NavigationMenu({ isAdmin = false, isPerito = false, meId }: { isAdmin?: boolean; isPerito?: boolean; meId?: number }) {
   const { loading, user } = useAuth();
   const { isFocus } = useView();
+
+  // Nav minimalista para peritos
+  if (isPerito) {
+    return (
+      <div className="flex items-center gap-1 ml-auto">
+        <ModeToggle />
+        {loading ? (
+          <Skeleton className="h-7 w-7 rounded-full" />
+        ) : user ? (
+          <UserMenu isAdmin={false} />
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full items-center gap-1">
@@ -47,7 +61,7 @@ export function NavigationMenu({ isAdmin = false, meId }: { isAdmin?: boolean; m
         </div>
       )}
 
-      {/* Global actions — always visible regardless of mode */}
+      {/* Global actions */}
       <div className="flex items-center gap-0.5 ml-1">
         <Link
           id="tour-create-record"

@@ -64,6 +64,7 @@ interface EditableRecordPageProps {
     tracing: string;
     priority: string;
     favorite: boolean;
+    apartadoListo: boolean;
     officeId?: number | null;
     Note: Array<{
       id: number;
@@ -123,6 +124,8 @@ export default function EditableRecordPage({
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isFavorite, setIsFavorite] = useState(record.favorite);
+  const [isTogglingApartado, setIsTogglingApartado] = useState(false);
+  const [apartadoListo, setApartadoListo] = useState(record.apartadoListo);
   const [currentOffice, setCurrentOffice] = useState(record.Office);
 
   const { Note: RecordNote } = record;
@@ -202,16 +205,29 @@ export default function EditableRecordPage({
   const toggleFavorite = useCallback(async () => {
     const newValue = !isFavorite;
     setIsTogglingFavorite(true);
-    setIsFavorite(newValue); // Optimistic update
-
+    setIsFavorite(newValue);
     try {
       await saveField("favorite", newValue);
     } catch {
-      setIsFavorite(!newValue); // Revertir en caso de error
+      setIsFavorite(!newValue);
     } finally {
       setIsTogglingFavorite(false);
     }
   }, [isFavorite, saveField]);
+
+  // Toggle apartado listo
+  const toggleApartadoListo = useCallback(async () => {
+    const newValue = !apartadoListo;
+    setIsTogglingApartado(true);
+    setApartadoListo(newValue);
+    try {
+      await saveField("apartadoListo", newValue);
+    } catch {
+      setApartadoListo(!newValue);
+    } finally {
+      setIsTogglingApartado(false);
+    }
+  }, [apartadoListo, saveField]);
 
   // Guardar office
   const handleOfficeSave = useCallback(
@@ -363,6 +379,9 @@ export default function EditableRecordPage({
                   ...f,
                   createdAt: f.createdAt.toISOString(),
                 }))}
+                apartadoListo={apartadoListo}
+                onToggleApartadoListo={toggleApartadoListo}
+                isTogglingApartadoListo={isTogglingApartado}
               />
             </div>
           </Card>

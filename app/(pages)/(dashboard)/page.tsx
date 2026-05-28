@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
 import { getUserViewConfig } from "@/lib/user-config";
 import { OverviewDashboard } from "@/components/dashboard/overview-dashboard";
@@ -34,6 +35,18 @@ async function resolveAssignedToUserId(email: string): Promise<number | undefine
 export default async function Home({ searchParams }: Props) {
   const params = await searchParams;
   const urlView = params.view?.toUpperCase() ?? null;
+
+  // Peritos van siempre a su vista dedicada (a menos que traigan un urlView explícito de admin)
+  if (!urlView) {
+    const sessionUser = await getSessionUser();
+    if (sessionUser?.email) {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: sessionUser.email },
+        select: { role: true },
+      });
+      if (dbUser?.role === "PERITO") redirect("/perito");
+    }
+  }
 
   // OVERVIEW with explicit URL param
   if (urlView === "OVERVIEW") {

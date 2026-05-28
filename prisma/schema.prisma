@@ -51,6 +51,7 @@ model Record {
   priority       Priority         @default(NULA)
   archive        Boolean          @default(false)
   favorite       Boolean          @default(false)
+  apartadoListo  Boolean          @default(false)
   defendant      String[]
   prosecutor     String[]
   insurance      String[]
@@ -241,6 +242,7 @@ enum Role {
   ADMIN
   PART
   CLIENT
+  PERITO
 }
 
 enum Tracing {

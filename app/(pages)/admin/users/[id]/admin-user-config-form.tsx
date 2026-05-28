@@ -9,7 +9,7 @@ import { Loader2, ArrowLeft, BarChart2, Star, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type DashboardView = "OVERVIEW" | "FOCUS";
-type Role = "USER" | "ADMIN" | "PART" | "CLIENT";
+type Role = "USER" | "ADMIN" | "PART" | "CLIENT" | "PERITO";
 
 const DASHBOARD_OPTIONS: { value: DashboardView; label: string; icon: React.ElementType; description: string }[] = [
   { value: "OVERVIEW", icon: BarChart2, label: "Overview", description: "Pipeline completo y stats globales." },
@@ -19,6 +19,7 @@ const DASHBOARD_OPTIONS: { value: DashboardView; label: string; icon: React.Elem
 const ROLE_OPTIONS: { value: Role; label: string; description: string }[] = [
   { value: "USER", label: "Usuario", description: "Acceso completo a expedientes y archivos." },
   { value: "ADMIN", label: "Admin", description: "Acceso total incluyendo panel de administración." },
+  { value: "PERITO", label: "Perito", description: "Vista dedicada con sus expedientes asignados y apartado." },
   { value: "PART", label: "Parte", description: "Participante externo del expediente." },
   { value: "CLIENT", label: "Cliente", description: "Cliente con acceso limitado." },
 ];

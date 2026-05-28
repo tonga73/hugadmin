@@ -367,7 +367,7 @@ export function FocusContent({
                       )}
                       style={
                         active
-                          ? { backgroundColor: opt.color, color: opt.textColor, borderColor: opt.color }
+                          ? { backgroundColor: opt.color, color: "var(--tracing-text)", borderColor: opt.color }
                           : { borderColor: opt.color, color: opt.color }
                       }
                     >
@@ -451,25 +451,25 @@ export function FocusContent({
           {stats.urgente > 0 && (
             <>
               <span className="text-muted-foreground/25 text-[10px]">·</span>
-              <span className="text-[10px] text-red-400 font-medium">{stats.urgente} urgentes</span>
+              <span className="text-[10px] font-medium" style={{ color: PRIORITY_OPTIONS.URGENTE.color }}>{stats.urgente} urgentes</span>
             </>
           )}
           {stats.alta > 0 && (
             <>
               <span className="text-muted-foreground/25 text-[10px]">·</span>
-              <span className="text-[10px] text-orange-400">{stats.alta} alta</span>
+              <span className="text-[10px]" style={{ color: PRIORITY_OPTIONS.ALTA.color }}>{stats.alta} alta</span>
             </>
           )}
           {stats.enCobro > 0 && (
             <>
               <span className="text-muted-foreground/25 text-[10px]">·</span>
-              <span className="text-[10px] text-violet-400">{stats.enCobro} en cobro</span>
+              <span className="text-[10px]" style={{ color: TRACING_OPTIONS.COBRADO.color }}>{stats.enCobro} en cobro</span>
             </>
           )}
           {stats.staleUrgente > 0 && (
             <>
               <span className="text-muted-foreground/25 text-[10px]">·</span>
-              <span className="flex items-center gap-0.5 text-[10px] text-red-400/70">
+              <span className="flex items-center gap-0.5 text-[10px]" style={{ color: PRIORITY_OPTIONS.URGENTE.color }}>
                 <AlertTriangle className="h-2.5 w-2.5" />
                 {stats.staleUrgente} inactivos
               </span>
@@ -493,7 +493,7 @@ export function FocusContent({
                     tooltip="Expedientes que requieren acción inmediata"
                     count={stats.urgente}
                     staleCount={stats.staleUrgente}
-                    color="#ef4444"
+                    color={PRIORITY_OPTIONS.URGENTE.color}
                     open={!collapsed.urgente}
                     onToggle={() => toggleSection("urgente")}
                   />
@@ -521,7 +521,7 @@ export function FocusContent({
                     label="Seguimiento"
                     tooltip="Expedientes de seguimiento prioritario"
                     count={stats.alta + stats.camara}
-                    color="#f97316"
+                    color={PRIORITY_OPTIONS.ALTA.color}
                     open={!collapsed.alta}
                     onToggle={() => toggleSection("alta")}
                   />
@@ -549,7 +549,7 @@ export function FocusContent({
                     label="En proceso"
                     tooltip="Expedientes en curso sin urgencia inmediata"
                     count={procesoTotal}
-                    color="#94a3b8"
+                    color={PRIORITY_OPTIONS.NULA.color}
                     open={!collapsed.proceso}
                     onToggle={() => toggleSection("proceso")}
                     muted

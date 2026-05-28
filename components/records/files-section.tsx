@@ -17,6 +17,7 @@ import {
   BookOpen,
   ChevronRight,
   FilePlus,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +61,9 @@ interface RecordFile {
 interface FilesSectionProps {
   recordId: number;
   initialFiles: RecordFile[];
+  apartadoListo?: boolean;
+  onToggleApartadoListo?: () => void;
+  isTogglingApartadoListo?: boolean;
 }
 
 function fileIcon(mimeType: string) {
@@ -97,6 +101,9 @@ interface FileGroupProps {
   onUpload: (files: FileList, category: FileCategory) => Promise<void>;
   onDelete: (fileId: number) => Promise<void>;
   onCreateDoc?: (name: string) => Promise<void>;
+  apartadoListo?: boolean;
+  onToggleApartadoListo?: () => void;
+  isTogglingApartadoListo?: boolean;
 }
 
 function FileGroup({
@@ -112,6 +119,9 @@ function FileGroup({
   onUpload,
   onDelete,
   onCreateDoc,
+  apartadoListo,
+  onToggleApartadoListo,
+  isTogglingApartadoListo,
 }: FileGroupProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -142,6 +152,27 @@ function FileGroup({
         </button>
         {isOpen && (
           <div className="flex items-center gap-1">
+            {onToggleApartadoListo && files.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`h-6 text-xs gap-1 px-1.5 transition-colors ${
+                  apartadoListo
+                    ? "text-emerald-500 hover:text-emerald-600"
+                    : "text-muted-foreground/50 hover:text-emerald-400"
+                }`}
+                onClick={onToggleApartadoListo}
+                disabled={isTogglingApartadoListo}
+                title={apartadoListo ? "Marcar como no listo" : "Marcar como listo"}
+              >
+                {isTogglingApartadoListo ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className={`h-2.5 w-2.5 ${apartadoListo ? "fill-emerald-500/20" : ""}`} />
+                )}
+                {apartadoListo ? "Listo" : "Marcar listo"}
+              </Button>
+            )}
             {canCreate && (
               <Button
                 variant="ghost"
@@ -340,7 +371,13 @@ function FileGroup({
   );
 }
 
-export function FilesSection({ recordId, initialFiles }: FilesSectionProps) {
+export function FilesSection({
+  recordId,
+  initialFiles,
+  apartadoListo,
+  onToggleApartadoListo,
+  isTogglingApartadoListo,
+}: FilesSectionProps) {
   const [files, setFiles] = useState<RecordFile[]>(initialFiles);
   const [uploadingCategory, setUploadingCategory] = useState<FileCategory | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -443,6 +480,9 @@ export function FilesSection({ recordId, initialFiles }: FilesSectionProps) {
         onUpload={uploadFiles}
         onDelete={handleDelete}
         onCreateDoc={handleCreateDoc}
+        apartadoListo={apartadoListo}
+        onToggleApartadoListo={onToggleApartadoListo}
+        isTogglingApartadoListo={isTogglingApartadoListo}
       />
       <FileGroup
         label="Expediente"

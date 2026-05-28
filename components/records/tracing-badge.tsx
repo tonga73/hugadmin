@@ -8,13 +8,13 @@ interface BadgeTracingProps {
 }
 
 export function TracingBadge({ tracing, size = "default" }: BadgeTracingProps) {
-  const { label, color, textColor } = TRACING_OPTIONS[tracing];
+  const { label, color } = TRACING_OPTIONS[tracing];
 
   return (
     <Badge
       style={{
         backgroundColor: color,
-        color: textColor,
+        color: "var(--tracing-text)",
       }}
       className={cn(
         size === "sm" && "text-[10px] px-1.5 py-0"

@@ -13,7 +13,7 @@ interface ProfileFormProps {
   initialName: string | null;
   initialImage: string | null;
   email: string;
-  role: "ADMIN" | "USER" | "PART" | "CLIENT";
+  role: "ADMIN" | "USER" | "PART" | "CLIENT" | "PERITO";
 }
 
 const ROLE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {

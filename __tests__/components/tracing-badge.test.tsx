@@ -15,10 +15,10 @@ describe("TracingBadge", () => {
     expect(badge).toHaveStyle({ backgroundColor: TRACING_OPTIONS.COBRADO.color });
   });
 
-  it("aplica el color de texto correcto via style", () => {
+  it("aplica el color de texto fijo via style", () => {
     const { container } = render(<TracingBadge tracing="HONORARIOS_REGULADOS" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge).toHaveStyle({ color: TRACING_OPTIONS.HONORARIOS_REGULADOS.textColor });
+    expect(badge).toHaveStyle({ color: "var(--tracing-text)" });
   });
 
   it("renderiza para cada valor de tracing", () => {

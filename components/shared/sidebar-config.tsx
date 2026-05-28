@@ -132,10 +132,10 @@ export function SidebarConfig({
                       active
                         ? {
                             backgroundColor: opt.color,
-                            color: opt.textColor,
+                            color: "var(--tracing-text)",
                             borderColor: opt.color,
                           }
-                        : { borderColor: opt.color, color: opt.textColor }
+                        : { borderColor: opt.color, color: opt.color }
                     }
                   >
                     {opt.label}

@@ -14,6 +14,7 @@ const DASHBOARD_VIEW_LABELS: Record<string, string> = {
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Admin",
   USER: "Usuario",
+  PERITO: "Perito",
   PART: "Parte",
   CLIENT: "Cliente",
 };
@@ -21,11 +22,12 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: "text-primary border-primary/40 bg-primary/5",
   USER: "text-muted-foreground border-muted-foreground/20",
+  PERITO: "text-emerald-600 border-emerald-400/40 bg-emerald-50/30 dark:text-emerald-400 dark:bg-emerald-950/30",
   PART: "text-amber-600 border-amber-400/40 bg-amber-50/30",
   CLIENT: "text-blue-600 border-blue-400/40 bg-blue-50/30",
 };
 
-const ROLE_ORDER: Record<string, number> = { ADMIN: 0, USER: 1, PART: 2, CLIENT: 3 };
+const ROLE_ORDER: Record<string, number> = { ADMIN: 0, USER: 1, PERITO: 2, PART: 3, CLIENT: 4 };
 
 type SortKey = "nombre" | "rol" | "vista";
 

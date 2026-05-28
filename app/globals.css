@@ -45,6 +45,22 @@
 }
 
 :root {
+  /* ── Tracing: un color por estado, igual en light y dark mode ───────────
+     Color único como fondo de badge, dot, barra y texto. L ≥ 70% asegura
+     texto oscuro legible en ambos temas. Hue alterna entre grupos para
+     distinción. COBRADO = teal-400 (#2dd4bf), el punto de llegada.        */
+  --tracing-text:      oklch(22% 0.015 230); /* texto fijo oscuro para todos los badges tracing */
+  --tracing-acepta:    oklch(74% 0.055 35);  /* arena cálida */
+  --tracing-acto:      oklch(74% 0.055 75);  /* oliva / amarillo */
+  --tracing-pericia:   oklch(74% 0.055 130); /* salvia verde */
+  --tracing-camara:    oklch(74% 0.055 210); /* azul cornflower */
+  --tracing-sentencia: oklch(74% 0.055 250); /* slate azulado */
+  --tracing-honorarios:oklch(74% 0.055 290); /* lavanda */
+  --tracing-tratativa: oklch(74% 0.055 340); /* rosa apagado */
+  --tracing-ejecutivo: oklch(72% 0.07  15);  /* terracota (escalada) */
+  --tracing-cobrado:   oklch(78% 0.106 191); /* teal-400 — referencia */
+  --tracing-sincobro:  oklch(73% 0.018 230); /* gris neutro */
+
   /* Background - beige/crema apagado, como papel vintage */
   --background: oklch(88% 0.015 80);
   --foreground: oklch(28% 0.015 240);

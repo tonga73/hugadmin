@@ -93,12 +93,12 @@ export async function OverviewDashboard({ assignedToUserId, favoritesOnly, initi
   ].map(({ key }) => ({ key, count: getTracingCount(key) }));
 
   const priorityDist = [
-    { key: "URGENTE", label: "Urgente", color: "#ef4444", count: urgenteStat, stale: staleUrgenteCount },
-    { key: "ALTA",    label: "Alta",    color: "#f97316", count: altaStat,    stale: 0 },
-    { key: "MEDIA",   label: "Media",   color: "#fcd34d", count: getPriorityCount("MEDIA"), stale: 0 },
-    { key: "BAJA",    label: "Baja",    color: "#60a5fa", count: getPriorityCount("BAJA"),  stale: 0 },
-    { key: "NULA",    label: "Sin pr.", color: "#94a3b8", count: getPriorityCount("NULA"),  stale: 0 },
-  ];
+    { key: "URGENTE", label: "Urgente", count: urgenteStat, stale: staleUrgenteCount },
+    { key: "ALTA",    label: "Alta",    count: altaStat,    stale: 0 },
+    { key: "MEDIA",   label: "Media",   count: getPriorityCount("MEDIA"), stale: 0 },
+    { key: "BAJA",    label: "Baja",    count: getPriorityCount("BAJA"),  stale: 0 },
+    { key: "NULA",    label: "Sin pr.", count: getPriorityCount("NULA"),  stale: 0 },
+  ].map((p) => ({ ...p, color: PRIORITY_OPTIONS[p.key].color }));
 
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-1.5">

@@ -6,6 +6,22 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/): `MAJOR.M
 
 ---
 
+## [2.3.0] — 2026-05-28
+
+### Agregado
+- Rol `PERITO` con vista dedicada en `/perito`: lista de expedientes asignados, sección "Apartado listo" destacada
+- Layout exclusivo para peritos: sin sidebar, sin controles del dashboard normal, experiencia aislada
+- Campo `apartadoListo` en expedientes: toggle en la sección Apartados del detalle (solo visible cuando hay archivos de apartado subidos)
+- Actualización en tiempo real de la vista perito al marcar/desmarcar apartado listo
+
+### Mejorado
+- Sistema de colores de tracing unificado: un solo color por estado (sin variables bg/text separadas), consistente en badges, dots y barras
+- Paleta de tracing rediseñada: hues distribuidos en 360° con chroma bajo (~0.055), COBRADO mantiene el teal-400 como referencia
+- Colores de prioridad aplicados consistentemente en la línea de stats del layout Focus
+- Rol PERITO visible en panel de admin con color verde, descripción y orden correcto
+
+---
+
 ## [2.2.0] — 2026-05-28
 
 ### Agregado

@@ -7,6 +7,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    version: "2.3.0",
+    date: "2026-05-28",
+    summary: "Rol Perito y apartado listo",
+    changes: [
+      "Nuevo rol Perito con vista dedicada: muestra solo los expedientes asignados al perito",
+      "Sección \"Apartado listo\" destacada al inicio de la vista perito",
+      "Botón para marcar un apartado como listo, visible en la sección de archivos cuando hay un apartado subido",
+      "Colores de trámite renovados: paleta más suave y distinguible, con Cobrado como referencia",
+    ],
+  },
+  {
     version: "2.2.0",
     date: "2026-05-28",
     summary: "Nuevos estados de trámite",
