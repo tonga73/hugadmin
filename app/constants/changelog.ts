@@ -9,12 +9,10 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     version: "2.3.0",
     date: "2026-05-28",
-    summary: "Rol Perito y apartado listo",
+    summary: "Apartado listo y mejoras visuales",
     changes: [
-      "Nuevo rol Perito con vista dedicada: muestra solo los expedientes asignados al perito",
-      "Sección \"Apartado listo\" destacada al inicio de la vista perito",
-      "Botón para marcar un apartado como listo, visible en la sección de archivos cuando hay un apartado subido",
-      "Colores de trámite renovados: paleta más suave y distinguible, con Cobrado como referencia",
+      "Podés marcar el apartado de un expediente como \"listo\" desde la sección de archivos, cuando ya hay uno subido",
+      "Los colores de cada estado de trámite se renovaron: más suaves y fáciles de distinguir entre sí",
     ],
   },
   {
@@ -22,32 +20,28 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: "2026-05-28",
     summary: "Nuevos estados de trámite",
     changes: [
-      "Se agregaron 2 nuevos estados de trámite: \"Sin posibilidad de cobro\" e \"Inicio Ejecutivo\"",
-      "Nueva sección de novedades accesible desde el menú de usuario",
+      "Se agregaron 2 nuevos estados: \"Sin posibilidad de cobro\" e \"Inicio Ejecutivo\"",
+      "Nueva sección Novedades en el menú de usuario para ver los cambios del sistema",
     ],
   },
   {
     version: "2.1.0",
     date: "2026-05-05",
-    summary: "Modo mantenimiento y mejoras de administración",
+    summary: "Sincronización mejorada",
     changes: [
-      "Modo mantenimiento: bloquea el acceso a usuarios no-administradores",
-      "Gestión de usuarios mejorada: activar/desactivar, mostrar/ocultar en listas",
-      "Panel de administración con edición de rol y nombre de usuario",
-      "Integración con Google Drive mejorada con actualizaciones en tiempo real",
+      "Los archivos de Google Drive ahora se sincronizan automáticamente sin necesidad de actualizar la página",
     ],
   },
   {
     version: "2.0.0",
     date: "2025",
-    summary: "Reescritura completa del sistema",
+    summary: "Nueva versión del sistema",
     changes: [
-      "Sistema rediseñado desde cero con tecnología moderna",
-      "Nueva interfaz más rápida y responsive",
-      "Gestión completa de expedientes con archivos adjuntos",
+      "Interfaz completamente rediseñada, más rápida y adaptable a cualquier pantalla",
+      "Gestión de expedientes con archivos adjuntos por categoría",
       "Sincronización automática con Google Drive",
-      "Asistente de inteligencia artificial para clasificar archivos",
-      "Autenticación segura con cuenta de Google",
+      "Asistente de inteligencia artificial para clasificar archivos automáticamente",
+      "Inicio de sesión con cuenta de Google",
     ],
   },
 ];
